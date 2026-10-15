@@ -43,6 +43,17 @@ export function TableManager({
 
   const [tables, setTables] = useState<RestaurantTable[]>([]);
   const [unassignedReservations, setUnassignedReservations] = useState<AvailableReservation[]>([]);
+  const [activePaletas, setActivePaletas] = useState<
+    Array<{
+      id: string;
+      tracking_code: string;
+      customer_name: string;
+      table_or_token_number: string;
+      status: string;
+      created_at: string;
+      total_cents: number;
+    }>
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -72,12 +83,49 @@ export function TableManager({
         const body = (await res.json()) as { tables: RestaurantTable[] };
         setTables(body.tables || []);
       }
+
+      // Cargar paletas de madera en salón
+      const { data: paletasData } = await supabase
+        .from('public_order_requests')
+        .select('id, tracking_code, customer_name, table_or_token_number, status, created_at, total_cents')
+        .eq('restaurant_id', restaurantId)
+        .eq('service_type', 'paleta_madera')
+        .not('table_or_token_number', 'is', null)
+        .in('status', ['confirmado', 'preparando', 'listo']);
+
+      if (paletasData) {
+        setActivePaletas(
+          paletasData as Array<{
+            id: string;
+            tracking_code: string;
+            customer_name: string;
+            table_or_token_number: string;
+            status: string;
+            created_at: string;
+            total_cents: number;
+          }>,
+        );
+      }
     } catch {
       // Ignorar error de red en polling silencioso
     } finally {
       if (!isSilent) setLoading(false);
     }
-  }, []);
+  }, [restaurantId, supabase]);
+
+  async function releasePaleta(orderId: string, tokenNum: string) {
+    try {
+      await fetch(`/api/orders/${orderId}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'completado' }),
+      });
+      setSuccessMsg(`Paleta #${tokenNum} recogida y liberada.`);
+      await loadTables(true);
+    } catch {
+      setError('No se pudo liberar la paleta.');
+    }
+  }
 
   const loadUnassignedReservations = useCallback(async () => {
     try {
@@ -357,6 +405,61 @@ export function TableManager({
           )}
         </div>
       </div>
+
+      {/* SECCIÓN: Paletas / Fichas de Madera en Salón (Modo Fast Casual) */}
+      {activePaletas.length > 0 && (
+        <section className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🪵</span>
+              <div>
+                <h3 className="text-sm font-bold text-amber-900 dark:text-amber-200">
+                  Paletas / Fichas de Madera en Circulación ({activePaletas.length})
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Clientes sentados en el salón comiendo con número móvil. Al limpiar la mesa o recoger el número, presiona &ldquo;Liberar&rdquo;.
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+              {activePaletas.length} mesas ocupadas
+            </span>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 pt-1">
+            {activePaletas.map((pal) => (
+              <div
+                key={pal.id}
+                className="flex flex-col justify-between rounded-xl border border-amber-500/30 bg-card p-3.5 shadow-xs"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-base font-extrabold text-amber-800 dark:text-amber-300">
+                      🪵 Paleta #{pal.table_or_token_number}
+                    </span>
+                    <span className="text-[10px] rounded-md bg-muted px-1.5 py-0.5 font-mono text-muted-foreground">
+                      {new Date(pal.created_at).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+
+                  <p className="mt-1 text-xs font-semibold">{pal.customer_name}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Código: {pal.tracking_code} · ${(pal.total_cents / 100).toFixed(2)}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => void releasePaleta(pal.id, pal.table_or_token_number)}
+                  className="mt-3 h-8 w-full rounded-lg bg-emerald-600 px-2 text-xs font-bold text-white hover:bg-emerald-700 transition-colors shadow-xs"
+                >
+                  ✓ Recoger Paleta y Liberar
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Grid Visual de Mesas */}
       {loading && !tables.length ? (

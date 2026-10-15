@@ -14,6 +14,10 @@ type TrackedOrder = {
   id: string;
   tracking_code: string;
   status: 'pendiente' | 'confirmado' | 'preparando' | 'listo' | 'completado' | 'rechazado' | 'cancelado';
+  service_type?: 'paleta_madera' | 'mesa_fija' | 'para_llevar';
+  table_or_token_number?: string | null;
+  payment_status?: 'pendiente' | 'pagado';
+  payment_method?: string | null;
   rejection_reason: string | null;
   customer_name: string;
   total_cents: number;
@@ -305,6 +309,45 @@ export function OrderTracker({
                 ↻
               </button>
             </div>
+          </div>
+
+          {/* Banner de Paleta / Mesa y Estado de Pago */}
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">
+                {order.service_type === 'paleta_madera' ? '🪵' : order.service_type === 'mesa_fija' ? '🪑' : '🛍️'}
+              </span>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-primary">
+                  {order.table_or_token_number
+                    ? order.service_type === 'paleta_madera'
+                      ? `Tu Paleta de Mesa es la #${order.table_or_token_number}`
+                      : order.service_type === 'mesa_fija'
+                        ? `Asignado a la Mesa #${order.table_or_token_number}`
+                        : `Pedido Para Llevar (#${order.table_or_token_number})`
+                    : 'Ubicación en proceso de asignación en caja'}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {order.service_type === 'paleta_madera'
+                    ? 'Toma asiento en cualquier mesa libre y coloca tu número visible. ¡El mesero te llevará tu comida!'
+                    : order.service_type === 'mesa_fija'
+                      ? 'Tu pedido será servido en tu mesa.'
+                      : 'Retira tu pedido en el mostrador cuando esté listo.'}
+                </p>
+              </div>
+            </div>
+
+            <span
+              className={`rounded-full border px-3 py-1 text-xs font-bold ${
+                order.payment_status === 'pagado'
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                  : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400'
+              }`}
+            >
+              {order.payment_status === 'pagado'
+                ? `✓ PAGADO (${order.payment_method || 'Caja'})`
+                : '⏳ Pago pendiente en caja'}
+            </span>
           </div>
 
           {/* Stepper Visual de Progreso */}
