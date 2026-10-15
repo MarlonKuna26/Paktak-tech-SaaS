@@ -166,8 +166,8 @@ Genera en `/docs/` estos documentos, claros y accionables, marcando como `[HIPÓ
 - [ ] Panel del restaurante para confirmar/cancelar reservas; botón de WhatsApp para contactar al cliente con mensaje prellenado.
 
 ### FASE 5: Panel del Anfitrión (Host)
-- [ ] `/admin/mesas`: grid en tiempo real (Supabase Realtime filtrado por `restaurant_id`).
-- [ ] Cambiar estado de mesa y asignar reserva a mesa.
+- [x] `/admin/mesas`: grid en tiempo real (Supabase Realtime filtrado por `restaurant_id`).
+- [x] Cambiar estado de mesa y asignar reserva a mesa.
 
 ### FASE 6: App del Mesero (Offline-First) — CRÍTICO
 - [ ] Spike técnico de sincronización (ver sección 6) y validación mía.

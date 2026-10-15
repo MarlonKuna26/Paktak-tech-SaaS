@@ -9,6 +9,7 @@ const navigation: ReadonlyArray<{
 }> = [
   { href: '/admin', label: 'Resumen', roles: ['owner', 'admin', 'host', 'waiter', 'kitchen'] },
   { href: '/admin/mesas', label: 'Mesas', roles: ['owner', 'admin', 'host', 'waiter'] },
+  { href: '/admin/reservas', label: 'Reservas', roles: ['owner', 'admin', 'host'] },
   { href: '/admin/menu', label: 'Menú', roles: ['owner', 'admin'] },
   { href: '/admin/cocina', label: 'Cocina', roles: ['owner', 'admin', 'kitchen'] },
   { href: '/admin/mesero', label: 'Mesero', roles: ['owner', 'admin', 'waiter'] },

@@ -15,7 +15,7 @@ async function OrderTokenShell({ params }: { params: Promise<{ token: string }> 
         <div>
           <p className="text-sm font-medium text-primary">Paktak Tech</p>
           <h1 className="text-3xl font-semibold tracking-tight">Estado de mi pedido</h1>
-          <p className="mt-2 text-muted-foreground">Confirma tu teléfono para consultar el estado.</p>
+          <p className="mt-2 text-muted-foreground">Seguimiento en vivo y directo con el restaurante.</p>
         </div>
         <OrderTracker initialCode={token} />
       </div>
