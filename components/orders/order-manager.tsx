@@ -610,12 +610,35 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
                     value={tokenInput}
                     onChange={(e) => setTokenInput(e.target.value)}
                     placeholder={payServiceType === 'paleta_madera' ? 'Ej. 7' : 'Ej. 4'}
-                    className="h-10 w-full rounded-lg border bg-background px-3 text-base font-bold focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className={`h-10 w-full rounded-lg border bg-background px-3 text-base font-bold focus:outline-none focus:ring-2 ${
+                      tokenInput && orders.some(
+                        (o) =>
+                          o.id !== payingOrder.id &&
+                          o.service_type === 'paleta_madera' &&
+                          o.table_or_token_number?.trim().toLowerCase() === tokenInput.trim().toLowerCase() &&
+                          ['confirmado', 'preparando', 'listo'].includes(o.status),
+                      )
+                        ? 'border-amber-500 focus:ring-amber-400'
+                        : 'focus:ring-primary/40'
+                    }`}
                     autoFocus
                   />
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    El mesero buscará este número en el salón para llevar los platos calientes.
-                  </p>
+
+                  {tokenInput && orders.some(
+                    (o) =>
+                      o.id !== payingOrder.id &&
+                      o.service_type === 'paleta_madera' &&
+                      o.table_or_token_number?.trim().toLowerCase() === tokenInput.trim().toLowerCase() &&
+                      ['confirmado', 'preparando', 'listo'].includes(o.status),
+                  ) ? (
+                    <p className="mt-1.5 rounded-md bg-amber-500/10 p-2 text-xs font-medium text-amber-800 dark:text-amber-300">
+                      ⚠️ Atención: La Paleta #{tokenInput} ya está en una mesa activa en el salón. Verifica si la madera física ya regresó a caja.
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      El mesero buscará este número en el salón para llevar los platos calientes.
+                    </p>
+                  )}
                 </div>
               )}
 

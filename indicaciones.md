@@ -170,10 +170,10 @@ Genera en `/docs/` estos documentos, claros y accionables, marcando como `[HIPÓ
 - [x] Cambiar estado de mesa y asignar reserva a mesa.
 
 ### FASE 6: App del Mesero (Offline-First) — CRÍTICO
-- [ ] Spike técnico de sincronización (ver sección 6) y validación mía.
-- [ ] `/admin/mesero`: seleccionar mesa, agregar productos con notas, enviar comanda.
+- [x] Spike técnico de sincronización (ver sección 6) y validación mía.
+- [x] `/admin/mesero`: seleccionar mesa, agregar productos con notas, enviar comanda.
 - [ ] PWA instalable + caché del menú y mesas.
-- [ ] Outbox en Dexie, reintentos, indicador de estado, pruebas Playwright offline.
+- [x] Outbox en Dexie, reintentos, indicador de estado, pruebas Playwright offline.
 
 ### FASE 7: KDS (Cocina)
 - [ ] `/admin/cocina`: tarjetas por mesa/orden en tiempo real, filtradas por `restaurant_id`.
