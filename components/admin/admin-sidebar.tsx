@@ -69,6 +69,7 @@ export function AdminSidebar({ staff }: { staff: CurrentStaff }) {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
               className={`flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
                 isActive
                   ? 'bg-[#f3a806] text-zinc-950 font-bold shadow-xs'
