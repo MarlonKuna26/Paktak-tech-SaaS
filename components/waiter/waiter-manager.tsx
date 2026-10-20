@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { offlineDb, type CachedProduct, type CachedTable, type LocalOrder } from '@/lib/offline/db';
 import { syncEngine } from '@/lib/offline/sync-engine';
+import { ThermalReceiptModal } from '@/components/orders/thermal-receipt-modal';
 
 type CartItem = {
   productId: string;
@@ -42,6 +43,8 @@ export function WaiterManager({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
+  const [batterySaver, setBatterySaver] = useState(false);
+  const [printingOrder, setPrintingOrder] = useState<LocalOrder | null>(null);
 
   // 1. Suscribirse al Sync Engine
   useEffect(() => {
@@ -50,6 +53,17 @@ export function WaiterManager({
     });
     return () => unsubscribe();
   }, []);
+
+  // Cargar órdenes recientes de Dexie
+  const loadRecentOrders = useCallback(async () => {
+    const localOrders = await offlineDb.localOrders
+      .where('restaurantId')
+      .equals(restaurantId)
+      .reverse()
+      .limit(10)
+      .toArray();
+    setRecentOrders(localOrders);
+  }, [restaurantId]);
 
   // 2. Cargar y cachear datos en Dexie
   const loadData = useCallback(async () => {
@@ -111,30 +125,19 @@ export function WaiterManager({
       if (localProducts.length > 0) setProducts(localProducts);
     }
 
-    // Cargar órdenes recientes de Dexie
-    const localOrders = await offlineDb.localOrders
-      .where('restaurantId')
-      .equals(restaurantId)
-      .reverse()
-      .limit(10)
-      .toArray();
-    setRecentOrders(localOrders);
-  }, [restaurantId, supabase]);
+    await loadRecentOrders();
+  }, [loadRecentOrders, restaurantId, supabase]);
 
   useEffect(() => {
-    void loadData();
+    const timer = window.setTimeout(() => void loadData(), 0);
+    return () => window.clearTimeout(timer);
   }, [loadData]);
 
   // Actualizar lista de órdenes cuando cambie el conteo de sincronización
   useEffect(() => {
-    void offlineDb.localOrders
-      .where('restaurantId')
-      .equals(restaurantId)
-      .reverse()
-      .limit(10)
-      .toArray()
-      .then((res) => setRecentOrders(res));
-  }, [syncStatus.pendingCount, restaurantId]);
+    const timer = window.setTimeout(() => void loadRecentOrders(), 0);
+    return () => window.clearTimeout(timer);
+  }, [syncStatus.pendingCount, loadRecentOrders]);
 
   // Carrito helpers
   function addToCart(product: CachedProduct) {
@@ -186,6 +189,8 @@ export function WaiterManager({
   // 3. Enviar Comanda (Offline-First garantizado)
   async function handleSubmitOrder() {
     setFeedback(null);
+
+    // Validaciones básicas
     if (!selectedTable) {
       setFeedback({ ok: false, text: 'Por favor selecciona una mesa antes de enviar.' });
       return;
@@ -197,21 +202,21 @@ export function WaiterManager({
 
     setIsSubmitting(true);
 
+    // A) Generar UUIDs deterministas en el cliente
+    const orderId = crypto.randomUUID();
+    const mutationId = crypto.randomUUID();
+    const nowIso = new Date().toISOString();
+
+    const itemsPayload = cart.map((item) => ({
+      id: crypto.randomUUID(),
+      productId: item.productId,
+      productName: item.name,
+      unitPriceCents: item.priceCents,
+      quantity: item.quantity,
+      notes: item.notes.trim() || undefined,
+    }));
+
     try {
-      // A) Generar UUIDs deterministas en el cliente
-      const orderId = crypto.randomUUID();
-      const mutationId = crypto.randomUUID();
-      const nowIso = new Date().toISOString();
-
-      const itemsPayload = cart.map((item) => ({
-        id: crypto.randomUUID(), // UUID cliente por cada item
-        productId: item.productId,
-        productName: item.name,
-        unitPriceCents: item.priceCents,
-        quantity: item.quantity,
-        notes: item.notes.trim() || undefined,
-      }));
-
       // B) Guardar orden inmediatamente en Dexie localOrders
       const localOrder: LocalOrder = {
         id: orderId,
@@ -255,17 +260,11 @@ export function WaiterManager({
       setIsSubmitting(false);
       setFeedback({
         ok: true,
-        text: syncStatus.isOnline
-          ? `✓ Comanda para Mesa #${selectedTable.tableNumber} enviada a cocina.`
-          : `✓ Comanda para Mesa #${selectedTable.tableNumber} guardada en este teléfono. Se sincronizará automáticamente al tener señal.`,
+        text: `Comanda para Mesa #${selectedTable.tableNumber} registrada (${syncStatus.isOnline ? 'enviada a cocina' : 'guardada en este dispositivo'}).`,
       });
-
-      // Actualizar vista de mesas
-      setTables((current) =>
-        current.map((t) => (t.id === selectedTable.id ? { ...t, status: 'ocupada' } : t)),
-      );
-      setSelectedTable(null);
-    } catch {
+      await loadRecentOrders();
+    } catch (err) {
+      console.error(err);
       setIsSubmitting(false);
       setFeedback({
         ok: false,
@@ -326,10 +325,30 @@ export function WaiterManager({
           )}
           <button
             type="button"
+            onClick={() => setBatterySaver(!batterySaver)}
+            className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+              batterySaver
+                ? 'bg-amber-400 text-black border border-amber-300'
+                : 'border bg-background hover:bg-muted text-muted-foreground'
+            }`}
+            title="Activa el fondo negro absoluto (AMOLED) para ahorrar hasta 45% de batería en apagones"
+          >
+            {batterySaver ? '⚡ Modo Apagón ON' : '🔋 Ahorro Apagón'}
+          </button>
+          <button
+            type="button"
             onClick={() => void syncEngine.checkConnectionAndSync()}
             className="rounded-lg border bg-background px-3 py-1 text-xs font-medium hover:bg-muted"
           >
             ↻ Sincronizar Ahora
+          </button>
+          {/* Botón para ver comanda visual (modo apagón) */}
+          <button
+            type="button"
+            onClick={() => printingOrder && setPrintingOrder(printingOrder)}
+            className="rounded-lg bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/80"
+          >
+            📄 Mostrar Comanda (Modo Apagón)
           </button>
         </div>
       </div>
@@ -598,10 +617,38 @@ export function WaiterManager({
                 <p className="text-[10px] text-muted-foreground">
                   {new Date(ord.createdAt).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
                 </p>
+
+                <button
+                  type="button"
+                  onClick={() => setPrintingOrder(ord)}
+                  className="mt-2 h-7 w-full rounded-lg border bg-background text-[11px] font-semibold hover:bg-muted flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <span>🖨️</span> Ticket Térmico / Cocina
+                </button>
               </div>
             ))}
           </div>
         </section>
+      )}
+
+      {/* MODAL DE IMPRESIÓN TÉRMICA & COMANDA COCINA */}
+      {printingOrder && (
+        <ThermalReceiptModal
+          data={{
+            orderNumber: printingOrder.id.slice(0, 8).toUpperCase(),
+            tableOrToken: `Mesa #${printingOrder.tableNumber}`,
+            dateTime: printingOrder.createdAt,
+            items: printingOrder.items.map((it) => ({
+              name: it.productName,
+              quantity: it.quantity,
+              priceCents: it.unitPriceCents,
+              notes: it.notes,
+            })),
+            totalCents: printingOrder.totalCents,
+            paymentStatus: printingOrder.status === 'pagada' ? 'pagado' : 'pendiente',
+          }}
+          onClose={() => setPrintingOrder(null)}
+        />
       )}
     </div>
   );

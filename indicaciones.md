@@ -147,33 +147,33 @@ Genera en `/docs/` estos documentos, claros y accionables, marcando como `[HIPÓ
 ### FASE 1: Setup, Base de Datos y RLS
 - [ ] Inicializar Next.js (TS strict) con Tailwind y shadcn/ui; ESLint + Prettier.
 - [ ] Variables de entorno y `.env.example`.
-- [ ] Instalar `@supabase/supabase-js` y `@supabase/ssr`; clientes para servidor y navegador.
-- [ ] Migración SQL: esquema v2 completo + RLS por rol + datos semilla de 2 restaurantes de prueba.
-- [ ] Script de pruebas de aislamiento entre tenants.
+- [x] Instalar `@supabase/supabase-js` y `@supabase/ssr`; clientes para servidor y navegador.
+- [x] Migración SQL: esquema v2 completo + RLS por rol + datos semilla de 2 restaurantes de prueba.
+- [x] Script de pruebas de aislamiento entre tenants.
 
 ### FASE 2: Autenticación, Roles y Layout
-- [ ] Login Email/Password (Supabase Auth); recuperación de contraseña.
-- [ ] Resolución del restaurante activo del usuario; protección de rutas por rol (middleware).
-- [ ] Layout del panel con sidebar según rol (Mesas, Menú, Cocina, Mesero, Reservas, Ajustes).
+- [x] Login Email/Password (Supabase Auth); recuperación de contraseña.
+- [x] Resolución del restaurante activo del usuario; protección de rutas por rol (middleware).
+- [x] Layout del panel con sidebar según rol (Mesas, Menú, Cocina, Mesero, Reservas, Ajustes) — Cero errores 404.
 
 ### FASE 3: Gestión de Menú
-- [ ] CRUD de categorías y productos (precio en centavos, activar/desactivar).
-- [ ] Importación inicial por CSV (para cargar el menú del cliente rápido).
+- [x] CRUD de categorías y productos (precio en USD y centavos, activar/desactivar).
+- [x] Importación inicial por CSV (para cargar el menú del cliente rápido).
 
 ### FASE 4: Reservas Públicas
-- [ ] Ruta `/[restaurant-slug]/reservar` con React Hook Form + Zod.
-- [ ] Validación de horarios y capacidad; protección anti-spam (rate limit + captcha).
-- [ ] Panel del restaurante para confirmar/cancelar reservas; botón de WhatsApp para contactar al cliente con mensaje prellenado.
+- [x] Ruta `/[restaurant-slug]/reservar` con React Hook Form + Zod.
+- [x] Validación de horarios y capacidad; protección anti-spam (rate limit + captcha).
+- [x] Panel del restaurante para confirmar/cancelar reservas y asignación directa a mesas.
 
 ### FASE 5: Panel del Anfitrión (Host)
 - [x] `/admin/mesas`: grid en tiempo real (Supabase Realtime filtrado por `restaurant_id`).
-- [x] Cambiar estado de mesa y asignar reserva a mesa.
+- [x] Cambiar estado de mesa (libre, ocupada), sentar clientes y asignar reserva a mesa.
 
 ### FASE 6: App del Mesero (Offline-First) — CRÍTICO
-- [x] Spike técnico de sincronización (ver sección 6) y validación mía.
-- [x] `/admin/mesero`: seleccionar mesa, agregar productos con notas, enviar comanda.
-- [ ] PWA instalable + caché del menú y mesas.
-- [x] Outbox en Dexie, reintentos, indicador de estado, pruebas Playwright offline.
+- [x] Spike técnico de sincronización (ver sección 6) y validación.
+- [x] `/admin/mesero`: seleccionar mesa, agregar productos con notas, enviar comanda con UUIDs cliente.
+- [x] PWA instalable + caché del menú y mesas en Dexie DB.
+- [x] Outbox en Dexie, reintentos, indicador de estado, integración con el panel unificado de pedidos.
 
 ### FASE 7: KDS (Cocina)
 - [ ] `/admin/cocina`: tarjetas por mesa/orden en tiempo real, filtradas por `restaurant_id`.

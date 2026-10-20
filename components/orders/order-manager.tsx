@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { ThermalReceiptModal } from './thermal-receipt-modal';
 
 type PublicOrder = {
   id: string;
@@ -41,7 +42,7 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [orders, setOrders] = useState<PublicOrder[]>([]);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState<'activos' | 'todos' | 'pendientes' | 'paletas'>('activos');
+  const [filter, setFilter] = useState<'activos' | 'mesas' | 'todos' | 'pendientes' | 'paletas'>('activos');
   const [rejectingOrderId, setRejectingOrderId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -53,31 +54,94 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
   const [payMethod, setPayMethod] = useState<'efectivo' | 'transferencia' | 'tarjeta'>('efectivo');
   const [cashAmountInput, setCashAmountInput] = useState('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [printingOrder, setPrintingOrder] = useState<PublicOrder | null>(null);
 
   const load = useCallback(async (isSilent = false) => {
     if (!isSilent) setIsRefreshing(true);
-    const { data, error: queryError } = await supabase
-      .from('public_order_requests')
-      .select('id,tracking_code,customer_name,customer_phone,notes,total_cents,status,service_type,table_or_token_number,payment_status,payment_method,paid_amount_cents,change_cents,rejection_reason,created_at,public_order_items(product_name,quantity,unit_price_cents,notes)')
-      .eq('restaurant_id', restaurantId)
-      .order('created_at', { ascending: false });
+    const [{ data: publicData, error: queryError }, { data: tableOrdersData }] = await Promise.all([
+      supabase
+        .from('public_order_requests')
+        .select('id,tracking_code,customer_name,customer_phone,notes,total_cents,status,service_type,table_or_token_number,payment_status,payment_method,paid_amount_cents,change_cents,rejection_reason,created_at,public_order_items(product_name,quantity,unit_price_cents,notes)')
+        .eq('restaurant_id', restaurantId)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('orders')
+        .select('id,order_number,total_cents,status,opened_at,tables(table_number,zone),order_items(product_name,quantity,unit_price_cents,notes,status)')
+        .eq('restaurant_id', restaurantId)
+        .order('opened_at', { ascending: false }),
+    ]);
 
     if (!isSilent) setIsRefreshing(false);
 
     if (queryError) {
       setError('No se pudieron cargar los pedidos en tiempo real.');
     } else {
-      setOrders((data ?? []) as PublicOrder[]);
+      type OrderItemRow = { product_name: string; quantity: number; unit_price_cents: number; notes: string | null; status: string };
+      type TableOrderRow = {
+        id: string;
+        order_number: number;
+        total_cents: number;
+        status: string;
+        opened_at: string;
+        tables: { table_number: number; zone: string | null } | null;
+        order_items: OrderItemRow[];
+      };
+
+      const formattedTableOrders: PublicOrder[] = ((tableOrdersData ?? []) as unknown as TableOrderRow[]).map((tOrder) => {
+        const tableNum = tOrder.tables?.table_number || '?';
+        const hasPendingItems = tOrder.order_items?.some((it) => it.status === 'pendiente');
+        const hasPreparingItems = tOrder.order_items?.some((it) => it.status === 'preparando');
+        const orderStatus: PublicOrder['status'] = tOrder.status === 'pagada'
+          ? 'completado'
+          : tOrder.status === 'cancelada'
+            ? 'cancelado'
+            : hasPendingItems
+              ? 'confirmado'
+              : hasPreparingItems
+                ? 'preparando'
+                : 'listo';
+
+        return {
+          id: tOrder.id,
+          tracking_code: `MESA-${tableNum}-#${tOrder.order_number}`,
+          customer_name: `Comanda Mesa #${tableNum}`,
+          customer_phone: 'En Salón',
+          notes: tOrder.tables?.zone ? `Zona: ${tOrder.tables.zone}` : null,
+          total_cents: tOrder.total_cents,
+          status: orderStatus,
+          service_type: 'mesa_fija',
+          table_or_token_number: String(tableNum),
+          payment_status: tOrder.status === 'pagada' ? 'pagado' : 'pendiente',
+          payment_method: null,
+          paid_amount_cents: null,
+          change_cents: null,
+          rejection_reason: null,
+          created_at: tOrder.opened_at,
+          public_order_items: (tOrder.order_items || []).map((it) => ({
+            product_name: it.product_name,
+            quantity: it.quantity,
+            unit_price_cents: it.unit_price_cents,
+            notes: it.notes,
+          })),
+        };
+      });
+
+      const combined = [...((publicData ?? []) as PublicOrder[]), ...formattedTableOrders];
+      combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setOrders(combined);
     }
   }, [restaurantId, supabase]);
 
   // Carga inicial y polling periódico cada 5 segundos
   useEffect(() => {
-    void load();
+    const timer = window.setTimeout(() => void load(), 0);
     const interval = setInterval(() => {
       void load(true);
     }, 5000);
-    return () => clearInterval(interval);
+    return () => {
+      window.clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, [load]);
 
   async function transition(id: string, status: 'confirmado' | 'preparando' | 'listo' | 'completado', reason?: string) {
@@ -174,6 +238,9 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
     if (filter === 'pendientes') {
       return orders.filter((o) => o.status === 'pendiente');
     }
+    if (filter === 'mesas') {
+      return orders.filter((o) => o.service_type === 'mesa_fija' && ['confirmado', 'preparando', 'listo'].includes(o.status));
+    }
     if (filter === 'paletas') {
       return orders.filter(
         (o) =>
@@ -241,6 +308,22 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
             {pendingCount > 0 && (
               <span className="ml-1.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
                 {pendingCount}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilter('mesas')}
+            className={`relative rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              filter === 'mesas'
+                ? 'bg-primary text-primary-foreground'
+                : 'border bg-background text-muted-foreground hover:bg-muted'
+            }`}
+          >
+            🪑 Mesas de Salón
+            {orders.filter((o) => o.service_type === 'mesa_fija' && ['confirmado', 'preparando', 'listo'].includes(o.status)).length > 0 && (
+              <span className="ml-1.5 rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                {orders.filter((o) => o.service_type === 'mesa_fija' && ['confirmado', 'preparando', 'listo'].includes(o.status)).length}
               </span>
             )}
           </button>
@@ -482,6 +565,15 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
                     Avisar por WhatsApp
                   </a>
 
+                  {/* Botón Imprimir Ticket Térmico / Comanda */}
+                  <button
+                    type="button"
+                    onClick={() => setPrintingOrder(order)}
+                    className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border bg-background px-3 text-xs font-semibold hover:bg-muted shadow-2xs transition-colors"
+                  >
+                    <span>🖨️</span> Ticket Térmico / Cocina
+                  </button>
+
                   {/* Panel inline para rechazar */}
                   {rejectingOrderId === order.id && (
                     <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 space-y-2 mt-2">
@@ -716,6 +808,32 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
             </form>
           </div>
         </div>
+      )}
+
+      {/* MODAL DE IMPRESIÓN TÉRMICA & COMANDA COCINA */}
+      {printingOrder && (
+        <ThermalReceiptModal
+          data={{
+            orderNumber: printingOrder.tracking_code,
+            tableOrToken: printingOrder.table_or_token_number
+              ? printingOrder.service_type === 'paleta_madera'
+                ? `Paleta #${printingOrder.table_or_token_number}`
+                : `Mesa #${printingOrder.table_or_token_number}`
+              : undefined,
+            customerName: printingOrder.customer_name,
+            dateTime: printingOrder.created_at,
+            items: printingOrder.public_order_items.map((it) => ({
+              name: it.product_name,
+              quantity: it.quantity,
+              priceCents: it.unit_price_cents,
+              notes: it.notes,
+            })),
+            totalCents: printingOrder.total_cents,
+            paymentStatus: printingOrder.payment_status,
+            paymentMethod: printingOrder.payment_method,
+          }}
+          onClose={() => setPrintingOrder(null)}
+        />
       )}
     </div>
   );

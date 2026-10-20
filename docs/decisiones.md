@@ -32,3 +32,11 @@
 - Las solicitudes públicas usan `public_order_requests` y `public_order_items`, porque las órdenes internas requieren mesa y mesero asignados.
 - El total se recalcula en la función SQL con precios vigentes; el cliente nunca puede imponer precios.
 - El API consolida líneas repetidas del mismo producto antes de enviarlas a la base; el carrito permite aumentar cantidades sin producir duplicados.
+
+## Fases 5 y 6 — Host, Mesero Offline y Conexión de Flujo
+
+- El panel de control de salón (`/admin/mesas`) se conecta en tiempo real por Supabase Realtime para reflejar instantáneamente mesas libres, ocupadas y asignaciones de reservas.
+- La app del mesero (`/admin/mesero`) opera bajo arquitectura Outbox en Dexie.js (IndexedDB): genera UUIDs cliente idempotentes y cola local con reintentos y sondeo real de internet mediante `/api/mesero/ping`.
+- Se implementó la unificación en `/admin/pedidos`: ahora se leen en paralelo tanto las solicitudes públicas (`public_order_requests`) como las comandas de mesa tomadas por meseros (`orders` + `order_items`), resolviendo la visibilidad del salón en tiempo real.
+- Se implementó la pantalla de ajustes del restaurante en `/admin/ajustes` y la estación base en `/admin/cocina` para asegurar 0 rutas huérfanas (0 errores 404) en la barra de navegación.
+- Se corrigieron los efectos asíncronos y ciclo de renderizado para compatibilidad con el compilador de React 19 y Next.js 16.

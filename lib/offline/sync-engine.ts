@@ -1,4 +1,4 @@
-import { offlineDb, type OutboxMutation, type LocalOrder } from './db';
+import { offlineDb, type OutboxMutation } from './db';
 
 type SyncListener = (status: {
   isOnline: boolean;

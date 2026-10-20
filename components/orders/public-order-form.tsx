@@ -34,20 +34,23 @@ export function PublicOrderForm({
 
   // Hydrate from localStorage on client mount
   useEffect(() => {
-    const savedCart = getSavedCart<CartItem>(restaurantSlug);
-    if (savedCart.length > 0) {
-      setCart(savedCart);
-    }
-    const customer = getSavedCustomerInfo();
-    if (customer) {
-      setCustomerName(customer.name);
-      setCustomerPhone(customer.phone);
-    }
-    const active = getActiveOrder();
-    if (active) {
-      setActiveOrder(active);
-    }
-    setIsHydrated(true);
+    const timer = window.setTimeout(() => {
+      const savedCart = getSavedCart<CartItem>(restaurantSlug);
+      if (savedCart.length > 0) {
+        setCart(savedCart);
+      }
+      const customer = getSavedCustomerInfo();
+      if (customer) {
+        setCustomerName(customer.name);
+        setCustomerPhone(customer.phone);
+      }
+      const active = getActiveOrder();
+      if (active) {
+        setActiveOrder(active);
+      }
+      setIsHydrated(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [restaurantSlug]);
 
   // Persist cart whenever it changes (after initial hydration)

@@ -1,0 +1,17 @@
+{
+  "name": "Paktak SaaS Restaurante",
+  "short_name": "Paktak",
+  "description": "Sistema de gestión y comandas offline-first para restaurantes",
+  "start_url": "/admin/mesero",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

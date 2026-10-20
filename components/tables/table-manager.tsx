@@ -141,8 +141,10 @@ export function TableManager({
 
   // Carga inicial y subscripción a Realtime
   useEffect(() => {
-    void loadTables();
-    void loadUnassignedReservations();
+    const timer = window.setTimeout(() => {
+      void loadTables();
+      void loadUnassignedReservations();
+    }, 0);
 
     // 1. Canal Supabase Realtime para cambios instantáneos
     const channel = supabase
@@ -168,6 +170,7 @@ export function TableManager({
     }, 6000);
 
     return () => {
+      window.clearTimeout(timer);
       void supabase.removeChannel(channel);
       clearInterval(interval);
     };

@@ -7,7 +7,6 @@ import {
   getSavedCustomerInfo,
   saveActiveOrder,
   saveCustomerInfo,
-  type StoredActiveOrder,
 } from '@/lib/orders/session';
 
 type TrackedOrder = {
@@ -97,31 +96,6 @@ export function OrderTracker({
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cargar datos guardados en localStorage al iniciar
-  useEffect(() => {
-    let effectiveCode = initialCode;
-    let effectivePhone = initialPhone;
-
-    const active = getActiveOrder();
-    const customer = getSavedCustomerInfo();
-
-    if (!effectiveCode && active?.trackingCode) {
-      effectiveCode = active.trackingCode;
-      setCode(active.trackingCode);
-    }
-    if (!effectivePhone) {
-      const storedPhone = active?.phone || customer?.phone || '';
-      if (storedPhone) {
-        effectivePhone = storedPhone;
-        setPhone(storedPhone);
-      }
-    }
-
-    // Si ya tenemos código y teléfono (por ejemplo, recién redirigido desde el checkout o recarga de página), buscar automáticamente
-    if (effectiveCode && effectivePhone) {
-      void searchOrder(effectiveCode, effectivePhone, false);
-    }
-  }, [initialCode, initialPhone]);
-
   const searchOrder = useCallback(
     async (targetCode: string, targetPhone: string, isSilent = false) => {
       const cleanCode = targetCode.trim();
@@ -185,6 +159,35 @@ export function OrderTracker({
     },
     [],
   );
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      let effectiveCode = initialCode;
+      let effectivePhone = initialPhone;
+
+      const active = getActiveOrder();
+      const customer = getSavedCustomerInfo();
+
+      if (!effectiveCode && active?.trackingCode) {
+        effectiveCode = active.trackingCode;
+        setCode(active.trackingCode);
+      }
+      if (!effectivePhone) {
+        const storedPhone = active?.phone || customer?.phone || '';
+        if (storedPhone) {
+          effectivePhone = storedPhone;
+          setPhone(storedPhone);
+        }
+      }
+
+      // Si ya tenemos código y teléfono, buscar automáticamente
+      if (effectiveCode && effectivePhone) {
+        void searchOrder(effectiveCode, effectivePhone, false);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [initialCode, initialPhone, searchOrder]);
 
   // Polling automático cada 5 segundos si el pedido está activo (no completado ni cancelado)
   useEffect(() => {

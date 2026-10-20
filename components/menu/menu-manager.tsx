@@ -67,17 +67,26 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
 
   async function addProduct() {
     setError('');
-    const price = Number(product.price);
-    if (!product.name.trim() || !Number.isInteger(price) || price < 0) {
-      setError('Completa el nombre y un precio entero en centavos.');
+    const cleanPrice = product.price.trim().replace(',', '.');
+    const parsed = parseFloat(cleanPrice);
+    if (!product.name.trim() || isNaN(parsed) || parsed < 0) {
+      setError('Completa el nombre y un precio válido en dólares (ej. 2.50).');
       return;
     }
+
+    // Convertir dólares a centavos de forma segura
+    const priceCents = cleanPrice.includes('.')
+      ? Math.round(parsed * 100)
+      : parsed < 100
+        ? Math.round(parsed * 100)
+        : Math.round(parsed);
+
     const { error: insertError } = await supabase.from('products').insert({
       restaurant_id: restaurantId,
       category_id: product.categoryId || null,
       name: product.name.trim(),
       description: product.description.trim() || null,
-      price_cents: price,
+      price_cents: priceCents,
       station: product.station,
     });
     if (insertError) {
@@ -85,7 +94,7 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
       return;
     }
     setProduct(emptyProduct);
-    setMessage('Producto creado.');
+    setMessage('Producto creado con éxito.');
     await loadMenu();
   }
 
@@ -187,7 +196,7 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
         <h2 className="mb-4 text-lg font-semibold">Nuevo producto</h2>
         <div className="grid gap-3 md:grid-cols-2">
           <input value={product.name} onChange={(event) => setProduct({ ...product, name: event.target.value })} placeholder="Nombre" className="h-11 rounded-md border bg-background px-3" />
-          <input value={product.price} onChange={(event) => setProduct({ ...product, price: event.target.value })} placeholder="Precio en centavos (ej. 1250)" inputMode="numeric" className="h-11 rounded-md border bg-background px-3" />
+          <input value={product.price} onChange={(event) => setProduct({ ...product, price: event.target.value })} placeholder="Precio en USD (ej. 2.50)" inputMode="decimal" className="h-11 rounded-md border bg-background px-3" />
           <input value={product.description} onChange={(event) => setProduct({ ...product, description: event.target.value })} placeholder="Descripción (opcional)" className="h-11 rounded-md border bg-background px-3" />
           <select value={product.categoryId} onChange={(event) => setProduct({ ...product, categoryId: event.target.value })} className="h-11 rounded-md border bg-background px-3">
             <option value="">Sin categoría</option>
