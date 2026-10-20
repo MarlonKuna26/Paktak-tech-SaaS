@@ -78,3 +78,21 @@
   - Gráfico horario visual de actividad para análisis de turnos pico.
   - Exportación de corte diario a archivo CSV y compatibilidad nativa con impresión en papel (`window.print()`).
 
+## Fase 9 — Onboarding SaaS, Landing Comercial y Control de Suscripciones
+
+- Migración `20261020120000_saas_onboarding.sql`:
+  - Se implementó la función RPC `onboard_new_restaurant`:
+    - Ejecución atómica y transaccional: crea el restaurante, asigna membresía `owner` al usuario autenticado, genera el plano inicial de mesas del salón (1 a N) y crea las categorías base del menú.
+    - Asigna automáticamente el estado `trial`, plan `basic` y 14 días de prueba gratuita (`trial_ends_at = now() + interval '14 days'`).
+  - Se implementó la función RPC `get_restaurant_subscription_status`:
+    - Calcula en tiempo real los días restantes de prueba gratuita y el estado activo/suspendido.
+- Landing Page Comercial ([app/page.tsx]):
+  - Propuesta de valor clara para restaurantes en Ecuador/Latinoamérica con branding en dorado cálido (`#f3a806`) y modo oscuro.
+  - Secciones interactivas: Hero, demostración en vivo de la tienda, módulos del sistema (Menú QR, KDS, Mesero Offline, Caja), tabla de precios (Básico $29, Pro $59, Multi-sucursal $99) y botón directo de contacto por WhatsApp.
+- Asistente de Alta Interactiva ([components/onboarding/onboarding-wizard.tsx] y `/onboarding`):
+  - Flujo guiado en 4 pasos: Datos del restaurante (nombre y slug autogenerado), selector visual de mesas, categorías iniciales del menú y activación de la cuenta de administrador con período de prueba sin tarjeta.
+- Control de Suscripciones y Avisos de Vencimiento:
+  - Integrado en [lib/auth/get-current-staff.ts] y [components/admin/admin-shell.tsx]:
+  - Banner dinámico superior que notifica los días restantes de la prueba gratuita y muestra alerta preventiva si el período ha concluido con enlace directo a renovación.
+
+

@@ -186,9 +186,9 @@ Genera en `/docs/` estos documentos, claros y accionables, marcando como `[HIPÓ
 - [x] Reporte diario: ventas totales, por método de pago, productos más vendidos, comandas por hora.
 
 ### FASE 9: Onboarding SaaS y Landing
-- [ ] Alta de nuevo restaurante (wizard: datos, mesas, menú, usuarios) con periodo de prueba.
-- [ ] Landing comercial de Paktak Tech (propuesta, precios, formulario de contacto, botón WhatsApp).
-- [ ] Control de plan y estado de suscripción (suspender acceso por impago, con aviso previo).
+- [x] Alta de nuevo restaurante (wizard: datos, mesas, menú, usuarios) con periodo de prueba.
+- [x] Landing comercial de Paktak Tech (propuesta, precios, formulario de contacto, botón WhatsApp).
+- [x] Control de plan y estado de suscripción (suspender acceso por impago, con aviso previo).
 
 ### FASE 10: Facturación Electrónica (post-MVP)
 - [ ] Evaluar integración con un proveedor autorizado de facturación SRI vs. desarrollo propio. Entregar comparación de costo/riesgo antes de decidir.
