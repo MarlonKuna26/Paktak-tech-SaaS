@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export type StaffRole = 'owner' | 'admin' | 'host' | 'waiter' | 'kitchen';
@@ -10,7 +11,8 @@ export type CurrentStaff = {
   role: StaffRole;
 };
 
-export async function getCurrentStaff(): Promise<CurrentStaff | null> {
+// cache(): layout y página comparten una sola consulta por request.
+export const getCurrentStaff = cache(async (): Promise<CurrentStaff | null> => {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -42,4 +44,4 @@ export async function getCurrentStaff(): Promise<CurrentStaff | null> {
     restaurantSlug: restaurant.slug,
     role: data.role as StaffRole,
   };
-}
+});

@@ -172,14 +172,14 @@ Genera en `/docs/` estos documentos, claros y accionables, marcando como `[HIPÓ
 ### FASE 6: App del Mesero (Offline-First) — CRÍTICO
 - [x] Spike técnico de sincronización (ver sección 6) y validación.
 - [x] `/admin/mesero`: seleccionar mesa, agregar productos con notas, enviar comanda con UUIDs cliente.
-- [x] PWA instalable + caché del menú y mesas en Dexie DB.
+- [ ] PWA instalable (service worker pendiente de aprobación). Caché de menú y mesas en Dexie: listo.
 - [x] Outbox en Dexie, reintentos, indicador de estado, integración con el panel unificado de pedidos.
 
 ### FASE 7: KDS (Cocina)
-- [ ] `/admin/cocina`: tarjetas por mesa/orden en tiempo real, filtradas por `restaurant_id`.
-- [ ] Estados pendiente → preparando → listo, con tiempo transcurrido y alerta visual por demora.
-- [ ] Reconexión automática de Realtime y recarga del estado actual al reconectar.
-- [ ] Sonido/alerta al llegar una comanda nueva.
+- [x] `/admin/cocina`: tarjetas por mesa/orden en tiempo real, filtradas por `restaurant_id`.
+- [x] Estados pendiente → preparando → listo, con tiempo transcurrido y alerta visual por demora.
+- [x] Reconexión automática de Realtime y recarga del estado actual al reconectar.
+- [x] Sonido/alerta al llegar una comanda nueva (Web Audio API sin dependencias externas).
 
 ### FASE 8: Cierre de Cuenta y Reportes Básicos
 - [ ] Ver cuenta de la mesa, división simple, propina opcional, registrar pago (efectivo/transferencia/tarjeta externa).

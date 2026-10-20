@@ -40,3 +40,18 @@
 - Se implementó la unificación en `/admin/pedidos`: ahora se leen en paralelo tanto las solicitudes públicas (`public_order_requests`) como las comandas de mesa tomadas por meseros (`orders` + `order_items`), resolviendo la visibilidad del salón en tiempo real.
 - Se implementó la pantalla de ajustes del restaurante en `/admin/ajustes` y la estación base en `/admin/cocina` para asegurar 0 rutas huérfanas (0 errores 404) en la barra de navegación.
 - Se corrigieron los efectos asíncronos y ciclo de renderizado para compatibilidad con el compilador de React 19 y Next.js 16.
+
+## Fase 7 — KDS (Cocina y Barra en Tiempo Real)
+
+- Migración `20261020090000_kds_realtime_sync.sql`:
+  - Se añadieron `station` y `status_changed_at` a `order_items`.
+  - Se agregaron las tablas `orders` y `order_items` a la publicación `supabase_realtime`.
+  - Se implementó la función RPC `waiter_sync_order` con advisory lock por restaurante para secuencias de número de orden sin colisión, cálculo estricto de precios en servidor desde `products` y actualización automática de estado de mesa a `ocupada`.
+  - Se implementó la función RPC `kds_set_item_status` que valida transiciones permitidas por rol (`owner`, `admin`, `kitchen`, `waiter`) y solo sobre órdenes activas.
+- KDS Board interactivo ([components/kds/kds-board.tsx]):
+  - Tarjetas visuales de alto contraste ordenadas por tiempo de llegada (FIFO).
+  - Semáforo de tiempo transcurrido (<10m normal, 10-20m advertencia amarilla, >20m rojo urgente).
+  - Filtro por estación (Cocina, Barra, Todo el Salón).
+  - Transiciones unitarias por ítem o masivas por comanda ("Marchar Todo", "Todo Listo").
+  - Alerta sonora armónica sintetizada con Web Audio API para notificar nuevas comandas sin depender de archivos de audio externos.
+  - Suscripción bidireccional a Supabase Realtime con reconexión automática y recarga en caliente.
