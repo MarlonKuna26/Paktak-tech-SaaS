@@ -182,8 +182,8 @@ Genera en `/docs/` estos documentos, claros y accionables, marcando como `[HIPÓ
 - [x] Sonido/alerta al llegar una comanda nueva (Web Audio API sin dependencias externas).
 
 ### FASE 8: Cierre de Cuenta y Reportes Básicos
-- [ ] Ver cuenta de la mesa, división simple, propina opcional, registrar pago (efectivo/transferencia/tarjeta externa).
-- [ ] Reporte diario: ventas totales, por método de pago, productos más vendidos, comandas por hora.
+- [x] Ver cuenta de la mesa, división simple, propina opcional, registrar pago (efectivo/transferencia/tarjeta externa).
+- [x] Reporte diario: ventas totales, por método de pago, productos más vendidos, comandas por hora.
 
 ### FASE 9: Onboarding SaaS y Landing
 - [ ] Alta de nuevo restaurante (wizard: datos, mesas, menú, usuarios) con periodo de prueba.

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import type { RestaurantTable, TableStatus, AvailableReservation } from '@/lib/tables/types';
 import type { StaffRole } from '@/lib/auth/get-current-staff';
+import { TableCheckoutModal, type TableOrderDetails } from './table-checkout-modal';
 
 const statusConfig: Record<
   TableStatus,
@@ -72,6 +73,10 @@ export function TableManager({
   // Estado para asignar reserva
   const [assigningTable, setAssigningTable] = useState<RestaurantTable | null>(null);
   const [isAssigning, setIsAssigning] = useState(false);
+
+  // Estado para cobrar cuenta de mesa (Fase 8)
+  const [checkoutOrder, setCheckoutOrder] = useState<TableOrderDetails | null>(null);
+  const [isFetchingCheckout, setIsFetchingCheckout] = useState(false);
 
   const canManage = ['owner', 'admin', 'host'].includes(userRole);
 
@@ -194,7 +199,78 @@ export function TableManager({
       await loadTables(true);
       await loadUnassignedReservations();
     } catch {
-      setError('Error de conexión al actualizar la mesa.');
+      setError('Error al actualizar estado de la mesa.');
+    }
+  }
+
+  // Abrir modal de cobro de cuenta para mesa ocupada
+  async function openTableCheckout(table: RestaurantTable) {
+    setError('');
+    setIsFetchingCheckout(true);
+    try {
+      const { data: orderData, error: queryError } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          order_number,
+          subtotal_cents,
+          status,
+          order_items (
+            id,
+            product_name,
+            quantity,
+            unit_price_cents,
+            notes
+          )
+        `)
+        .eq('table_id', table.id)
+        .eq('restaurant_id', restaurantId)
+        .in('status', ['abierta', 'en_preparacion', 'servida', 'pendiente_pago', 'entregada'])
+        .order('opened_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      setIsFetchingCheckout(false);
+
+      if (queryError || !orderData) {
+        const confirmFree = window.confirm(
+          `La Mesa #${table.table_number} está marcada como ocupada pero no tiene una comanda activa registrada. ¿Deseas liberar la mesa directamente?`
+        );
+        if (confirmFree) {
+          await updateTableStatus(table.id, 'libre');
+        }
+        return;
+      }
+
+      type RawOrderItem = {
+        id: string;
+        product_name: string;
+        quantity: number;
+        unit_price_cents: number;
+        notes: string | null;
+      };
+
+      const rawItems = ((orderData.order_items as unknown) as RawOrderItem[]) || [];
+      const computedSubtotal = rawItems.reduce((acc, it) => acc + (it.unit_price_cents * it.quantity), 0);
+      const subtotal = orderData.subtotal_cents > 0 ? orderData.subtotal_cents : computedSubtotal;
+
+      setCheckoutOrder({
+        orderId: orderData.id,
+        orderNumber: orderData.order_number,
+        tableNumber: table.table_number,
+        zone: table.zone,
+        subtotalCents: subtotal,
+        items: rawItems.map((it) => ({
+          id: it.id,
+          productName: it.product_name,
+          quantity: it.quantity,
+          unitPriceCents: it.unit_price_cents,
+          notes: it.notes,
+        })),
+      });
+    } catch {
+      setIsFetchingCheckout(false);
+      setError('Error al consultar comanda de la mesa.');
     }
   }
 
@@ -551,13 +627,23 @@ export function TableManager({
                     )}
 
                     {table.status === 'ocupada' && (
-                      <button
-                        type="button"
-                        onClick={() => void updateTableStatus(table.id, 'libre')}
-                        className="col-span-2 h-8 rounded-lg bg-emerald-600 px-2 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 transition-colors"
-                      >
-                        ✓ Liberar Mesa (Cuenta Pagada)
-                      </button>
+                      <div className="col-span-2 flex flex-col gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => void openTableCheckout(table)}
+                          disabled={isFetchingCheckout}
+                          className="h-8 w-full rounded-lg bg-emerald-600 px-2 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          💳 Cobrar Cuenta
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void updateTableStatus(table.id, 'libre')}
+                          className="h-7 w-full rounded-lg border bg-background px-2 text-[11px] font-medium text-muted-foreground hover:bg-muted transition-colors"
+                        >
+                          Liberar Mesa
+                        </button>
+                      </div>
                     )}
 
                     {table.status === 'reservada' && (
@@ -744,6 +830,20 @@ export function TableManager({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de Cobro de Mesa (Fase 8) */}
+      {checkoutOrder && (
+        <TableCheckoutModal
+          order={checkoutOrder}
+          onClose={() => setCheckoutOrder(null)}
+          onSuccess={() => {
+            const tableNum = checkoutOrder.tableNumber;
+            setCheckoutOrder(null);
+            setSuccessMsg(`¡Cuenta de Mesa #${tableNum} cobrada exitosamente!`);
+            void loadTables(true);
+          }}
+        />
       )}
     </div>
   );

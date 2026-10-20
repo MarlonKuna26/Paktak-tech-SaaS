@@ -55,3 +55,26 @@
   - Transiciones unitarias por ítem o masivas por comanda ("Marchar Todo", "Todo Listo").
   - Alerta sonora armónica sintetizada con Web Audio API para notificar nuevas comandas sin depender de archivos de audio externos.
   - Suscripción bidireccional a Supabase Realtime con reconexión automática y recarga en caliente.
+
+## Fase 8 — Cierre de Cuenta, División, Propinas y Reportes Diarios
+
+- Migración `20261020100000_table_checkout_and_reports.sql`:
+  - Se implementó la función RPC `checkout_table_order` con seguridad transaccional:
+    - Valida que la orden no esté previamente pagada o cancelada.
+    - Aplica propina opcional (`p_tip_cents`) e inserta registro en la tabla `payments` asociando `restaurant_id`, `order_id`, `method`, `amount_cents` y `tip_cents`.
+    - Actualiza el estado de la orden a `pagada` y fecha `closed_at = now()`.
+    - Libera automáticamente la mesa asociada (`tables.status = 'libre'`) en una sola transacción atómica.
+  - Se implementó la función RPC `get_daily_sales_report`:
+    - Valida roles gerenciales (`owner`, `admin`).
+    - Agrega ventas consolidadas del día en zona horaria local (`America/Guayaquil`).
+    - Devuelve ticket promedio, desglose por método de pago (`efectivo`, `transferencia`, `tarjeta`), top 5 productos más vendidos y ritmo horario de comandas.
+- Modal de Cobro de Mesa ([components/tables/table-checkout-modal.tsx]):
+  - Calculadora interactiva de propinas (0%, 5%, 10%, 15%, o monto personalizado en dólares).
+  - División equitativa de cuenta por número de personas (2 a 12 comensales) mostrando la cuota exacta por persona.
+  - Calculadora de cambio en efectivo al ingresar el monto entregado por el cliente.
+  - Impresión directa de ticket térmico/comprobante de consumo de 80mm tras confirmar el cobro.
+- Panel de Reportes y Cierre ([components/reports/daily-report-view.tsx] y `/admin/reportes`):
+  - KPIs de venta total, número de órdenes, ticket promedio y dinero físico esperado en caja.
+  - Gráfico horario visual de actividad para análisis de turnos pico.
+  - Exportación de corte diario a archivo CSV y compatibilidad nativa con impresión en papel (`window.print()`).
+

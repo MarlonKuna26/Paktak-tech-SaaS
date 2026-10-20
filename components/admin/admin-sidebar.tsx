@@ -14,6 +14,7 @@ const navigation: ReadonlyArray<{
   { href: '/admin/cocina', label: 'Cocina', roles: ['owner', 'admin', 'kitchen'] },
   { href: '/admin/mesero', label: 'Mesero', roles: ['owner', 'admin', 'waiter'] },
   { href: '/admin/pedidos', label: 'Pedidos', roles: ['owner', 'admin', 'kitchen'] },
+  { href: '/admin/reportes', label: 'Reportes', roles: ['owner', 'admin'] },
   { href: '/admin/ajustes', label: 'Ajustes', roles: ['owner', 'admin'] },
 ];
 
