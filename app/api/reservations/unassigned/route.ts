@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export async function GET() {
   const staff = await getCurrentStaff();
-  if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
+  if (!staff || !['owner', 'admin', 'host', 'cashier'].includes(staff.role)) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
 

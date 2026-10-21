@@ -339,7 +339,7 @@ export function WaiterManager({
     [cart],
   );
 
-  async function handleSubmitOrder() {
+  async function handleSubmitOrder(andCheckout = false) {
     setFeedback(null);
 
     if (!selectedTable) {
@@ -402,6 +402,26 @@ export function WaiterManager({
           clientTimestamp: nowIso,
         },
       });
+
+      // Asegurar sincronización inmediata con el servidor antes de cobrar
+      await syncEngine.checkConnectionAndSync();
+
+      if (andCheckout) {
+        setCheckoutOrder({
+          orderId,
+          orderNumber: 0,
+          tableNumber: selectedTable.tableNumber,
+          zone: selectedTable.zone,
+          subtotalCents: cartTotalCents,
+          items: itemsPayload.map((it) => ({
+            id: it.id,
+            productName: it.productName,
+            quantity: it.quantity,
+            unitPriceCents: it.unitPriceCents,
+            notes: it.notes || null,
+          })),
+        });
+      }
 
       setCart([]);
       setIsSubmitting(false);
@@ -782,16 +802,32 @@ export function WaiterManager({
             </span>
           </div>
 
-          <button
-            type="button"
-            disabled={isSubmitting || !cart.length || !selectedTable}
-            onClick={() => void handleSubmitOrder()}
-            className="h-14 w-full rounded-full bg-[#FFC21A] text-base font-extrabold text-[#1A1A1A] transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            {isSubmitting
-              ? 'Guardando comanda...'
-              : `Enviar comanda ${selectedTable ? `(Mesa #${selectedTable.tableNumber})` : ''}`}
-          </button>
+          <div className="flex flex-col gap-2 pt-2">
+            <button
+              type="button"
+              disabled={isSubmitting || !cart.length || !selectedTable}
+              onClick={() => void handleSubmitOrder(true)}
+              className="h-14 w-full rounded-full bg-[#f3a806] hover:bg-[#e09804] text-sm font-black text-zinc-950 transition-colors shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+            >
+              <CreditCard className="w-4 h-4 stroke-[2.2]" />
+              <span>
+                {isSubmitting
+                  ? 'Procesando...'
+                  : `Cobrar Ahora (Pre-pago) · Mesa #${selectedTable?.tableNumber || ''}`}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isSubmitting || !cart.length || !selectedTable}
+              onClick={() => void handleSubmitOrder(false)}
+              className="h-11 w-full rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              {isSubmitting
+                ? 'Guardando...'
+                : 'Solo Enviar a Cocina (Cobrar al Final)'}
+            </button>
+          </div>
         </aside>
       </div>
 
@@ -862,10 +898,11 @@ export function WaiterManager({
         />
       )}
 
-      {/* MODAL DE COBRO DE CUENTA DE MESA (Para el Mesero) */}
+      {/* MODAL DE COBRO DE CUENTA DE MESA (Cajero / Pre-pago / Cierre) */}
       {checkoutOrder && (
         <TableCheckoutModal
           order={checkoutOrder}
+          initialKeepTableOccupied={true}
           onClose={() => setCheckoutOrder(null)}
           onSuccess={() => {
             const tableNum = checkoutOrder.tableNumber;
@@ -874,7 +911,7 @@ export function WaiterManager({
             setCart([]);
             setFeedback({
               ok: true,
-              text: `Mesa #${tableNum} cobrada y liberada exitosamente.`,
+              text: `Cobro de Mesa #${tableNum} registrado correctamente.`,
             });
             void loadData();
           }}

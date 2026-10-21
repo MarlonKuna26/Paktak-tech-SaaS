@@ -34,7 +34,7 @@ const syncBatchSchema = z.object({
 
 export async function POST(request: Request) {
   const staff = await getCurrentStaff();
-  if (!staff || !['owner', 'admin', 'waiter'].includes(staff.role)) {
+  if (!staff || !['owner', 'admin', 'host', 'cashier'].includes(staff.role)) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
 

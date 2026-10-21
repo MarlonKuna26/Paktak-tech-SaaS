@@ -24,7 +24,7 @@ export class StaffController {
    */
   static async list() {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
@@ -42,7 +42,7 @@ export class StaffController {
    */
   static async create(request: Request) {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
       return NextResponse.json({ error: 'Solo el administrador o dueño puede registrar empleados' }, { status: 403 });
     }
 
@@ -73,7 +73,7 @@ export class StaffController {
    */
   static async update(request: Request, props: { params: Promise<{ id: string }> }) {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
@@ -98,7 +98,7 @@ export class StaffController {
    */
   static async remove(_request: Request, props: { params: Promise<{ id: string }> }) {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 

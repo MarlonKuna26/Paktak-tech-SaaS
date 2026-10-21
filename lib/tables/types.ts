@@ -20,6 +20,8 @@ export type RestaurantTable = {
   active_order?: {
     id: string;
     order_number: number;
+    status?: string;
+    is_paid?: boolean;
     total_cents: number;
     kitchen_status: TableKitchenStatus;
     items_count: number;

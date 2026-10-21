@@ -15,16 +15,12 @@ export default async function AdminPage() {
     redirect('/auth/login');
   }
 
-  // Redirección por roles restringidos al iniciar sesión
-  if (staff.role === 'waiter') {
-    redirect('/admin/mesero');
-  }
-
+  // Redirección por roles operativos al iniciar sesión
   if (staff.role === 'kitchen') {
     redirect('/admin/cocina');
   }
 
-  if (staff.role === 'cashier' || staff.role === 'host') {
+  if (staff.role === 'cashier' || staff.role === 'waiter') {
     redirect('/admin/mesas');
   }
 
@@ -42,7 +38,7 @@ export default async function AdminPage() {
   // 1. Cargar Órdenes de Salón del día
   const { data: rawSalonOrders } = await supabase
     .from('orders')
-    .select('id, total_cents, order_number, status, closed_at, waiter_id, waiter:staff_members(full_name)')
+    .select('id, total_cents, order_number, status, closed_at, waiter_id, waiter:staff_members(role)')
     .eq('restaurant_id', staff.restaurantId)
     .gte('opened_at', startIso)
     .lte('opened_at', endIso)
@@ -107,11 +103,13 @@ export default async function AdminPage() {
   // Creadores / Atendidos por
   const creatorMap = new Map<string, { role: string; count: number; totalCents: number }>();
   for (const so of salonOrders) {
-    const waiterObj = Array.isArray(so.waiter) ? so.waiter[0] : so.waiter;
-    const name = waiterObj?.full_name || 'Mesero Salón';
-    const curr = creatorMap.get(name) || { role: 'Mesero', count: 0, totalCents: 0 };
-    creatorMap.set(name, {
-      role: 'Mesero',
+    const waiterObj = (Array.isArray(so.waiter) ? so.waiter[0] : so.waiter) as { role?: string } | null;
+    const roleName = waiterObj?.role
+      ? (waiterObj.role === 'cashier' ? 'Cajero & Servicio' : `Personal (${waiterObj.role})`)
+      : 'Cajero & Servicio';
+    const curr = creatorMap.get(roleName) || { role: waiterObj?.role || 'cashier', count: 0, totalCents: 0 };
+    creatorMap.set(roleName, {
+      role: waiterObj?.role || 'cashier',
       count: curr.count + 1,
       totalCents: curr.totalCents + (so.total_cents || 0),
     });

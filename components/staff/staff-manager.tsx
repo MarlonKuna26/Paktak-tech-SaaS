@@ -49,20 +49,20 @@ const roleDetails: Record<
     desc: 'Gestiona menú, precios, salón, personal y reportes financieros.',
   },
   cashier: {
-    label: 'Cajero',
+    label: 'Cajero & Servicio',
     icon: CreditCard,
     color: 'text-emerald-800 dark:text-emerald-300',
     bg: 'bg-emerald-500/10',
     border: 'border-emerald-500/20',
-    desc: 'Cobro de comandas de salón y web, arqueo y cierre de caja diario.',
+    desc: 'Atención en salón y mostrador: asigna mesas, toma comandas y cobra antes o después de servir.',
   },
   waiter: {
-    label: 'Mesero',
-    icon: UtensilsCrossed,
-    color: 'text-blue-800 dark:text-blue-300',
-    bg: 'bg-blue-500/10',
-    border: 'border-blue-500/20',
-    desc: 'Comandero móvil offline-first, notas de platos y cobro en mesa.',
+    label: 'Cajero & Servicio',
+    icon: CreditCard,
+    color: 'text-emerald-800 dark:text-emerald-300',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/20',
+    desc: 'Atención en salón y mostrador (rol unificado con Cajero).',
   },
   kitchen: {
     label: 'Cocinero / Chef',
@@ -73,12 +73,12 @@ const roleDetails: Record<
     desc: 'Pantalla KDS táctil con semáforos de tiempo y despacho de comandas.',
   },
   host: {
-    label: 'Anfitrión / Host',
-    icon: Calendar,
-    color: 'text-cyan-800 dark:text-cyan-300',
-    bg: 'bg-cyan-500/10',
-    border: 'border-cyan-500/20',
-    desc: 'Recepción y asignación de mesas en salón y libro de reservas web.',
+    label: 'Anfitrión (Superusuario)',
+    icon: Shield,
+    color: 'text-amber-800 dark:text-amber-300',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/20',
+    desc: 'Superusuario: Control total del sistema, apartados, menú, personal, reportes y ajustes generales.',
   },
 };
 
@@ -98,7 +98,7 @@ export function StaffManager() {
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState<'admin' | 'cashier' | 'waiter' | 'kitchen' | 'host'>('waiter');
+  const [newRole, setNewRole] = useState<'admin' | 'cashier' | 'waiter' | 'kitchen' | 'host'>('cashier');
 
   // Form reset password
   const [resetPasswordVal, setResetPasswordVal] = useState('');
@@ -160,7 +160,7 @@ export function StaffManager() {
       setNewName('');
       setNewEmail('');
       setNewPassword('');
-      setNewRole('waiter');
+      setNewRole('cashier');
       await loadStaff();
     } catch {
       setIsSubmitting(false);
@@ -278,16 +278,19 @@ export function StaffManager() {
     const matchesSearch =
       s.fullName.toLowerCase().includes(search.toLowerCase()) ||
       s.email.toLowerCase().includes(search.toLowerCase());
-    const matchesRole = roleFilter === 'todos' || s.role === roleFilter;
+    const matchesRole =
+      roleFilter === 'todos' ||
+      s.role === roleFilter ||
+      (roleFilter === 'cashier' && s.role === 'waiter');
     return matchesSearch && matchesRole;
   });
 
   const countByRole = {
     total: staffList.length,
     active: staffList.filter((s) => s.active).length,
-    waiters: staffList.filter((s) => s.role === 'waiter').length,
+    hosts: staffList.filter((s) => s.role === 'host').length,
+    cashiers: staffList.filter((s) => s.role === 'cashier' || s.role === 'waiter').length,
     kitchen: staffList.filter((s) => s.role === 'kitchen').length,
-    cashiers: staffList.filter((s) => s.role === 'cashier').length,
     admins: staffList.filter((s) => ['admin', 'owner'].includes(s.role)).length,
   };
 
@@ -319,9 +322,14 @@ export function StaffManager() {
           <p className="mt-0.5 text-[11px] text-emerald-600 dark:text-emerald-400">{countByRole.active} activos</p>
         </div>
         <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Meseros</p>
-          <p className="mt-1 text-2xl font-black text-blue-600 dark:text-blue-400">{countByRole.waiters}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Comandero móvil</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Anfitriones</p>
+          <p className="mt-1 text-2xl font-black text-amber-600 dark:text-amber-400">{countByRole.hosts}</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Superusuario total</p>
+        </div>
+        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Cajeros & Servicio</p>
+          <p className="mt-1 text-2xl font-black text-emerald-600 dark:text-emerald-400">{countByRole.cashiers}</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Mesas, comanda y cobro</p>
         </div>
         <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Cocina / Barra</p>
@@ -329,14 +337,9 @@ export function StaffManager() {
           <p className="mt-0.5 text-[11px] text-muted-foreground">Pantalla KDS</p>
         </div>
         <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Cajeros</p>
-          <p className="mt-1 text-2xl font-black text-emerald-600 dark:text-emerald-400">{countByRole.cashiers}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Cobro y caja</p>
-        </div>
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Administradores</p>
           <p className="mt-1 text-2xl font-black text-purple-600 dark:text-purple-400">{countByRole.admins}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Gestión total</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Gestión y menú</p>
         </div>
       </div>
 
@@ -360,11 +363,10 @@ export function StaffManager() {
             className="h-10 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 focus:outline-none shadow-2xs"
           >
             <option value="todos">Todos los roles</option>
+            <option value="host">Anfitrión (Superusuario)</option>
+            <option value="cashier">Cajero & Servicio</option>
+            <option value="kitchen">Cocinero / Chef</option>
             <option value="admin">Administrador</option>
-            <option value="cashier">Cajero</option>
-            <option value="waiter">Mesero</option>
-            <option value="kitchen">Cocinero</option>
-            <option value="host">Anfitrión</option>
           </select>
 
           <button
@@ -450,11 +452,10 @@ export function StaffManager() {
                         onChange={(e) => void handleRoleChange(staffItem.id, e.target.value)}
                         className="h-8 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 text-[11px] font-semibold text-zinc-700 dark:text-zinc-200 focus:outline-none"
                       >
+                        <option value="host">Anfitrión (Superusuario)</option>
+                        <option value="cashier">Cajero & Servicio</option>
+                        <option value="kitchen">Cocinero / Chef</option>
                         <option value="admin">Administrador</option>
-                        <option value="cashier">Cajero</option>
-                        <option value="waiter">Mesero</option>
-                        <option value="kitchen">Cocinero</option>
-                        <option value="host">Anfitrión</option>
                       </select>
                     )}
 
@@ -547,7 +548,7 @@ export function StaffManager() {
                   minLength={6}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Ej. Mesero123!"
+                  placeholder="Ej. Paktak2026!"
                   className="h-10 w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-background px-3.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
@@ -557,7 +558,7 @@ export function StaffManager() {
                   Rol y Permisos Operativos *
                 </label>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {(['waiter', 'kitchen', 'cashier', 'host', 'admin'] as const).map((rKey) => {
+                  {(['host', 'cashier', 'kitchen', 'admin'] as const).map((rKey) => {
                     const r = roleDetails[rKey];
                     const Icon = r.icon;
                     const isSelected = newRole === rKey;

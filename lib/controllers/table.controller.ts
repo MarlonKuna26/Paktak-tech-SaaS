@@ -54,7 +54,7 @@ export class TableController {
    */
   static async create(request: Request) {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
       return NextResponse.json({ error: 'Solo el administrador puede crear nuevas mesas' }, { status: 403 });
     }
 
@@ -78,7 +78,7 @@ export class TableController {
    */
   static async createBatch(request: Request) {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
       return NextResponse.json({ error: 'Solo administradores pueden crear mesas por lote' }, { status: 403 });
     }
 
@@ -105,7 +105,7 @@ export class TableController {
    */
   static async update(request: Request, props: { params: Promise<{ id: string }> }) {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
       return NextResponse.json({ error: 'Solo administradores pueden editar mesas' }, { status: 403 });
     }
 
@@ -130,7 +130,7 @@ export class TableController {
    */
   static async remove(_request: Request, props: { params: Promise<{ id: string }> }) {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
       return NextResponse.json({ error: 'Solo administradores pueden eliminar mesas' }, { status: 403 });
     }
 
@@ -149,7 +149,7 @@ export class TableController {
    */
   static async updateStatus(request: Request, props: { params: Promise<{ id: string }> }) {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin', 'host', 'waiter'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'host', 'cashier'].includes(staff.role)) {
       return NextResponse.json({ error: 'No autorizado para cambiar el estado de la mesa' }, { status: 403 });
     }
 
@@ -174,7 +174,7 @@ export class TableController {
    */
   static async assignReservation(request: Request, props: { params: Promise<{ id: string }> }) {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'host', 'cashier'].includes(staff.role)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 

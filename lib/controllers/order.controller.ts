@@ -7,6 +7,7 @@ const checkoutSchema = z.object({
   paymentMethod: z.enum(['efectivo', 'transferencia', 'tarjeta', 'otro']),
   tipCents: z.number().int().nonnegative().default(0),
   paidCents: z.number().int().nonnegative().default(0),
+  releaseTable: z.boolean().default(true),
 });
 
 const paymentSchema = z.object({
@@ -31,7 +32,7 @@ export class OrderController {
     props: { params: Promise<{ id: string }> },
   ) {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin', 'waiter', 'host', 'cashier'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'host', 'cashier'].includes(staff.role)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
@@ -52,6 +53,7 @@ export class OrderController {
         parsed.data.paymentMethod,
         parsed.data.tipCents,
         parsed.data.paidCents,
+        parsed.data.releaseTable,
       );
       return NextResponse.json({ success: true, result });
     } catch (err: unknown) {
@@ -68,7 +70,7 @@ export class OrderController {
     props: { params: Promise<{ id: string }> },
   ) {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin', 'kitchen', 'waiter', 'host', 'cashier'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'kitchen', 'host', 'cashier'].includes(staff.role)) {
       return NextResponse.json({ error: 'No tienes permisos para registrar cobros.' }, { status: 403 });
     }
 
@@ -100,7 +102,7 @@ export class OrderController {
    */
   static async updateKdsStatus(request: Request) {
     const staff = await getCurrentStaff();
-    if (!staff || !['owner', 'admin', 'kitchen', 'waiter'].includes(staff.role)) {
+    if (!staff || !['owner', 'admin', 'kitchen', 'host', 'cashier'].includes(staff.role)) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 

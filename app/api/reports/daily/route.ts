@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     // 1. Cargar Órdenes de Salón
     const { data: salonOrders } = await supabase
       .from('orders')
-      .select('id, total_cents, waiter_id, status, closed_at, waiter:staff_members(full_name)')
+      .select('id, total_cents, waiter_id, status, closed_at, waiter:staff_members(role)')
       .eq('restaurant_id', staff.restaurantId)
       .eq('status', 'pagada')
       .gte('closed_at', startIso)
@@ -89,11 +89,13 @@ export async function GET(request: Request) {
     // B) Cruzamiento por Quién Realizó / Atendió el Pedido
     const creatorMap = new Map<string, { role: string; count: number; total_cents: number }>();
     for (const o of sOrders) {
-      const waiterObj = Array.isArray(o.waiter) ? o.waiter[0] : o.waiter;
-      const waiterName = waiterObj?.full_name || 'Mesero Salón';
-      const existing = creatorMap.get(waiterName) || { role: 'Mesero', count: 0, total_cents: 0 };
+      const waiterObj = (Array.isArray(o.waiter) ? o.waiter[0] : o.waiter) as { role?: string } | null;
+      const waiterName = waiterObj?.role
+        ? (waiterObj.role === 'cashier' ? 'Cajero & Servicio' : `Personal (${waiterObj.role})`)
+        : 'Cajero & Servicio';
+      const existing = creatorMap.get(waiterName) || { role: waiterObj?.role || 'cashier', count: 0, total_cents: 0 };
       creatorMap.set(waiterName, {
-        role: 'Mesero',
+        role: waiterObj?.role || 'cashier',
         count: existing.count + 1,
         total_cents: existing.total_cents + (o.total_cents || 0),
       });

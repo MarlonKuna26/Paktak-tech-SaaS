@@ -51,16 +51,19 @@ export class TableModel {
       }
     }
 
-    // 3. Obtener órdenes activas
+    // 3. Obtener órdenes activas (incluye órdenes pre-pagadas para mesas que aún están en salón)
     const { data: activeOrders } = await supabase
       .from('orders')
       .select('id, table_id, order_number, status, total_cents, order_items(id, status)')
       .eq('restaurant_id', restaurantId)
-      .in('status', ['abierta', 'en_espera']);
+      .in('status', ['abierta', 'en_espera', 'pagada'])
+      .order('opened_at', { ascending: false });
 
     const orderMap = new Map();
     for (const ord of activeOrders ?? []) {
       if (!ord.table_id) continue;
+      if (orderMap.has(ord.table_id)) continue;
+
       const rawItems = (ord.order_items || []) as Array<{ id: string; status: string }>;
       const totalItems = rawItems.length;
       const readyItems = rawItems.filter((it) => it.status === 'listo').length;
@@ -76,6 +79,8 @@ export class TableModel {
       orderMap.set(ord.table_id, {
         id: ord.id,
         order_number: ord.order_number,
+        status: ord.status,
+        is_paid: ord.status === 'pagada',
         total_cents: ord.total_cents,
         kitchen_status: kStatus,
         items_count: totalItems,
@@ -86,7 +91,7 @@ export class TableModel {
     return (tables ?? []).map((t) => ({
       ...t,
       active_reservation: reservationMap.get(t.id) || null,
-      active_order: orderMap.get(t.id) || null,
+      active_order: t.status === 'ocupada' ? orderMap.get(t.id) || null : null,
     }));
   }
 

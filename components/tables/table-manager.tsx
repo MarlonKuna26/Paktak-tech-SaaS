@@ -894,6 +894,18 @@ export function TableManager({
 
                     {table.status === 'ocupada' && (
                       <div className="col-span-2 flex flex-col gap-2">
+                        {table.active_order?.is_paid && (
+                          <div className="flex items-center justify-between gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                            <span className="flex items-center gap-1.5">
+                              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
+                              <span>Cuenta Pagada (Pre-pago)</span>
+                            </span>
+                            <span className="font-mono text-[11px] text-emerald-700 dark:text-emerald-400">
+                              ${((table.active_order.total_cents || 0) / 100).toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+
                         <div className="grid grid-cols-2 gap-2">
                           <Link
                             href={`/admin/mesero?tableId=${table.id}`}
@@ -902,23 +914,37 @@ export function TableManager({
                             <Utensils className="h-3.5 w-3.5 text-primary" />
                             <span>+ Comanda</span>
                           </Link>
+
+                          {table.active_order?.is_paid ? (
+                            <button
+                              type="button"
+                              onClick={() => void updateTableStatus(table.id, 'libre')}
+                              className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                            >
+                              <span>Liberar Mesa</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => void openTableCheckout(table)}
+                              disabled={isFetchingCheckout}
+                              className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                            >
+                              <CreditCard className="w-3.5 h-3.5" />
+                              <span>Cobrar</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {!table.active_order?.is_paid && (
                           <button
                             type="button"
-                            onClick={() => void openTableCheckout(table)}
-                            disabled={isFetchingCheckout}
-                            className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                            onClick={() => void updateTableStatus(table.id, 'libre')}
+                            className="h-8 w-full rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
                           >
-                            <CreditCard className="w-3.5 h-3.5" />
-                            <span>Cobrar</span>
+                            Liberar Mesa
                           </button>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => void updateTableStatus(table.id, 'libre')}
-                          className="h-8 w-full rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
-                        >
-                          Liberar Mesa
-                        </button>
+                        )}
                       </div>
                     )}
 

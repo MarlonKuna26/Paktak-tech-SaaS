@@ -26,17 +26,26 @@ type NavItem = {
   roles: readonly StaffRole[];
 };
 
+const roleLabelMap: Record<StaffRole, string> = {
+  owner: 'Dueño',
+  admin: 'Administrador',
+  host: 'Anfitrión (Superusuario)',
+  cashier: 'Cajero & Servicio',
+  kitchen: 'Cocina & Chef',
+  waiter: 'Cajero & Servicio',
+};
+
 const navigation: readonly NavItem[] = [
-  { href: '/admin', label: 'Resumen', icon: LayoutDashboard, roles: ['owner', 'admin'] },
-  { href: '/admin/mesas', label: 'Mesas & Salón', icon: UtensilsCrossed, roles: ['owner', 'admin', 'host', 'waiter', 'cashier'] },
-  { href: '/admin/reservas', label: 'Reservas', icon: Calendar, roles: ['owner', 'admin', 'host'] },
-  { href: '/admin/menu', label: 'Menú & Platos', icon: BookOpen, roles: ['owner', 'admin'] },
-  { href: '/admin/personal', label: 'Equipo & Personal', icon: Users, roles: ['owner', 'admin'] },
-  { href: '/admin/cocina', label: 'KDS Cocina', icon: ChefHat, roles: ['owner', 'admin', 'kitchen'] },
-  { href: '/admin/mesero', label: 'App Mesero', icon: ConciergeBell, roles: ['owner', 'admin', 'waiter'] },
-  { href: '/admin/pedidos', label: 'Pedidos & Cobros', icon: ClipboardList, roles: ['owner', 'admin', 'cashier'] },
-  { href: '/admin/reportes', label: 'Reportes & Cierre', icon: TrendingUp, roles: ['owner', 'admin', 'cashier'] },
-  { href: '/admin/ajustes', label: 'Ajustes', icon: Settings, roles: ['owner', 'admin'] },
+  { href: '/admin', label: 'Resumen', icon: LayoutDashboard, roles: ['owner', 'admin', 'host'] },
+  { href: '/admin/mesas', label: 'Mesas & Salón', icon: UtensilsCrossed, roles: ['owner', 'admin', 'host', 'cashier'] },
+  { href: '/admin/reservas', label: 'Reservas', icon: Calendar, roles: ['owner', 'admin', 'host', 'cashier'] },
+  { href: '/admin/menu', label: 'Menú & Platos', icon: BookOpen, roles: ['owner', 'admin', 'host'] },
+  { href: '/admin/personal', label: 'Equipo & Personal', icon: Users, roles: ['owner', 'admin', 'host'] },
+  { href: '/admin/cocina', label: 'KDS Cocina', icon: ChefHat, roles: ['owner', 'admin', 'host', 'kitchen', 'cashier'] },
+  { href: '/admin/mesero', label: 'Comandero & Pedidos', icon: ConciergeBell, roles: ['owner', 'admin', 'host', 'cashier'] },
+  { href: '/admin/pedidos', label: 'Pedidos & Cobros', icon: ClipboardList, roles: ['owner', 'admin', 'host', 'cashier'] },
+  { href: '/admin/reportes', label: 'Reportes & Cierre', icon: TrendingUp, roles: ['owner', 'admin', 'host', 'cashier'] },
+  { href: '/admin/ajustes', label: 'Ajustes', icon: Settings, roles: ['owner', 'admin', 'host'] },
 ];
 
 export function AdminSidebar({ staff }: { staff: CurrentStaff }) {
@@ -57,8 +66,8 @@ export function AdminSidebar({ staff }: { staff: CurrentStaff }) {
             </p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 capitalize">
-                Rol: {staff.role}
+              <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+                Rol: {roleLabelMap[staff.role] || staff.role}
               </span>
             </div>
           </div>

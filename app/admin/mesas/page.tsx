@@ -8,7 +8,7 @@ export const metadata = {
 export default async function TablesAdminPage() {
   const staff = await getCurrentStaff();
 
-  if (!staff || !['owner', 'admin', 'host', 'waiter', 'cashier'].includes(staff.role)) {
+  if (!staff || !['owner', 'admin', 'host', 'cashier'].includes(staff.role)) {
     return (
       <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-xs font-semibold text-red-700 dark:bg-red-950/30 dark:text-red-400">
         No tienes permisos para acceder a la gestión de mesas del salón.

@@ -25,16 +25,19 @@ export function TableCheckoutModal({
   order,
   onClose,
   onSuccess,
+  initialKeepTableOccupied = false,
 }: {
   order: TableOrderDetails;
   onClose: () => void;
   onSuccess: () => void;
+  initialKeepTableOccupied?: boolean;
 }) {
   const [tipPercent, setTipPercent] = useState<number | 'custom'>(10);
   const [customTipDollars, setCustomTipDollars] = useState('');
   const [splitPersons, setSplitPersons] = useState<number>(1);
   const [payMethod, setPayMethod] = useState<'efectivo' | 'transferencia' | 'tarjeta'>('efectivo');
   const [cashGivenDollars, setCashGivenDollars] = useState('');
+  const [keepTableOccupied, setKeepTableOccupied] = useState(initialKeepTableOccupied);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [completedReceiptData, setCompletedReceiptData] = useState<{
@@ -90,6 +93,7 @@ export function TableCheckoutModal({
           paymentMethod: payMethod,
           tipCents,
           paidCents: payMethod === 'efectivo' && cashGivenCents > 0 ? cashGivenCents : totalCents,
+          releaseTable: !keepTableOccupied,
         }),
       });
 
@@ -334,14 +338,38 @@ export function TableCheckoutModal({
             </div>
           </div>
 
+          {/* Modalidad de Cobro Anticipado / Pre-pago */}
+          <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-amber-500/25 bg-amber-50/70 dark:bg-amber-950/20 cursor-pointer hover:bg-amber-500/10 transition-colors">
+            <input
+              type="checkbox"
+              checked={keepTableOccupied}
+              onChange={(e) => setKeepTableOccupied(e.target.checked)}
+              className="h-4 w-4 rounded accent-[#f3a806] cursor-pointer"
+            />
+            <div className="text-xs">
+              <span className="font-extrabold text-zinc-900 dark:text-zinc-100 block">
+                Cobro anticipado / Pre-pago antes de servir
+              </span>
+              <p className="text-zinc-500 dark:text-zinc-400 text-[11px] mt-0.5">
+                {keepTableOccupied
+                  ? 'La mesa continuará como OCUPADA en el salón mientras los comensales disfrutan sus platos.'
+                  : 'La mesa se liberará de inmediato tras confirmar este cobro.'}
+              </p>
+            </div>
+          </label>
+
           {/* Botón de Confirmación */}
-          <div className="pt-2">
+          <div className="pt-1">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="h-14 w-full rounded-full bg-[#FFC21A] text-base font-extrabold text-[#1A1A1A] transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="h-14 w-full rounded-full bg-[#FFC21A] text-base font-extrabold text-[#1A1A1A] transition-opacity hover:opacity-90 disabled:opacity-50 shadow-xs"
             >
-              {isSubmitting ? 'Registrando cobro...' : 'Cobrar y liberar mesa'}
+              {isSubmitting
+                ? 'Registrando cobro...'
+                : keepTableOccupied
+                  ? `Cobrar $${(totalCents / 100).toFixed(2)} (Mesa Ocupada)`
+                  : `Cobrar $${(totalCents / 100).toFixed(2)} y Liberar Mesa`}
             </button>
           </div>
         </form>

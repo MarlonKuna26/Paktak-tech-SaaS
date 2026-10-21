@@ -8,7 +8,7 @@ export const metadata = {
 export default async function OrdersPage() {
   const staff = await getCurrentStaff();
 
-  if (!staff || !['owner', 'admin', 'cashier'].includes(staff.role)) {
+  if (!staff || !['owner', 'admin', 'host', 'cashier'].includes(staff.role)) {
     return (
       <div className="rounded-2xl bg-red-50 dark:bg-red-950/30 p-6 text-sm text-red-700 dark:text-red-400 font-medium">
         No tienes permisos para gestionar pedidos y cobros.

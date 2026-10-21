@@ -5,7 +5,7 @@ import { SettingsManager } from '@/components/admin/settings-manager';
 export default async function SettingsPage() {
   const staff = await getCurrentStaff();
 
-  if (!staff || !['owner', 'admin'].includes(staff.role)) {
+  if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
     return (
       <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
         No tienes permisos para acceder a los ajustes del restaurante.

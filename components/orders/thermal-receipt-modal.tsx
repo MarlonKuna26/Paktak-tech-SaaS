@@ -187,7 +187,7 @@ export function ThermalReceiptModal({
                     timeStyle: 'short',
                   })}
                 </p>
-                {data.waiterName && <p className="text-[10px]">Mesero: {data.waiterName}</p>}
+                {data.waiterName && <p className="text-[10px]">Atendido por: {data.waiterName}</p>}
                 {data.customerName && <p className="text-[10px]">Cliente: {data.customerName}</p>}
               </div>
 

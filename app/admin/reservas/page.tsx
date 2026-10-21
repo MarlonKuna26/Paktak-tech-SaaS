@@ -3,7 +3,7 @@ import { ReservationManager } from '@/components/reservations/reservation-manage
 
 export default async function ReservasPage() {
   const staff = await getCurrentStaff();
-  if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
+  if (!staff || !['owner', 'admin', 'host', 'cashier'].includes(staff.role)) {
     return (
       <p className="rounded-md bg-destructive/10 p-4 text-destructive">
         No tienes permisos para gestionar reservas.

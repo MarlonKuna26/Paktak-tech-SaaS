@@ -8,7 +8,7 @@ export const metadata = {
 export default async function PersonalPage() {
   const staff = await getCurrentStaff();
 
-  if (!staff || !['owner', 'admin'].includes(staff.role)) {
+  if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
     return (
       <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-xs font-semibold text-rose-700 dark:bg-rose-950/30 dark:text-rose-400">
         No tienes permisos para gestionar el personal del restaurante.

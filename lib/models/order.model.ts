@@ -9,6 +9,7 @@ export class OrderModel {
     paymentMethod: 'efectivo' | 'transferencia' | 'tarjeta' | 'otro',
     tipCents = 0,
     paidCents = 0,
+    releaseTable = true,
   ) {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase.rpc('checkout_table_order', {
@@ -16,6 +17,7 @@ export class OrderModel {
       p_payment_method: paymentMethod,
       p_tip_cents: tipCents,
       p_paid_cents: paidCents,
+      p_release_table: releaseTable,
     });
 
     if (error) throw new Error(error.message);
