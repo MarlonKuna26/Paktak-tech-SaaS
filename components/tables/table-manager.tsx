@@ -2,34 +2,35 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { Tag, Check, Plus, CreditCard, Users, X } from 'lucide-react';
 import type { RestaurantTable, TableStatus, AvailableReservation } from '@/lib/tables/types';
 import type { StaffRole } from '@/lib/auth/get-current-staff';
 import { TableCheckoutModal, type TableOrderDetails } from './table-checkout-modal';
 
 const statusConfig: Record<
   TableStatus,
-  { label: string; bgClass: string; borderClass: string; textClass: string; dotClass: string }
+  { label: string; bgClass: string; borderClass: string; badgeClass: string; dotClass: string }
 > = {
   libre: {
     label: 'Libre',
-    bgClass: 'bg-emerald-500/10 dark:bg-emerald-500/20',
-    borderClass: 'border-emerald-500/30',
-    textClass: 'text-emerald-700 dark:text-emerald-400',
+    bgClass: 'bg-white dark:bg-zinc-900',
+    borderClass: 'border-zinc-100 dark:border-zinc-800',
+    badgeClass: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
     dotClass: 'bg-emerald-500',
   },
   ocupada: {
     label: 'Ocupada',
-    bgClass: 'bg-rose-500/10 dark:bg-rose-500/20',
-    borderClass: 'border-rose-500/30',
-    textClass: 'text-rose-700 dark:text-rose-400',
-    dotClass: 'bg-rose-500',
+    bgClass: 'bg-white dark:bg-zinc-900',
+    borderClass: 'border-zinc-100 dark:border-zinc-800',
+    badgeClass: 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
+    dotClass: 'bg-[#f3a806]',
   },
   reservada: {
     label: 'Reservada',
-    bgClass: 'bg-amber-500/10 dark:bg-amber-500/20',
-    borderClass: 'border-amber-500/30',
-    textClass: 'text-amber-700 dark:text-amber-400',
-    dotClass: 'bg-amber-500',
+    bgClass: 'bg-white dark:bg-zinc-900',
+    borderClass: 'border-zinc-100 dark:border-zinc-800',
+    badgeClass: 'bg-blue-50 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
+    dotClass: 'bg-blue-500',
   },
 };
 
@@ -477,9 +478,10 @@ export function TableManager({
             <button
               type="button"
               onClick={() => setShowAddModal(true)}
-              className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90"
+              className="inline-flex h-9 items-center justify-center rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-colors"
             >
-              + Nueva Mesa
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              <span>Nueva Mesa</span>
             </button>
           )}
         </div>
@@ -487,20 +489,22 @@ export function TableManager({
 
       {/* SECCIÓN: Paletas / Fichas de Madera en Salón (Modo Fast Casual) */}
       {activePaletas.length > 0 && (
-        <section className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 space-y-3">
+        <section className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🪵</span>
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40">
+                <Tag className="w-3.5 h-3.5" />
+              </span>
               <div>
-                <h3 className="text-sm font-bold text-amber-900 dark:text-amber-200">
-                  Paletas / Fichas de Madera en Circulación ({activePaletas.length})
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  Paletas / Fichas en Circulación ({activePaletas.length})
                 </h3>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-zinc-500">
                   Clientes sentados en el salón comiendo con número móvil. Al limpiar la mesa o recoger el número, presiona &ldquo;Liberar&rdquo;.
                 </p>
               </div>
             </div>
-            <span className="text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+            <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full">
               {activePaletas.length} mesas ocupadas
             </span>
           </div>
@@ -509,20 +513,20 @@ export function TableManager({
             {activePaletas.map((pal) => (
               <div
                 key={pal.id}
-                className="flex flex-col justify-between rounded-xl border border-amber-500/30 bg-card p-3.5 shadow-xs"
+                className="flex flex-col justify-between rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 p-4 shadow-2xs"
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-base font-extrabold text-amber-800 dark:text-amber-300">
-                      🪵 Paleta #{pal.table_or_token_number}
+                    <span className="font-mono text-base font-extrabold text-zinc-900 dark:text-zinc-100">
+                      Paleta #{pal.table_or_token_number}
                     </span>
-                    <span className="text-[10px] rounded-md bg-muted px-1.5 py-0.5 font-mono text-muted-foreground">
+                    <span className="text-[10px] rounded-full bg-zinc-100 dark:bg-zinc-700 px-2 py-0.5 font-mono text-zinc-500">
                       {new Date(pal.created_at).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
 
-                  <p className="mt-1 text-xs font-semibold">{pal.customer_name}</p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="mt-1 text-xs font-semibold text-zinc-800 dark:text-zinc-200">{pal.customer_name}</p>
+                  <p className="text-[11px] text-zinc-400">
                     Código: {pal.tracking_code} · ${(pal.total_cents / 100).toFixed(2)}
                   </p>
                 </div>
@@ -530,9 +534,10 @@ export function TableManager({
                 <button
                   type="button"
                   onClick={() => void releasePaleta(pal.id, pal.table_or_token_number)}
-                  className="mt-3 h-8 w-full rounded-lg bg-emerald-600 px-2 text-xs font-bold text-white hover:bg-emerald-700 transition-colors shadow-xs"
+                  className="mt-3 h-8 w-full rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
                 >
-                  ✓ Recoger Paleta y Liberar
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Recoger y Liberar</span>
                 </button>
               </div>
             ))}
@@ -564,18 +569,16 @@ export function TableManager({
                       <h3 className="text-2xl font-extrabold tracking-tight">Mesa #{table.table_number}</h3>
                     </div>
 
-                    <div className="inline-flex items-center gap-1.5 rounded-full border bg-background/80 px-2.5 py-1 text-xs font-semibold backdrop-blur-sm">
-                      <span className={`h-2 w-2 rounded-full ${config.dotClass}`} />
-                      <span className={config.textClass}>{config.label}</span>
+                    <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${config.badgeClass}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${config.dotClass}`} />
+                      <span>{config.label}</span>
                     </div>
                   </div>
 
                   {/* Capacidad */}
-                  <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-                      <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 00-13.074.003z" />
-                    </svg>
-                    <span>Capacidad: {table.capacity} comensales</span>
+                  <div className="mt-2 flex items-center gap-1.5 text-xs text-zinc-500">
+                    <Users className="h-3.5 w-3.5" />
+                    <span>Capacidad: {table.capacity} personas</span>
                   </div>
 
                   {/* Si tiene reserva asignada */}
@@ -604,22 +607,22 @@ export function TableManager({
                   )}
                 </div>
 
-                {/* Botones de Cambio de Estado Rápido */}
-                <div className="mt-4 border-t border-border/40 pt-3">
-                  <div className="grid grid-cols-2 gap-1.5">
+                  {/* Botones de Cambio de Estado Rápido */}
+                <div className="mt-4 border-t border-zinc-100 dark:border-zinc-800 pt-3">
+                  <div className="grid grid-cols-2 gap-2">
                     {table.status === 'libre' && (
                       <>
                         <button
                           type="button"
                           onClick={() => void updateTableStatus(table.id, 'ocupada')}
-                          className="h-8 rounded-lg bg-rose-600 px-2 text-xs font-semibold text-white shadow-xs hover:bg-rose-700 transition-colors"
+                          className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors"
                         >
                           Sentar Clientes
                         </button>
                         <button
                           type="button"
                           onClick={() => setAssigningTable(table)}
-                          className="h-8 rounded-lg border border-amber-500/50 bg-background px-2 text-xs font-semibold text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                          className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
                         >
                           Asignar Reserva
                         </button>
@@ -627,19 +630,20 @@ export function TableManager({
                     )}
 
                     {table.status === 'ocupada' && (
-                      <div className="col-span-2 flex flex-col gap-1.5">
+                      <div className="col-span-2 flex flex-col gap-2">
                         <button
                           type="button"
                           onClick={() => void openTableCheckout(table)}
                           disabled={isFetchingCheckout}
-                          className="h-8 w-full rounded-lg bg-emerald-600 px-2 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 transition-colors flex items-center justify-center gap-1.5"
+                          className="h-9 w-full rounded-full bg-[#f3a806] hover:bg-[#e09804] px-3 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5"
                         >
-                          💳 Cobrar Cuenta
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>Cobrar Cuenta</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => void updateTableStatus(table.id, 'libre')}
-                          className="h-7 w-full rounded-lg border bg-background px-2 text-[11px] font-medium text-muted-foreground hover:bg-muted transition-colors"
+                          className="h-8 w-full rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
                         >
                           Liberar Mesa
                         </button>
@@ -651,16 +655,16 @@ export function TableManager({
                         <button
                           type="button"
                           onClick={() => void updateTableStatus(table.id, 'ocupada')}
-                          className="h-8 rounded-lg bg-rose-600 px-2 text-xs font-semibold text-white shadow-xs hover:bg-rose-700 transition-colors"
+                          className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors"
                         >
-                          Llegó el Cliente
+                          Llegó Cliente
                         </button>
                         <button
                           type="button"
                           onClick={() => void updateTableStatus(table.id, 'libre')}
-                          className="h-8 rounded-lg border bg-background px-2 text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"
+                          className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
                         >
-                          Cancelar / Liberar
+                          Liberar
                         </button>
                       </>
                     )}
@@ -771,8 +775,9 @@ export function TableManager({
                 type="button"
                 onClick={() => setAssigningTable(null)}
                 className="text-muted-foreground hover:text-foreground text-sm"
+                aria-label="Cerrar modal"
               >
-                ✕
+                <X className="h-4 w-4" />
               </button>
             </div>
 

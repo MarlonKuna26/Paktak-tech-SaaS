@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Check, Plus } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 const DEFAULT_CATEGORIES = [
@@ -142,7 +143,7 @@ export function OnboardingWizard({ initialUserEmail }: { initialUserEmail?: stri
                     : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400'
                 }`}
               >
-                {step > item.stepNum ? '✓' : item.stepNum}
+                {step > item.stepNum ? <Check className="h-3.5 w-3.5" /> : item.stepNum}
               </div>
               <span className="text-xs font-semibold hidden sm:inline text-zinc-700 dark:text-zinc-300">
                 {item.label}
@@ -299,7 +300,7 @@ export function OnboardingWizard({ initialUserEmail }: { initialUserEmail?: stri
 
               <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40 p-4">
                 <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                  ✓ Configuración lista:
+                  Configuración lista:
                 </p>
                 <p className="text-[11px] text-zinc-500 mt-1">
                   Se crearán las mesas del 1 al {tablesCount} con capacidad de 4 personas cada una en el Salón Principal. Podrás modificar su capacidad y agregar más zonas luego desde el panel.
@@ -354,7 +355,7 @@ export function OnboardingWizard({ initialUserEmail }: { initialUserEmail?: stri
                       }`}
                     >
                       <span className="text-xs">{cat}</span>
-                      <span className="text-xs">{isChecked ? '✓' : '+'}</span>
+                      <span className="text-xs">{isChecked ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}</span>
                     </div>
                   );
                 })}
@@ -491,7 +492,7 @@ export function OnboardingWizard({ initialUserEmail }: { initialUserEmail?: stri
                     <span>Creando tu restaurante...</span>
                   </>
                 ) : (
-                  <span>🚀 Comenzar a Operar Ahora</span>
+                  <span>Comenzar a operar ahora</span>
                 )}
               </button>
             </div>

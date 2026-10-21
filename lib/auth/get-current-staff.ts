@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
-export type StaffRole = 'owner' | 'admin' | 'host' | 'waiter' | 'kitchen';
+export type StaffRole = 'owner' | 'admin' | 'host' | 'waiter' | 'kitchen' | 'cashier';
 
 export type CurrentStaff = {
   id: string;

@@ -8,24 +8,26 @@ export const metadata = {
 export default async function ReportesPage() {
   const staff = await getCurrentStaff();
 
-  if (!staff || !['owner', 'admin'].includes(staff.role)) {
+  if (!staff || !['owner', 'admin', 'cashier'].includes(staff.role)) {
     return (
-      <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
-        No tienes permisos para acceder al módulo de reportes y arqueo de ventas.
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-xs font-semibold text-red-700 dark:bg-red-950/30 dark:text-red-400">
+        No tienes permisos para acceder al módulo de reportes y arqueo de caja.
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Finanzas & Operación</p>
-          <h1 className="text-3xl font-bold tracking-tight">Cierre de Caja y Reportes Diarios</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Visualiza ventas consolidadas por fecha, desglose de métodos de pago, propinas y top de productos.
-          </p>
-        </div>
+    <div className="mx-auto max-w-7xl space-y-6 pb-16 font-sans">
+      <div className="space-y-1">
+        <span className="text-xs font-bold uppercase tracking-wider text-[#f3a806]">
+          Finanzas & Operación
+        </span>
+        <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
+          Cierre de Caja & Reportes
+        </h1>
+        <p className="text-xs text-zinc-500 max-w-xl">
+          Visualiza ingresos reales, cruza costos de materia prima vs margen neto, y analiza qué mesero o canal generó cada venta.
+        </p>
       </div>
 
       <DailyReportView restaurantName={staff.restaurantName} />

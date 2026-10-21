@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { RefreshCw, ClipboardList, Check, ArrowRight, Printer, CreditCard } from 'lucide-react';
 import { ThermalReceiptModal } from './thermal-receipt-modal';
 
 type PublicOrder = {
@@ -28,26 +29,48 @@ type PublicOrder = {
   }>;
 };
 
+// Badges discretos y elegantes con fondos sutiles (10%) y tipografía nítida
 const statusBadges: Record<PublicOrder['status'], { label: string; className: string }> = {
-  pendiente: { label: 'Pendiente', className: 'bg-amber-500/10 text-amber-600 border-amber-200' },
-  confirmado: { label: 'Confirmado', className: 'bg-blue-500/10 text-blue-600 border-blue-200' },
-  preparando: { label: 'En Cocina', className: 'bg-orange-500/10 text-orange-600 border-orange-200' },
-  listo: { label: 'Listo para Entrega', className: 'bg-emerald-500/10 text-emerald-600 border-emerald-200' },
-  completado: { label: 'Completado', className: 'bg-muted text-muted-foreground border-border' },
-  rechazado: { label: 'Rechazado', className: 'bg-destructive/10 text-destructive border-destructive/20' },
-  cancelado: { label: 'Cancelado', className: 'bg-muted text-muted-foreground border-border' },
+  pendiente: {
+    label: 'Pendiente',
+    className: 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
+  },
+  confirmado: {
+    label: 'Confirmado',
+    className: 'bg-blue-50 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
+  },
+  preparando: {
+    label: 'En Cocina',
+    className: 'bg-orange-50 text-orange-800 dark:bg-orange-950/40 dark:text-orange-300',
+  },
+  listo: {
+    label: 'Listo para Entrega',
+    className: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
+  },
+  completado: {
+    label: 'Completado',
+    className: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
+  },
+  rechazado: {
+    label: 'Rechazado',
+    className: 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300',
+  },
+  cancelado: {
+    label: 'Cancelado',
+    className: 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400',
+  },
 };
 
 export function OrderManager({ restaurantId }: { restaurantId: string }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [orders, setOrders] = useState<PublicOrder[]>([]);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState<'activos' | 'mesas' | 'todos' | 'pendientes' | 'paletas'>('activos');
+  const [filter, setFilter] = useState<'activos' | 'mesas' | 'pendientes' | 'todos'>('activos');
   const [rejectingOrderId, setRejectingOrderId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Estado para la Modal de Cobro & Asignación de Paleta
+  // Modal de Cobro & Paleta
   const [payingOrder, setPayingOrder] = useState<PublicOrder | null>(null);
   const [payServiceType, setPayServiceType] = useState<'paleta_madera' | 'mesa_fija' | 'para_llevar'>('paleta_madera');
   const [tokenInput, setTokenInput] = useState('');
@@ -103,10 +126,10 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
 
         return {
           id: tOrder.id,
-          tracking_code: `MESA-${tableNum}-#${tOrder.order_number}`,
-          customer_name: `Comanda Mesa #${tableNum}`,
-          customer_phone: 'En Salón',
-          notes: tOrder.tables?.zone ? `Zona: ${tOrder.tables.zone}` : null,
+          tracking_code: `MESA-${tableNum}`,
+          customer_name: `Mesa #${tableNum} (Salón)`,
+          customer_phone: tOrder.tables?.zone || 'Comanda Interna',
+          notes: null,
           total_cents: tOrder.total_cents,
           status: orderStatus,
           service_type: 'mesa_fija',
@@ -117,7 +140,7 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
           change_cents: null,
           rejection_reason: null,
           created_at: tOrder.opened_at,
-          public_order_items: (tOrder.order_items || []).map((it) => ({
+          public_order_items: (tOrder.order_items ?? []).map((it) => ({
             product_name: it.product_name,
             quantity: it.quantity,
             unit_price_cents: it.unit_price_cents,
@@ -126,40 +149,82 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
         };
       });
 
-      const combined = [...((publicData ?? []) as PublicOrder[]), ...formattedTableOrders];
-      combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      setOrders(combined);
+      const merged = [...((publicData as PublicOrder[]) ?? []), ...formattedTableOrders];
+      merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      setOrders(merged);
     }
   }, [restaurantId, supabase]);
 
-  // Carga inicial y polling periódico cada 5 segundos
   useEffect(() => {
-    const timer = window.setTimeout(() => void load(), 0);
-    const interval = setInterval(() => {
-      void load(true);
-    }, 5000);
+    const timer = window.setTimeout(() => {
+      void load();
+    }, 0);
+
+    const channel = supabase
+      .channel(`order-manager-realtime-${restaurantId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'public_order_requests', filter: `restaurant_id=eq.${restaurantId}` },
+        () => void load(true)
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${restaurantId}` },
+        () => void load(true)
+      )
+      .subscribe();
+
+    const interval = setInterval(() => void load(true), 10000);
+
     return () => {
       window.clearTimeout(timer);
       clearInterval(interval);
+      void supabase.removeChannel(channel);
     };
-  }, [load]);
+  }, [load, restaurantId, supabase]);
 
-  async function transition(id: string, status: 'confirmado' | 'preparando' | 'listo' | 'completado', reason?: string) {
+  async function transition(orderId: string, nextStatus: PublicOrder['status'], extraData?: Record<string, unknown>) {
     setError('');
-    const response = await fetch(`/api/orders/${id}/status`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, reason }),
-    });
-    if (!response.ok) {
-      const body = (await response.json()) as { error?: string };
-      setError(body.error ?? 'No se pudo actualizar el estado del pedido.');
-      return;
+    const target = orders.find((o) => o.id === orderId);
+
+    if (target?.service_type === 'mesa_fija') {
+      try {
+        const res = await fetch(`/api/orders/${orderId}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nextStatus === 'completado' ? 'pagada' : nextStatus }),
+        });
+        if (!res.ok) {
+          const body = (await res.json()) as { error?: string };
+          setError(body.error ?? 'Error al actualizar comanda.');
+          return;
+        }
+        await load(true);
+        return;
+      } catch {
+        setError('Error al actualizar comanda.');
+        return;
+      }
     }
-    await load();
+
+    try {
+      const response = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus, ...extraData }),
+      });
+      if (!response.ok) {
+        const body = (await response.json()) as { error?: string };
+        setError(body.error ?? 'No se pudo actualizar el estado.');
+        return;
+      }
+      await load(true);
+    } catch {
+      setError('Error al conectar con el servidor.');
+    }
   }
 
-  // Abrir modal de cobro
   function openPaymentModal(order: PublicOrder) {
     setPayingOrder(order);
     setPayServiceType(order.service_type || 'paleta_madera');
@@ -168,641 +233,482 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
     setCashAmountInput((order.total_cents / 100).toFixed(2));
   }
 
-  // Procesar cobro en caja
   async function handleConfirmPayment(e: React.FormEvent) {
     e.preventDefault();
     if (!payingOrder) return;
     setError('');
-
-    const paidDollars = parseFloat(cashAmountInput);
-    if (isNaN(paidDollars) || paidDollars < payingOrder.total_cents / 100) {
-      setError(`El monto pagado debe ser al menos $${(payingOrder.total_cents / 100).toFixed(2)}.`);
-      return;
-    }
-
-    if (payServiceType === 'paleta_madera' && !tokenInput.trim()) {
-      setError('Por favor ingresa el número de Paleta o Ficha de madera que le entregaste al cliente.');
-      return;
-    }
-
     setIsProcessingPayment(true);
+
+    const cashGivenDollars = parseFloat(cashAmountInput.replace(',', '.'));
+    const paidAmountCents = payMethod === 'efectivo' && !isNaN(cashGivenDollars)
+      ? Math.round(cashGivenDollars * 100)
+      : payingOrder.total_cents;
+
     try {
-      const res = await fetch(`/api/orders/${payingOrder.id}/pay`, {
+      const response = await fetch(`/api/orders/${payingOrder.id}/pay`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          paymentMethod: payMethod,
-          paidAmountCents: Math.round(paidDollars * 100),
-          tokenNumber: tokenInput.trim() || undefined,
           serviceType: payServiceType,
+          tableOrTokenNumber: tokenInput.trim() || undefined,
+          paymentMethod: payMethod,
+          paidAmountCents,
         }),
       });
 
-      const body = (await res.json()) as { error?: string };
+      const body = (await response.json()) as { error?: string; order?: PublicOrder };
       setIsProcessingPayment(false);
 
-      if (!res.ok) {
-        setError(body.error ?? 'No se pudo registrar el pago.');
+      if (!response.ok) {
+        setError(body.error || 'No se pudo registrar el pago.');
         return;
       }
 
+      const updated = {
+        ...payingOrder,
+        payment_status: 'pagado' as const,
+        payment_method: payMethod,
+        paid_amount_cents: paidAmountCents,
+        service_type: payServiceType,
+        table_or_token_number: tokenInput.trim(),
+        change_cents: Math.max(0, paidAmountCents - payingOrder.total_cents),
+      };
+
       setPayingOrder(null);
-      await load();
+      await load(true);
+      setPrintingOrder(updated);
     } catch {
       setIsProcessingPayment(false);
-      setError('Error de conexión al registrar el cobro.');
+      setError('Error al procesar el pago.');
     }
   }
 
-  async function confirmReject(orderId: string) {
-    if (!rejectReason.trim() || rejectReason.trim().length < 3) {
-      setError('Por favor indica un motivo claro para el rechazo (mínimo 3 caracteres).');
-      return;
-    }
-    const response = await fetch(`/api/orders/${orderId}/status`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'rechazado', reason: rejectReason.trim() }),
-    });
-    if (!response.ok) {
-      const body = (await response.json()) as { error?: string };
-      setError(body.error ?? 'No se pudo rechazar el pedido.');
-      return;
-    }
+  async function handleRejectOrder() {
+    if (!rejectingOrderId) return;
+    await transition(rejectingOrderId, 'rechazado', { rejectionReason: rejectReason || 'Sin motivo especificado' });
     setRejectingOrderId(null);
     setRejectReason('');
-    await load();
   }
 
   const filteredOrders = useMemo(() => {
-    if (filter === 'pendientes') {
-      return orders.filter((o) => o.status === 'pendiente');
+    switch (filter) {
+      case 'activos':
+        return orders.filter((o) => ['pendiente', 'confirmado', 'preparando', 'listo'].includes(o.status));
+      case 'pendientes':
+        return orders.filter((o) => o.status === 'pendiente');
+      case 'mesas':
+        return orders.filter((o) => o.service_type === 'mesa_fija');
+      case 'todos':
+      default:
+        return orders;
     }
-    if (filter === 'mesas') {
-      return orders.filter((o) => o.service_type === 'mesa_fija' && ['confirmado', 'preparando', 'listo'].includes(o.status));
-    }
-    if (filter === 'paletas') {
-      return orders.filter(
-        (o) =>
-          o.service_type === 'paleta_madera' &&
-          o.table_or_token_number &&
-          ['confirmado', 'preparando', 'listo'].includes(o.status),
-      );
-    }
-    if (filter === 'activos') {
-      return orders.filter((o) => ['pendiente', 'confirmado', 'preparando', 'listo'].includes(o.status));
-    }
-    return orders;
-  }, [orders, filter]);
+  }, [filter, orders]);
 
+  const activeCount = orders.filter((o) => ['pendiente', 'confirmado', 'preparando', 'listo'].includes(o.status)).length;
   const pendingCount = orders.filter((o) => o.status === 'pendiente').length;
-  const activePaletasCount = orders.filter(
-    (o) =>
-      o.service_type === 'paleta_madera' &&
-      o.table_or_token_number &&
-      ['confirmado', 'preparando', 'listo'].includes(o.status),
-  ).length;
-
-  function buildWhatsAppMessage(order: PublicOrder): string {
-    const cleanPhone = order.customer_phone.replace(/\D/g, '');
-    let text = `Hola ${order.customer_name}, le contactamos de Paktak sobre su pedido ${order.tracking_code}.`;
-    if (order.table_or_token_number) {
-      text += ` (Paleta #${order.table_or_token_number})`;
-    }
-    if (order.status === 'confirmado') {
-      text = `Hola ${order.customer_name}, su pedido ${order.tracking_code} está PAGADO y pasando a cocina. ¡Su comida va en camino a su mesa! 🍽️`;
-    } else if (order.status === 'listo') {
-      text = `Hola ${order.customer_name}, ¡su comida para la Paleta #${order.table_or_token_number || ''} ya está LISTA! 🍽️ ¡Buen provecho!`;
-    } else if (order.status === 'rechazado') {
-      text = `Hola ${order.customer_name}, lamentamos informarle que su pedido ${order.tracking_code} no pudo ser atendido. Motivo: ${order.rejection_reason || 'Sin stock disponible'}.`;
-    }
-    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
-  }
 
   return (
-    <div className="space-y-5">
-      {/* Barra de control y filtros */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
+    <div className="space-y-8 font-sans">
+      {/* 1. Header & Filtros Limpios (Whitespace y Jerarquía) */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2">
+        {/* Píldoras de Filtro Minimalistas */}
+        <div className="inline-flex rounded-full bg-zinc-100 dark:bg-zinc-800/80 p-1 shadow-2xs">
           <button
             type="button"
             onClick={() => setFilter('activos')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
               filter === 'activos'
-                ? 'bg-primary text-primary-foreground'
-                : 'border bg-background text-muted-foreground hover:bg-muted'
+                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
             }`}
           >
-            En Curso ({orders.filter((o) => ['pendiente', 'confirmado', 'preparando', 'listo'].includes(o.status)).length})
+            Activos ({activeCount})
           </button>
           <button
             type="button"
             onClick={() => setFilter('pendientes')}
-            className={`relative rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
               filter === 'pendientes'
-                ? 'bg-primary text-primary-foreground'
-                : 'border bg-background text-muted-foreground hover:bg-muted'
+                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
             }`}
           >
-            Por Cobrar / Pendientes
-            {pendingCount > 0 && (
-              <span className="ml-1.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                {pendingCount}
-              </span>
-            )}
+            Por Confirmar ({pendingCount})
           </button>
           <button
             type="button"
             onClick={() => setFilter('mesas')}
-            className={`relative rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
               filter === 'mesas'
-                ? 'bg-primary text-primary-foreground'
-                : 'border bg-background text-muted-foreground hover:bg-muted'
+                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
             }`}
           >
-            🪑 Mesas de Salón
-            {orders.filter((o) => o.service_type === 'mesa_fija' && ['confirmado', 'preparando', 'listo'].includes(o.status)).length > 0 && (
-              <span className="ml-1.5 rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                {orders.filter((o) => o.service_type === 'mesa_fija' && ['confirmado', 'preparando', 'listo'].includes(o.status)).length}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilter('paletas')}
-            className={`relative rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-              filter === 'paletas'
-                ? 'bg-primary text-primary-foreground'
-                : 'border bg-background text-muted-foreground hover:bg-muted'
-            }`}
-          >
-            🪵 Paletas en Salón
-            {activePaletasCount > 0 && (
-              <span className="ml-1.5 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                {activePaletasCount}
-              </span>
-            )}
+            Mesas Salón
           </button>
           <button
             type="button"
             onClick={() => setFilter('todos')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
               filter === 'todos'
-                ? 'bg-primary text-primary-foreground'
-                : 'border bg-background text-muted-foreground hover:bg-muted'
+                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
             }`}
           >
             Historial ({orders.length})
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        {/* Estado en Vivo y Refrescar */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-xs font-medium text-zinc-500">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
-            Sincronizado cada 5s
-          </span>
+            <span>En vivo</span>
+          </div>
+
           <button
             type="button"
             onClick={() => void load()}
             disabled={isRefreshing}
-            className="rounded-lg border bg-background px-3 py-1 text-xs font-medium hover:bg-muted disabled:opacity-50"
+            className="h-8 px-3 rounded-full text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-40 flex items-center gap-1.5 shadow-2xs"
           >
-            {isRefreshing ? 'Actualizando...' : '↻ Refrescar'}
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span>Actualizar</span>
           </button>
         </div>
       </div>
 
       {error && (
-        <div role="alert" className="rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+        <div role="alert" className="rounded-2xl bg-red-50 dark:bg-red-950/30 p-4 text-xs font-medium text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
 
-      {/* Lista de Pedidos */}
-      <div className="space-y-4">
-        {filteredOrders.map((order) => {
-          const badge = statusBadges[order.status];
-          const isPaid = order.payment_status === 'pagado';
-          const tokenLabel = order.table_or_token_number
-            ? order.service_type === 'paleta_madera'
-              ? `🪵 Paleta #${order.table_or_token_number}`
-              : order.service_type === 'mesa_fija'
-                ? `🪑 Mesa #${order.table_or_token_number}`
-                : `🛍️ ${order.table_or_token_number}`
-            : order.service_type === 'para_llevar'
-              ? '🛍️ Para Llevar'
-              : 'Sin asignar';
-
-          return (
-            <article
-              key={order.id}
-              className={`rounded-xl border bg-card p-5 transition-all ${
-                order.status === 'pendiente' ? 'border-amber-400/60 shadow-sm' : ''
-              }`}
-            >
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                {/* Información del Cliente y Pedido */}
-                <div className="space-y-2 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-sm font-bold tracking-wider text-primary">
-                      {order.tracking_code}
-                    </span>
-                    <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badge.className}`}>
-                      {badge.label}
-                    </span>
-
-                    {/* Badge de Pago */}
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${
-                        isPaid
-                          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                          : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400'
-                      }`}
-                    >
-                      {isPaid ? `✓ Pagado (${order.payment_method || 'caja'})` : '⏳ Por Cobrar'}
-                    </span>
-
-                    {/* Badge de Ubicación / Paleta */}
-                    {order.table_or_token_number && (
-                      <span className="inline-flex rounded-full border border-blue-500/30 bg-blue-500/10 px-2.5 py-0.5 text-xs font-extrabold text-blue-700 dark:text-blue-300">
-                        {tokenLabel}
-                      </span>
-                    )}
-
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(order.created_at).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-bold">{order.customer_name}</h3>
-                    <p className="text-xs text-muted-foreground">Teléfono: {order.customer_phone}</p>
-                  </div>
-
-                  {/* Lista de Items */}
-                  <div className="rounded-lg border bg-muted/20 p-3 text-xs">
-                    <p className="font-semibold text-muted-foreground uppercase mb-1">Comanda para cocina:</p>
-                    <ul className="space-y-1">
-                      {order.public_order_items.map((item, idx) => (
-                        <li key={`${order.id}-${idx}`} className="flex justify-between">
-                          <span>
-                            <strong>{item.quantity}×</strong> {item.product_name}
-                            {item.notes && <em className="text-muted-foreground ml-1">({item.notes})</em>}
-                          </span>
-                          <span className="font-mono">
-                            ${((item.unit_price_cents * item.quantity) / 100).toFixed(2)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="mt-2 border-t pt-1.5 flex justify-between font-bold text-sm">
-                      <span>Total:</span>
-                      <span className="text-primary">${(order.total_cents / 100).toFixed(2)}</span>
-                    </div>
-
-                    {isPaid && order.paid_amount_cents && (
-                      <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
-                        <span>
-                          Pagó con: ${(order.paid_amount_cents / 100).toFixed(2)} ({order.payment_method})
-                        </span>
-                        <span>Cambio entregado: ${((order.change_cents || 0) / 100).toFixed(2)}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {order.notes && (
-                    <p className="rounded-lg bg-amber-500/10 p-2 text-xs text-amber-900 dark:text-amber-200">
-                      <strong>Nota del cliente:</strong> {order.notes}
-                    </p>
-                  )}
-
-                  {order.rejection_reason && (
-                    <p className="rounded-lg bg-destructive/10 p-2 text-xs text-destructive">
-                      <strong>Motivo de rechazo:</strong> {order.rejection_reason}
-                    </p>
-                  )}
-                </div>
-
-                {/* Acciones de Caja, Cocina y Meseros */}
-                <div className="flex flex-col gap-2 min-w-[220px]">
-                  {/* Botón Principal: Si no está pagado, cobrar primero */}
-                  {!isPaid && order.status === 'pendiente' && (
-                    <button
-                      type="button"
-                      onClick={() => openPaymentModal(order)}
-                      className="h-10 w-full rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      💰 Cobrar y Asignar Paleta
-                    </button>
-                  )}
-
-                  {order.status === 'pendiente' && isPaid && (
-                    <button
-                      type="button"
-                      onClick={() => void transition(order.id, 'confirmado')}
-                      className="h-9 w-full rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
-                    >
-                      ✓ Confirmar a Cocina
-                    </button>
-                  )}
-
-                  {order.status === 'pendiente' && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRejectingOrderId(order.id);
-                        setRejectReason('');
-                      }}
-                      className="h-8 w-full rounded-lg border border-destructive/30 px-3 text-xs font-medium text-destructive hover:bg-destructive/10"
-                    >
-                      ✕ Rechazar
-                    </button>
-                  )}
-
-                  {order.status === 'confirmado' && (
-                    <button
-                      type="button"
-                      onClick={() => void transition(order.id, 'preparando')}
-                      className="h-9 w-full rounded-lg bg-orange-500 px-3 text-xs font-semibold text-white hover:bg-orange-600"
-                    >
-                      🍳 Enviar a Cocina
-                    </button>
-                  )}
-
-                  {order.status === 'preparando' && (
-                    <button
-                      type="button"
-                      onClick={() => void transition(order.id, 'listo')}
-                      className="h-9 w-full rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700"
-                    >
-                      🔔 Marcar como ¡Listo! ({order.table_or_token_number ? `Llevar a ${order.table_or_token_number}` : 'Entrega'})
-                    </button>
-                  )}
-
-                  {order.status === 'listo' && (
-                    <button
-                      type="button"
-                      onClick={() => void transition(order.id, 'completado')}
-                      className="h-9 w-full rounded-lg border bg-background px-3 text-xs font-bold text-foreground hover:bg-muted shadow-xs"
-                    >
-                      ✓ Entregado / Liberar {order.table_or_token_number ? `Paleta #${order.table_or_token_number}` : 'Pedido'}
-                    </button>
-                  )}
-
-                  {/* Botón WhatsApp */}
-                  <a
-                    href={buildWhatsAppMessage(order)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-[#25D366] px-3 text-xs font-medium text-white hover:opacity-90 shadow-xs"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                    </svg>
-                    Avisar por WhatsApp
-                  </a>
-
-                  {/* Botón Imprimir Ticket Térmico / Comanda */}
-                  <button
-                    type="button"
-                    onClick={() => setPrintingOrder(order)}
-                    className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border bg-background px-3 text-xs font-semibold hover:bg-muted shadow-2xs transition-colors"
-                  >
-                    <span>🖨️</span> Ticket Térmico / Cocina
-                  </button>
-
-                  {/* Panel inline para rechazar */}
-                  {rejectingOrderId === order.id && (
-                    <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 space-y-2 mt-2">
-                      <p className="text-xs font-semibold text-destructive">Motivo del rechazo:</p>
-                      <input
-                        type="text"
-                        placeholder="Ej. Sin insumos / cerrado"
-                        value={rejectReason}
-                        onChange={(e) => setRejectReason(e.target.value)}
-                        className="h-8 w-full rounded border bg-background px-2 text-xs focus:outline-none"
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => void confirmReject(order.id)}
-                          className="h-7 flex-1 rounded bg-destructive px-2 text-xs font-medium text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Confirmar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setRejectingOrderId(null)}
-                          className="h-7 rounded border px-2 text-xs hover:bg-muted"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </article>
-          );
-        })}
-
-        {!filteredOrders.length && (
-          <div className="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground">
-            No hay pedidos en esta sección.
+      {/* 2. Lista de Pedidos en Tarjetas Respiradas y Sin Bordes Duros */}
+      <div className="space-y-6">
+        {filteredOrders.length === 0 ? (
+          <div className="text-center py-20 rounded-3xl bg-white dark:bg-zinc-900 p-8 shadow-xs">
+            <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 mx-auto mb-3">
+              <ClipboardList className="w-6 h-6 stroke-[1.8]" />
+            </div>
+            <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">No hay pedidos en esta sección</p>
+            <p className="text-xs text-zinc-500 mt-1">Los nuevos pedidos en vivo aparecerán aquí de forma automática.</p>
           </div>
+        ) : (
+          filteredOrders.map((order) => {
+            const badge = statusBadges[order.status];
+            const isPaid = order.payment_status === 'pagado';
+            const formattedTotal = (order.total_cents / 100).toFixed(2);
+            const timeStr = new Date(order.created_at).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+
+            return (
+              <article
+                key={order.id}
+                className="rounded-2xl bg-white dark:bg-zinc-900 p-6 sm:p-7 shadow-xs hover:shadow-md transition-shadow"
+              >
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                  {/* Contenido Principal */}
+                  <div className="flex-1 space-y-4">
+                    {/* Fila Superior: Código, Badges Elegantes y Hora */}
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <span className="font-mono text-sm font-extrabold text-zinc-900 dark:text-zinc-100">
+                        {order.tracking_code}
+                      </span>
+
+                      {/* Badge de Estado Sutil */}
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge.className}`}>
+                        {badge.label}
+                      </span>
+
+                      {/* Badge de Pago Sutil */}
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                          isPaid
+                            ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+                            : 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
+                        }`}
+                      >
+                        {isPaid ? `Pagado (${order.payment_method || 'caja'})` : 'Pago al Retirar'}
+                      </span>
+
+                      {/* Badge de Ubicación / Paleta */}
+                      {order.table_or_token_number && (
+                        <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300 px-2.5 py-0.5 text-xs font-semibold">
+                          {order.service_type === 'paleta_madera' ? `Paleta #${order.table_or_token_number}` : `Mesa #${order.table_or_token_number}`}
+                        </span>
+                      )}
+
+                      <span className="text-xs text-zinc-400 ml-auto sm:ml-2">
+                        {timeStr}
+                      </span>
+                    </div>
+
+                    {/* Cliente */}
+                    <div>
+                      <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                        {order.customer_name}
+                      </h3>
+                      <p className="text-xs text-zinc-500 mt-0.5">
+                        {order.customer_phone}
+                      </p>
+                    </div>
+
+                    {/* Desglose de Productos Limpio (Sin cajas toscas) */}
+                    <div className="pt-2">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
+                        Comanda:
+                      </p>
+                      <ul className="space-y-1.5 text-xs text-zinc-700 dark:text-zinc-300">
+                        {order.public_order_items.map((item, idx) => (
+                          <li key={`${order.id}-${idx}`} className="flex items-baseline justify-between">
+                            <span className="pr-4">
+                              <strong className="font-bold text-zinc-900 dark:text-zinc-100">{item.quantity}×</strong>{' '}
+                              <span>{item.product_name}</span>
+                              {item.notes && (
+                                <span className="text-zinc-400 italic ml-1.5 font-normal">
+                                  ({item.notes})
+                                </span>
+                              )}
+                            </span>
+                            <span className="font-mono text-zinc-500 shrink-0">
+                              ${((item.unit_price_cents * item.quantity) / 100).toFixed(2)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {/* Fila de Total Minimalista */}
+                      <div className="mt-3 pt-3 flex justify-between items-baseline border-t border-zinc-100 dark:border-zinc-800">
+                        <span className="text-xs font-semibold text-zinc-500">Total:</span>
+                        <span className="text-base font-black text-zinc-900 dark:text-zinc-100">
+                          ${formattedTotal}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Nota del Cliente si existe */}
+                    {order.notes && (
+                      <p className="text-xs text-amber-900 dark:text-amber-300 bg-amber-500/10 p-3 rounded-xl italic">
+                        Nota: {order.notes}
+                      </p>
+                    )}
+
+                    {order.rejection_reason && (
+                      <p className="text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-3 rounded-xl">
+                        Motivo de rechazo: {order.rejection_reason}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* 3. Panel de Acciones con Regla de Color Único (Warm Amber Primario) */}
+                  <div className="flex flex-col gap-2.5 sm:min-w-[210px] pt-2 lg:pt-0">
+                    {/* Botón Destacado: Cobrar al Retirar si está pendiente de pago */}
+                    {!isPaid && (
+                      <button
+                        type="button"
+                        onClick={() => openPaymentModal(order)}
+                        className="h-11 w-full rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                      >
+                        <CreditCard className="w-4 h-4" />
+                        <span>Cobrar al Retirar</span>
+                      </button>
+                    )}
+
+                    {order.status === 'pendiente' && (
+                      <button
+                        type="button"
+                        onClick={() => void transition(order.id, 'confirmado')}
+                        className={`h-11 w-full rounded-full px-4 text-xs font-bold transition-all active:scale-[0.99] flex items-center justify-center gap-2 ${
+                          isPaid
+                            ? 'bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 shadow-xs'
+                            : 'border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50'
+                        }`}
+                      >
+                        <span>Confirmar a Cocina</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+
+                    {order.status === 'confirmado' && (
+                      <button
+                        type="button"
+                        onClick={() => void transition(order.id, 'preparando')}
+                        className={`h-11 w-full rounded-full px-4 text-xs font-bold transition-all active:scale-[0.99] flex items-center justify-center gap-2 ${
+                          isPaid
+                            ? 'bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 shadow-xs'
+                            : 'border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50'
+                        }`}
+                      >
+                        <span>Marchar en Cocina</span>
+                      </button>
+                    )}
+
+                    {order.status === 'preparando' && (
+                      <button
+                        type="button"
+                        onClick={() => void transition(order.id, 'listo')}
+                        className="h-11 w-full rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>Marcar como Listo</span>
+                      </button>
+                    )}
+
+                    {order.status === 'listo' && (
+                      <button
+                        type="button"
+                        onClick={() => void transition(order.id, 'completado')}
+                        className="h-11 w-full rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>Entregar al Cliente</span>
+                      </button>
+                    )}
+
+                    {/* Botones Secundarios: Fondo blanco con borde sutil o estilo Ghost */}
+                    <button
+                      type="button"
+                      onClick={() => setPrintingOrder(order)}
+                      className="h-10 w-full rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 shadow-2xs"
+                    >
+                      <Printer className="w-4 h-4" />
+                      <span>Imprimir Comprobante</span>
+                    </button>
+
+                    {order.status === 'pendiente' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRejectingOrderId(order.id);
+                          setRejectReason('');
+                        }}
+                        className="h-9 w-full rounded-full text-xs font-medium text-zinc-400 hover:text-red-600 transition-colors"
+                      >
+                        Rechazar Pedido
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </article>
+            );
+          })
         )}
       </div>
 
-      {/* MODAL PROFESIONAL: Cobro en Caja & Asignación de Paleta/Mesa */}
+      {/* Modal de Cobro & Paleta Limpio y Minimalista */}
       {payingOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-2xl space-y-4">
-            <div className="flex items-start justify-between border-b pb-3">
-              <div>
-                <h3 className="text-lg font-bold">Cobrar Pedido #{payingOrder.tracking_code}</h3>
-                <p className="text-xs text-muted-foreground">Cliente: {payingOrder.customer_name}</p>
-              </div>
-              <div className="text-right">
-                <span className="text-xs font-medium text-muted-foreground">Total a Cobrar</span>
-                <p className="text-xl font-extrabold text-primary">
-                  ${(payingOrder.total_cents / 100).toFixed(2)}
-                </p>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-zinc-900 p-6 sm:p-7 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-[#f3a806]">Caja & Salón</span>
+              <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mt-0.5">
+                Cobrar Pedido #{payingOrder.tracking_code}
+              </h2>
+              <p className="text-xs text-zinc-500">
+                Cliente: {payingOrder.customer_name} · Total: ${(payingOrder.total_cents / 100).toFixed(2)}
+              </p>
             </div>
 
-            <form onSubmit={(e) => void handleConfirmPayment(e)} className="space-y-4">
-              {/* 1. Tipo de Servicio */}
+            <form onSubmit={handleConfirmPayment} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
-                  1. ¿Cómo se entrega este pedido?
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1.5">
+                  Tipo de Entrega / Identificador
                 </label>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPayServiceType('paleta_madera');
-                      if (!tokenInput) setTokenInput('');
-                    }}
-                    className={`rounded-lg border p-2.5 font-medium flex flex-col items-center gap-1 transition-all ${
-                      payServiceType === 'paleta_madera'
-                        ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
-                        : 'bg-background hover:bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    <span className="text-base">🪵</span>
-                    <span>Paleta Madera</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPayServiceType('mesa_fija')}
-                    className={`rounded-lg border p-2.5 font-medium flex flex-col items-center gap-1 transition-all ${
-                      payServiceType === 'mesa_fija'
-                        ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
-                        : 'bg-background hover:bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    <span className="text-base">🪑</span>
-                    <span>Mesa Fija</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPayServiceType('para_llevar');
-                      setTokenInput('Llevar');
-                    }}
-                    className={`rounded-lg border p-2.5 font-medium flex flex-col items-center gap-1 transition-all ${
-                      payServiceType === 'para_llevar'
-                        ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
-                        : 'bg-background hover:bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    <span className="text-base">🛍️</span>
-                    <span>Para Llevar</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* 2. Número de Paleta o Mesa */}
-              {payServiceType !== 'para_llevar' && (
-                <div>
-                  <label htmlFor="tokenInputId" className="block text-xs font-semibold text-muted-foreground mb-1">
-                    {payServiceType === 'paleta_madera'
-                      ? 'Número de Paleta / Ficha entregada al cliente *'
-                      : 'Número de Mesa *'}
-                  </label>
-                  <input
-                    id="tokenInputId"
-                    type="text"
-                    required
-                    value={tokenInput}
-                    onChange={(e) => setTokenInput(e.target.value)}
-                    placeholder={payServiceType === 'paleta_madera' ? 'Ej. 7' : 'Ej. 4'}
-                    className={`h-10 w-full rounded-lg border bg-background px-3 text-base font-bold focus:outline-none focus:ring-2 ${
-                      tokenInput && orders.some(
-                        (o) =>
-                          o.id !== payingOrder.id &&
-                          o.service_type === 'paleta_madera' &&
-                          o.table_or_token_number?.trim().toLowerCase() === tokenInput.trim().toLowerCase() &&
-                          ['confirmado', 'preparando', 'listo'].includes(o.status),
-                      )
-                        ? 'border-amber-500 focus:ring-amber-400'
-                        : 'focus:ring-primary/40'
-                    }`}
-                    autoFocus
-                  />
-
-                  {tokenInput && orders.some(
-                    (o) =>
-                      o.id !== payingOrder.id &&
-                      o.service_type === 'paleta_madera' &&
-                      o.table_or_token_number?.trim().toLowerCase() === tokenInput.trim().toLowerCase() &&
-                      ['confirmado', 'preparando', 'listo'].includes(o.status),
-                  ) ? (
-                    <p className="mt-1.5 rounded-md bg-amber-500/10 p-2 text-xs font-medium text-amber-800 dark:text-amber-300">
-                      ⚠️ Atención: La Paleta #{tokenInput} ya está en una mesa activa en el salón. Verifica si la madera física ya regresó a caja.
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-[11px] text-muted-foreground">
-                      El mesero buscará este número en el salón para llevar los platos calientes.
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* 3. Forma de Pago */}
-              <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
-                  2. Método de Pago
-                </label>
-                <div className="grid grid-cols-3 gap-2 text-xs">
-                  {(['efectivo', 'transferencia', 'tarjeta'] as const).map((m) => (
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { type: 'paleta_madera', label: 'Paleta' },
+                    { type: 'mesa_fija', label: 'Mesa' },
+                    { type: 'para_llevar', label: 'Llevar' },
+                  ].map((s) => (
                     <button
-                      key={m}
+                      key={s.type}
                       type="button"
-                      onClick={() => setPayMethod(m)}
-                      className={`rounded-lg border p-2 capitalize font-medium transition-all ${
-                        payMethod === m
-                          ? 'border-emerald-600 bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold'
-                          : 'bg-background hover:bg-muted text-muted-foreground'
+                      onClick={() => setPayServiceType(s.type as unknown as typeof payServiceType)}
+                      className={`h-9 rounded-xl text-xs font-bold transition-all ${
+                        payServiceType === s.type
+                          ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs'
+                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200'
                       }`}
                     >
-                      {m === 'efectivo' ? '💵 Efectivo' : m === 'transferencia' ? '📲 Transferencia' : '💳 Tarjeta'}
+                      {s.label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Calculadora de Vuelto / Cambio en Efectivo */}
-              {payMethod === 'efectivo' && (
-                <div className="rounded-xl border bg-muted/30 p-3 space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="cashAmountId" className="font-semibold text-muted-foreground">
-                      Paga con ($ Efectivo):
-                    </label>
-                    <input
-                      id="cashAmountId"
-                      type="number"
-                      step="0.01"
-                      min={(payingOrder.total_cents / 100).toFixed(2)}
-                      value={cashAmountInput}
-                      onChange={(e) => setCashAmountInput(e.target.value)}
-                      className="h-8 w-28 rounded-md border bg-background px-2 text-right font-mono font-bold text-sm focus:outline-none"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between border-t pt-2 text-sm">
-                    <span className="font-bold text-muted-foreground">Cambio / Vuelto a dar:</span>
-                    <span className="font-mono text-base font-extrabold text-emerald-600 dark:text-emerald-400">
-                      $
-                      {Math.max(
-                        0,
-                        (parseFloat(cashAmountInput) || 0) - payingOrder.total_cents / 100,
-                      ).toFixed(2)}
-                    </span>
-                  </div>
+              {payServiceType !== 'para_llevar' && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1.5">
+                    Número de {payServiceType === 'paleta_madera' ? 'Paleta' : 'Mesa'}
+                  </label>
+                  <input
+                    type="text"
+                    value={tokenInput}
+                    onChange={(e) => setTokenInput(e.target.value)}
+                    placeholder="Ej: 5"
+                    required
+                    className="w-full h-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 text-xs font-bold text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+                  />
                 </div>
               )}
 
-              {/* Botones de Acción */}
-              <div className="flex gap-2 pt-2 border-t">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1.5">
+                  Método de Pago
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { method: 'efectivo', label: 'Efectivo' },
+                    { method: 'transferencia', label: 'Transferencia' },
+                    { method: 'tarjeta', label: 'Tarjeta' },
+                  ].map((m) => (
+                    <button
+                      key={m.method}
+                      type="button"
+                      onClick={() => setPayMethod(m.method as unknown as typeof payMethod)}
+                      className={`h-9 rounded-xl text-xs font-bold transition-all ${
+                        payMethod === m.method
+                          ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs'
+                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200'
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {payMethod === 'efectivo' && (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1.5">
+                    Monto Recibido ($)
+                  </label>
+                  <input
+                    type="text"
+                    value={cashAmountInput}
+                    onChange={(e) => setCashAmountInput(e.target.value)}
+                    className="w-full h-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 text-xs font-bold text-zinc-900 dark:text-zinc-100"
+                  />
+                </div>
+              )}
+
+              <div className="pt-3 flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setPayingOrder(null)}
-                  className="h-10 flex-1 rounded-lg border bg-background text-xs font-semibold hover:bg-muted"
+                  className="h-10 px-5 rounded-full text-xs font-semibold text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isProcessingPayment}
-                  className="h-10 flex-1 rounded-lg bg-emerald-600 text-xs font-bold text-white shadow hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                  className="h-10 px-6 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 font-bold text-xs shadow-md transition-all active:scale-95 disabled:opacity-50"
                 >
-                  {isProcessingPayment ? 'Registrando...' : '✓ Cobrar y Enviar a Cocina'}
+                  {isProcessingPayment ? 'Registrando...' : 'Confirmar Cobro'}
                 </button>
               </div>
             </form>
@@ -810,7 +716,44 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
         </div>
       )}
 
-      {/* MODAL DE IMPRESIÓN TÉRMICA & COMANDA COCINA */}
+      {/* Modal de Rechazo de Pedido */}
+      {rejectingOrderId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-zinc-900 p-6 shadow-2xl space-y-4">
+            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+              Rechazar Pedido
+            </h3>
+            <p className="text-xs text-zinc-500">
+              Ingresa el motivo que verá el cliente (ej. cocina saturada, ingrediente agotado):
+            </p>
+            <input
+              type="text"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Motivo del rechazo"
+              className="w-full h-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 text-xs"
+            />
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setRejectingOrderId(null)}
+                className="h-9 px-4 rounded-full text-xs font-medium text-zinc-500 hover:bg-zinc-100"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleRejectOrder}
+                className="h-9 px-5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold"
+              >
+                Confirmar Rechazo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ticket Térmico Modal */}
       {printingOrder && (
         <ThermalReceiptModal
           data={{
@@ -819,9 +762,8 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
               ? printingOrder.service_type === 'paleta_madera'
                 ? `Paleta #${printingOrder.table_or_token_number}`
                 : `Mesa #${printingOrder.table_or_token_number}`
-              : undefined,
-            customerName: printingOrder.customer_name,
-            dateTime: printingOrder.created_at,
+              : 'Mostrador / Llevar',
+            dateTime: new Date(printingOrder.created_at).toLocaleString('es-EC'),
             items: printingOrder.public_order_items.map((it) => ({
               name: it.product_name,
               quantity: it.quantity,
@@ -829,8 +771,9 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
               notes: it.notes,
             })),
             totalCents: printingOrder.total_cents,
-            paymentStatus: printingOrder.payment_status,
-            paymentMethod: printingOrder.payment_method,
+            paymentMethod: printingOrder.payment_method || 'caja',
+            paidCents: printingOrder.paid_amount_cents || undefined,
+            changeCents: printingOrder.change_cents || undefined,
           }}
           onClose={() => setPrintingOrder(null)}
         />

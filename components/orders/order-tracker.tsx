@@ -3,6 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
+  RefreshCw,
+  Copy,
+  Check,
+  ArrowLeft,
+  UtensilsCrossed,
+  AlertCircle,
+  ShoppingBag,
+  Armchair,
+} from 'lucide-react';
+import {
   getActiveOrder,
   getSavedCustomerInfo,
   saveActiveOrder,
@@ -31,49 +41,49 @@ type TrackedOrder = {
 
 const statusMeta: Record<
   TrackedOrder['status'],
-  { label: string; step: number; color: string; desc: string }
+  { label: string; step: number; desc: string; badgeStyle: string }
 > = {
   pendiente: {
-    label: 'Recibido',
+    label: 'Recibido en local',
     step: 1,
-    color: 'bg-amber-500',
-    desc: 'Tu pedido ha llegado al restaurante. Esperando que el equipo lo confirme.',
+    desc: 'Tu pedido ha llegado al restaurante. Esperando confirmación.',
+    badgeStyle: 'bg-[#FFF8E7] text-[#9A6700] border-[#FFE6A5]',
   },
   confirmado: {
-    label: 'Confirmado',
+    label: 'Confirmado por restaurante',
     step: 2,
-    color: 'bg-blue-500',
-    desc: 'El restaurante ha aceptado tu pedido e iniciará su preparación.',
+    desc: 'El restaurante aceptó tu pedido y se enviará a cocina.',
+    badgeStyle: 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]',
   },
   preparando: {
-    label: 'En Preparación',
+    label: 'En preparación en cocina',
     step: 3,
-    color: 'bg-orange-500',
-    desc: 'Tu comida está en cocina siendo preparada por el chef.',
+    desc: 'Tus platos se están preparando en este momento.',
+    badgeStyle: 'bg-[#FFF7ED] text-[#C2410C] border-[#FFEDD5]',
   },
   listo: {
-    label: '¡Listo!',
+    label: 'Listo para servir / retirar',
     step: 4,
-    color: 'bg-emerald-500',
-    desc: 'Tu pedido está listo para ser retirado o entregado.',
+    desc: 'Tu pedido está listo. Puedes acercarte al mostrador o esperar en tu mesa.',
+    badgeStyle: 'bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]',
   },
   completado: {
-    label: 'Completado',
+    label: 'Entregado',
     step: 5,
-    color: 'bg-emerald-600',
-    desc: 'Este pedido ha sido entregado exitosamente. ¡Buen provecho!',
+    desc: 'Pedido entregado exitosamente. Buen provecho.',
+    badgeStyle: 'bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]',
   },
   rechazado: {
-    label: 'No disponible / Rechazado',
+    label: 'No disponible',
     step: 0,
-    color: 'bg-destructive',
     desc: 'El restaurante no pudo atender este pedido en este momento.',
+    badgeStyle: 'bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA]',
   },
   cancelado: {
     label: 'Cancelado',
     step: 0,
-    color: 'bg-muted-foreground',
     desc: 'Este pedido fue cancelado.',
+    badgeStyle: 'bg-[#F4F4F5] text-[#52525B] border-[#E4E4E7]',
   },
 };
 
@@ -92,10 +102,8 @@ export function OrderTracker({
   const [copied, setCopied] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
-  // Mantener referencia del polling para evitar memory leaks
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Cargar datos guardados en localStorage al iniciar
   const searchOrder = useCallback(
     async (targetCode: string, targetPhone: string, isSilent = false) => {
       const cleanCode = targetCode.trim();
@@ -103,7 +111,7 @@ export function OrderTracker({
 
       if (!cleanCode || !cleanPhone) {
         if (!isSilent) {
-          setError('Ingresa el código del pedido y tu número de teléfono.');
+          setError('Ingresa el código del pedido y tu número de teléfono registrado.');
         }
         return;
       }
@@ -131,9 +139,10 @@ export function OrderTracker({
         }
 
         setOrder(body.order);
-        setLastUpdated(new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        setLastUpdated(
+          new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        );
 
-        // Guardar sesión activa confirmada
         saveCustomerInfo(body.order.customer_name, cleanPhone);
         const existingActive = getActiveOrder();
         saveActiveOrder({
@@ -180,7 +189,6 @@ export function OrderTracker({
         }
       }
 
-      // Si ya tenemos código y teléfono, buscar automáticamente
       if (effectiveCode && effectivePhone) {
         void searchOrder(effectiveCode, effectivePhone, false);
       }
@@ -189,7 +197,6 @@ export function OrderTracker({
     return () => window.clearTimeout(timer);
   }, [initialCode, initialPhone, searchOrder]);
 
-  // Polling automático cada 5 segundos si el pedido está activo (no completado ni cancelado)
   useEffect(() => {
     if (!order) return;
     const isFinished = order.status === 'completado' || order.status === 'rechazado' || order.status === 'cancelado';
@@ -217,32 +224,38 @@ export function OrderTracker({
 
   return (
     <div className="space-y-6">
-      {/* Si aún no hay pedido cargado o el usuario quiere buscar otro */}
+      {/* Formulario de búsqueda si no hay orden activa */}
       {(!order || !initialCode) && (
         <form
           onSubmit={(e) => {
             e.preventDefault();
             void searchOrder(code, phone, false);
           }}
-          className="rounded-xl border bg-card p-5 shadow-sm"
+          className="rounded-[24px] border border-[#E8E8E8] bg-white p-6 md:p-8 space-y-5"
         >
-          <h2 className="mb-3 text-base font-semibold">Consultar pedido</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <h2 className="text-xl font-extrabold text-[#1A1A1A]">Consultar mi pedido</h2>
+            <p className="mt-1 text-sm text-[#6B6B6B]">
+              Ingresa el código que te entregaron y tu teléfono de contacto.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="searchCode" className="mb-1 block text-xs font-medium text-muted-foreground">
-                Código del Pedido o Enlace
+              <label htmlFor="searchCode" className="block text-sm font-semibold text-[#1A1A1A] mb-1.5">
+                Código del pedido
               </label>
               <input
                 id="searchCode"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="Ej. PK-ABC123"
-                className="h-10 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 uppercase"
+                className="h-12 w-full rounded-2xl border border-[#E8E8E8] bg-white px-4 text-base uppercase font-mono text-[#1A1A1A] placeholder:text-[#A1A1AA] focus:border-[#1A1A1A] focus:outline-none"
               />
             </div>
             <div>
-              <label htmlFor="searchPhone" className="mb-1 block text-xs font-medium text-muted-foreground">
-                Teléfono del Pedido (seguridad)
+              <label htmlFor="searchPhone" className="block text-sm font-semibold text-[#1A1A1A] mb-1.5">
+                Teléfono registrado
               </label>
               <input
                 id="searchPhone"
@@ -250,131 +263,140 @@ export function OrderTracker({
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Ej. 0991234567"
                 type="tel"
-                className="h-10 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                className="h-12 w-full rounded-2xl border border-[#E8E8E8] bg-white px-4 text-base text-[#1A1A1A] placeholder:text-[#A1A1AA] focus:border-[#1A1A1A] focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-between">
-            <button
-              type="submit"
-              disabled={loading}
-              className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-            >
-              {loading ? 'Consultando...' : 'Ver Estado del Pedido'}
-            </button>
-            <p className="text-xs text-muted-foreground">
-              Tus datos se guardan para que no tengas que escribirlos de nuevo al recargar.
-            </p>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="h-14 w-full rounded-full bg-[#FFC21A] text-[#1A1A1A] font-extrabold text-base transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {loading ? 'Consultando pedido...' : 'Ver estado del pedido'}
+          </button>
         </form>
       )}
 
       {error && (
-        <div role="alert" className="rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
-          <p className="font-medium">{error}</p>
-          <p className="mt-1 text-xs opacity-90">Verifica que hayas escrito el mismo teléfono con el que realizaste el pedido.</p>
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] p-4 text-sm text-[#B91C1C]"
+        >
+          <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold">{error}</p>
+            <p className="mt-0.5 text-xs text-[#DC2626]">Verifica que el número coincida con el usado en el pedido.</p>
+          </div>
         </div>
       )}
 
-      {/* Pantalla de Seguimiento Activa del Pedido */}
+      {/* Tarjeta de Seguimiento del Pedido */}
       {order && currentMeta && (
-        <div className="space-y-5 rounded-2xl border bg-card p-6 shadow-sm">
-          {/* Encabezado y Live Indicator */}
-          <div className="flex flex-col gap-2 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="rounded-[24px] border border-[#E8E8E8] bg-white p-6 md:p-8 space-y-6">
+          {/* Cabecera */}
+          <div className="flex flex-col gap-3 pb-6 border-b border-[#E8E8E8] sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-sm font-bold tracking-wider text-primary">
+                <span className="font-mono text-sm font-extrabold text-[#1A1A1A]">
                   {order.tracking_code}
                 </span>
-                <span className="text-xs text-muted-foreground">·</span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[#6B6B6B]">·</span>
+                <span className="text-xs text-[#6B6B6B]">
                   {new Date(order.created_at).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
-              <h2 className="mt-1 text-2xl font-bold tracking-tight">{currentMeta.label}</h2>
+              <h1 className="mt-1 text-2xl md:text-3xl font-extrabold text-[#1A1A1A]">
+                {currentMeta.label}
+              </h1>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E8E8E8] bg-[#F7F7F7] px-3 py-1.5 text-xs font-semibold text-[#1A1A1A]">
+                <span className="h-2 w-2 rounded-full bg-[#15803D] animate-pulse" />
                 En vivo {lastUpdated && `(${lastUpdated})`}
               </span>
               <button
                 type="button"
                 onClick={() => void searchOrder(code, phone, false)}
-                className="h-8 rounded-md border px-2.5 text-xs font-medium hover:bg-muted"
-                title="Actualizar manualmente"
+                className="h-9 w-9 rounded-full border border-[#E8E8E8] bg-white flex items-center justify-center text-[#1A1A1A] hover:bg-[#F7F7F7]"
+                title="Actualizar estado"
+                aria-label="Actualizar estado"
               >
-                ↻
+                <RefreshCw className="h-4 w-4" />
               </button>
             </div>
           </div>
 
-          {/* Banner de Paleta / Mesa y Estado de Pago */}
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3.5">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">
-                {order.service_type === 'paleta_madera' ? '🪵' : order.service_type === 'mesa_fija' ? '🪑' : '🛍️'}
-              </span>
+          {/* Información de entrega / servicio y estado de pago */}
+          <div className="flex flex-col gap-3 rounded-2xl border border-[#E8E8E8] bg-[#F7F7F7] p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-white border border-[#E8E8E8] flex items-center justify-center shrink-0">
+                {order.service_type === 'paleta_madera' ? (
+                  <UtensilsCrossed className="h-5 w-5 text-[#1A1A1A]" />
+                ) : order.service_type === 'mesa_fija' ? (
+                  <Armchair className="h-5 w-5 text-[#1A1A1A]" />
+                ) : (
+                  <ShoppingBag className="h-5 w-5 text-[#1A1A1A]" />
+                )}
+              </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-primary">
+                <p className="text-sm font-extrabold text-[#1A1A1A]">
                   {order.table_or_token_number
                     ? order.service_type === 'paleta_madera'
-                      ? `Tu Paleta de Mesa es la #${order.table_or_token_number}`
+                      ? `Paleta de mesa #${order.table_or_token_number}`
                       : order.service_type === 'mesa_fija'
-                        ? `Asignado a la Mesa #${order.table_or_token_number}`
-                        : `Pedido Para Llevar (#${order.table_or_token_number})`
-                    : 'Ubicación en proceso de asignación en caja'}
+                        ? `Mesa #${order.table_or_token_number}`
+                        : `Para llevar (Ficha #${order.table_or_token_number})`
+                    : 'Ubicación pendiente de asignación'}
                 </p>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-[#6B6B6B]">
                   {order.service_type === 'paleta_madera'
-                    ? 'Toma asiento en cualquier mesa libre y coloca tu número visible. ¡El mesero te llevará tu comida!'
+                    ? 'Toma asiento en cualquier mesa disponible y coloca tu número visible.'
                     : order.service_type === 'mesa_fija'
-                      ? 'Tu pedido será servido en tu mesa.'
-                      : 'Retira tu pedido en el mostrador cuando esté listo.'}
+                      ? 'El personal servirá el pedido en tu mesa asignada.'
+                      : 'Retira tu orden en el mostrador cuando esté lista.'}
                 </p>
               </div>
             </div>
 
-            <span
-              className={`rounded-full border px-3 py-1 text-xs font-bold ${
-                order.payment_status === 'pagado'
-                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                  : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400'
-              }`}
-            >
-              {order.payment_status === 'pagado'
-                ? `✓ PAGADO (${order.payment_method || 'Caja'})`
-                : '⏳ Pago pendiente en caja'}
-            </span>
+            <div className="shrink-0">
+              <span
+                className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${
+                  order.payment_status === 'pagado'
+                    ? 'border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D]'
+                    : 'border-[#FFE6A5] bg-[#FFF8E7] text-[#9A6700]'
+                }`}
+              >
+                {order.payment_status === 'pagado'
+                  ? `Pagado (${order.payment_method || 'Caja'})`
+                  : 'Pagas al retirar en caja'}
+              </span>
+            </div>
           </div>
 
-          {/* Stepper Visual de Progreso */}
+          {/* Stepper visual minimalista */}
           {currentMeta.step > 0 && (
-            <div className="py-2">
-              <div className="grid grid-cols-4 gap-2 text-center">
+            <div className="py-2 space-y-3">
+              <div className="grid grid-cols-4 gap-2">
                 {[
                   { step: 1, label: 'Recibido' },
                   { step: 2, label: 'Confirmado' },
-                  { step: 3, label: 'En Cocina' },
-                  { step: 4, label: '¡Listo!' },
+                  { step: 3, label: 'En cocina' },
+                  { step: 4, label: 'Listo' },
                 ].map((s) => {
                   const isCurrent = currentMeta.step === s.step;
                   const isDone = currentMeta.step >= s.step;
                   return (
-                    <div key={s.step} className="space-y-1.5">
+                    <div key={s.step} className="space-y-1.5 text-center">
                       <div
-                        className={`h-2 rounded-full transition-all duration-500 ${
-                          isDone ? currentMeta.color : 'bg-muted'
-                        } ${isCurrent ? 'animate-pulse' : ''}`}
+                        className={`h-2 rounded-full transition-colors duration-300 ${
+                          isDone ? 'bg-[#1A1A1A]' : 'bg-[#E8E8E8]'
+                        } ${isCurrent ? 'ring-2 ring-[#FFC21A]' : ''}`}
                       />
                       <span
-                        className={`block text-[11px] font-medium ${
-                          isDone ? 'text-foreground' : 'text-muted-foreground'
+                        className={`block text-xs font-semibold ${
+                          isDone ? 'text-[#1A1A1A]' : 'text-[#A1A1AA]'
                         }`}
                       >
                         {s.label}
@@ -383,64 +405,68 @@ export function OrderTracker({
                   );
                 })}
               </div>
-              <p className="mt-3 text-center text-xs text-muted-foreground">{currentMeta.desc}</p>
+              <p className="text-center text-xs text-[#6B6B6B]">{currentMeta.desc}</p>
             </div>
           )}
 
           {/* Si fue rechazado */}
           {order.status === 'rechazado' && (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-              <p className="font-semibold">El pedido no pudo ser atendido.</p>
+            <div className="rounded-2xl border border-[#FECACA] bg-[#FEF2F2] p-4 text-sm text-[#B91C1C]">
+              <p className="font-extrabold">El pedido no pudo ser atendido.</p>
               {order.rejection_reason && (
-                <p className="mt-1 text-xs text-destructive/90">
-                  <strong>Motivo del restaurante:</strong> {order.rejection_reason}
+                <p className="mt-1 text-xs text-[#DC2626]">
+                  Motivo: {order.rejection_reason}
                 </p>
               )}
             </div>
           )}
 
-          {/* Detalle de productos */}
-          <div className="border-t pt-4">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              Resumen del Pedido ({order.customer_name})
-            </h3>
-            <ul className="divide-y text-sm">
+          {/* Resumen de items del pedido */}
+          <div className="border-t border-[#E8E8E8] pt-5 space-y-3">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#6B6B6B]">
+              Resumen del pedido ({order.customer_name})
+            </h2>
+            <ul className="divide-y divide-[#E8E8E8] text-sm">
               {order.items.map((item, idx) => (
-                <li key={`${item.product_name}-${idx}`} className="py-2 flex items-center justify-between">
+                <li key={`${item.product_name}-${idx}`} className="py-3 flex items-center justify-between">
                   <div>
-                    <span className="font-medium">
+                    <span className="font-extrabold text-[#1A1A1A]">
                       {item.quantity} × {item.product_name}
                     </span>
-                    {item.notes && <p className="text-xs text-muted-foreground">Nota: {item.notes}</p>}
+                    {item.notes && <p className="text-xs text-[#6B6B6B] mt-0.5">Nota: {item.notes}</p>}
                   </div>
-                  <span className="font-semibold">
+                  <span className="font-extrabold text-[#1A1A1A]">
                     ${((item.unit_price_cents * item.quantity) / 100).toFixed(2)}
                   </span>
                 </li>
               ))}
             </ul>
 
-            <div className="mt-3 flex items-center justify-between border-t pt-3 text-base font-bold">
-              <span>Total a Pagar:</span>
-              <span className="text-primary">${(order.total_cents / 100).toFixed(2)}</span>
+            <div className="flex items-center justify-between border-t border-[#E8E8E8] pt-4">
+              <span className="text-base font-semibold text-[#1A1A1A]">Total:</span>
+              <span className="text-2xl font-extrabold text-[#1A1A1A]">
+                ${(order.total_cents / 100).toFixed(2)}
+              </span>
             </div>
           </div>
 
-          {/* Acciones del Cliente */}
-          <div className="flex flex-wrap items-center gap-3 border-t pt-4">
+          {/* Acciones del usuario */}
+          <div className="flex flex-col sm:flex-row gap-3 border-t border-[#E8E8E8] pt-5">
             <button
               type="button"
               onClick={copyTrackingLink}
-              className="inline-flex h-9 items-center justify-center rounded-lg border bg-background px-3 text-xs font-medium hover:bg-muted transition-colors"
+              className="h-12 flex-1 rounded-full border border-[#E8E8E8] bg-white px-5 text-sm font-semibold text-[#1A1A1A] flex items-center justify-center gap-2 hover:bg-[#F7F7F7] transition-colors"
             >
-              {copied ? '✓ ¡Enlace copiado!' : '🔗 Copiar enlace de seguimiento'}
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              <span>{copied ? 'Enlace copiado' : 'Copiar enlace de seguimiento'}</span>
             </button>
 
             <Link
               href="/"
-              className="inline-flex h-9 items-center justify-center rounded-lg border bg-background px-3 text-xs font-medium hover:bg-muted transition-colors"
+              className="h-12 rounded-full border border-[#E8E8E8] bg-white px-6 text-sm font-semibold text-[#1A1A1A] flex items-center justify-center gap-2 hover:bg-[#F7F7F7] transition-colors"
             >
-              ← Volver al inicio
+              <ArrowLeft className="h-4 w-4" />
+              <span>Volver a la tienda</span>
             </Link>
           </div>
         </div>

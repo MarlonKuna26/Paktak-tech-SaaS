@@ -1,30 +1,27 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Nunito } from 'next/font/google';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const nunito = Nunito({
+  variable: '--font-nunito',
   subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+  weight: ['400', '600', '700', '800'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'Paktak Tech SaaS · Gestión de Restaurantes',
-  description: 'Sistema integral y offline-first para restaurantes, comandas y pedidos',
+  title: 'Paktak · Pedidos para restaurantes',
+  description: 'Pedidos, cocina y caja para restaurantes en un solo lugar.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'Paktak Mesero',
+    statusBarStyle: 'default',
+    title: 'Paktak',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#09090b',
+  themeColor: '#FFFFFF',
 };
 
 export default function RootLayout({
@@ -35,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${nunito.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}

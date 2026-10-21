@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { Minus, Plus, X } from 'lucide-react';
 import type { PublicMenuProduct } from '@/lib/orders/types';
 import { getProductImageUrl } from '@/lib/orders/product-images';
 
@@ -23,6 +24,24 @@ export function ProductCustomizerModal({
   const [quantity, setQuantity] = useState(initialQuantity);
   const [notes, setNotes] = useState(initialNotes);
 
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      setQuantity(initialQuantity);
+      setNotes(initialNotes);
+    }
+  }
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !product) return null;
 
   const imageUrl = getProductImageUrl(product.name, product.category_name, product.image_url);
@@ -36,98 +55,106 @@ export function ProductCustomizerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-product-name">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-black/40 transition-opacity"
         onClick={onClose}
+        aria-hidden="true"
       />
 
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-zinc-900 shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-200">
+      <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
+        <div className="card relative w-full max-w-lg overflow-hidden border border-line bg-white shadow-xl animate-in fade-in zoom-in-95 duration-150">
           {/* Close button */}
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-4 top-4 z-10 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+            className="btn-icon absolute right-4 top-4 z-10 bg-white/90 shadow-sm"
+            aria-label="Cerrar detalle"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="h-5 w-5" strokeWidth={2} />
           </button>
 
           {/* Product Image */}
-          <div className="relative h-56 sm:h-64 w-full bg-zinc-100 dark:bg-zinc-800">
+          <div className="relative h-56 w-full bg-surface sm:h-64">
             <Image
               src={imageUrl}
-              alt={product.name}
+              alt=""
               fill
-              sizes="(max-width: 768px) 100vw, 512px"
+              sizes="(max-width: 640px) 100vw, 512px"
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-4 left-6 right-6">
-              <span className="text-xs uppercase tracking-wider font-bold text-amber-400">
-                {product.category_name || 'Especialidad'}
-              </span>
-              <h2 className="text-xl sm:text-2xl font-black text-white leading-tight mt-0.5">
-                {product.name}
-              </h2>
-            </div>
           </div>
 
-          {/* Body */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-5">
-            {product.description && (
-              <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                {product.description}
-              </p>
-            )}
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6 p-6 sm:p-8">
+            <div className="space-y-1">
+              {product.category_name && (
+                <p className="text-[14px] font-bold uppercase tracking-wider text-muted-ink">
+                  {product.category_name}
+                </p>
+              )}
+              <h2 id="modal-product-name" className="text-[24px] font-extrabold text-ink sm:text-[28px]">
+                {product.name}
+              </h2>
+              {product.description && (
+                <p className="text-secondary pt-1 leading-relaxed">
+                  {product.description}
+                </p>
+              )}
+            </div>
 
-            {/* Custom Notes / Instructions */}
-            <div className="space-y-1.5">
-              <label htmlFor="product-custom-notes" className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
-                Instrucciones especiales o personalización:
+            {/* Custom Notes */}
+            <div className="space-y-2">
+              <label htmlFor="product-custom-notes" className="block text-base font-bold text-ink">
+                Instrucciones especiales
               </label>
               <textarea
                 id="product-custom-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Ej: Sin cebolla, salsa BBQ jalapeño aparte, etc."
-                rows={2}
+                placeholder="Ej. Sin cebolla, aderezo aparte..."
+                rows={3}
                 maxLength={150}
-                className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 p-3 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+                className="w-full rounded-2xl border border-line bg-white p-4 text-base text-ink placeholder:text-muted-ink focus:border-ink focus:outline-none"
               />
-              <p className="text-[10px] text-zinc-400 text-right">{notes.length}/150</p>
+              <p className="text-right text-[13px] text-muted-ink">{notes.length}/150</p>
             </div>
 
-            {/* Quantity Stepper & Add Button */}
-            <div className="flex items-center gap-4 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-              <div className="flex items-center rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5">
+            {/* Stepper + Primary Add CTA */}
+            <div className="flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center">
+              <div
+                className="flex h-14 items-center justify-between rounded-full border border-line px-2 sm:w-44 shrink-0"
+                role="group"
+                aria-label="Cantidad"
+              >
                 <button
                   type="button"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-7 h-7 flex items-center justify-center rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 font-bold transition-colors"
+                  className="btn-icon"
+                  aria-label="Quitar uno"
                 >
-                  -
+                  <Minus className="h-5 w-5" strokeWidth={2} />
                 </button>
-                <span className="w-8 text-center text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                <span className="text-lg font-extrabold text-ink" aria-live="polite">
                   {quantity}
                 </span>
                 <button
                   type="button"
                   onClick={() => setQuantity(Math.min(99, quantity + 1))}
-                  className="w-7 h-7 flex items-center justify-center rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 font-bold transition-colors"
+                  className="btn-icon"
+                  aria-label="Agregar otro"
                 >
-                  +
+                  <Plus className="h-5 w-5" strokeWidth={2} />
                 </button>
               </div>
 
               <button
                 type="submit"
-                className="flex-1 h-12 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 font-bold text-sm tracking-wide shadow-md hover:shadow-lg transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                className="btn-primary w-full flex-1 justify-between sm:h-14"
               >
-                Agregar al pedido · ${totalFormatted}
+                <span>Agregar</span>
+                <span className="font-extrabold">${totalFormatted}</span>
               </button>
             </div>
           </form>

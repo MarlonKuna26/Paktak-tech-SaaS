@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import { getCurrentStaff } from '@/lib/auth/get-current-staff';
 
+import { AlertCircle, Clock } from 'lucide-react';
+
 export async function AdminShell({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -15,14 +17,14 @@ export async function AdminShell({
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 md:flex">
+    <div className="min-h-screen bg-[#F9FAFB] dark:bg-zinc-950 md:flex">
       <AdminSidebar staff={staff} />
       <div className="min-w-0 flex-1 flex flex-col">
         {/* Banner de Suscripción / Período de Prueba */}
         {staff.isTrialExpired ? (
-          <div className="bg-rose-600 text-white px-4 py-2.5 text-xs font-bold flex items-center justify-between shadow-xs">
+          <div className="bg-rose-600 text-white px-4 py-2 text-xs font-semibold flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2">
-              <span>⚠️</span>
+              <AlertCircle className="w-4 h-4 shrink-0 text-white" />
               <span>
                 Tu período de prueba de 14 días ha expirado. Comunícate con soporte para activar tu suscripción y seguir operando sin cortes.
               </span>
@@ -31,7 +33,7 @@ export async function AdminShell({
               href="https://wa.me/593999999999?text=Hola,%20deseo%20activar%20mi%20suscripción%20de%20Paktak%20Tech"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-full bg-white text-rose-700 px-3 py-1 font-black hover:bg-zinc-100 text-[11px] shrink-0 ml-3"
+              className="rounded-full bg-white text-rose-700 px-3.5 py-1 font-bold hover:bg-zinc-100 text-[11px] shrink-0 ml-3"
             >
               Renovar Plan
             </a>
@@ -39,7 +41,7 @@ export async function AdminShell({
         ) : staff.status === 'trial' ? (
           <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-xs flex items-center justify-between text-amber-800 dark:text-amber-300">
             <div className="flex items-center gap-2">
-              <span>⏳</span>
+              <Clock className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
               <span>
                 <strong>Prueba Gratuita:</strong> Te quedan <strong>{staff.daysRemaining} días</strong> de acceso completo a todas las funciones.
               </span>

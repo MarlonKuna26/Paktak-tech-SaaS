@@ -7,9 +7,20 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-nunito), system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, monospace;
+  --font-heading: var(--font-nunito), system-ui, sans-serif;
+
+  /* Paktak design tokens */
+  --color-ink: #1A1A1A;
+  --color-muted-ink: #6B6B6B;
+  --color-line: #E8E8E8;
+  --color-surface: #F7F7F7;
+  --color-brand: #FFC21A;
+  --color-brand-hover: #F2B400;
+  --color-kds: #111111;
+  --color-kds-card: #1C1C1C;
+  --color-kds-line: #2E2E2E;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -122,10 +133,91 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-ink;
+    font-size: 16px;
+    line-height: 1.4;
   }
   html {
     @apply font-sans;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Contenedor */
+  .page {
+    @apply mx-auto w-full max-w-[1200px] px-4 sm:px-8;
+  }
+
+  /* Tipografía */
+  .h-page {
+    @apply text-[32px] sm:text-[40px] font-extrabold leading-tight text-ink;
+  }
+  .h-section {
+    @apply text-[24px] sm:text-[28px] font-extrabold leading-tight text-ink;
+  }
+  .text-secondary {
+    @apply text-[15px] text-muted-ink;
+  }
+
+  /* Superficies */
+  .card {
+    @apply rounded-[24px] border border-line bg-white;
+  }
+
+  /* Botones */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-base font-bold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply h-14 bg-brand text-ink hover:bg-brand-hover;
+  }
+  .btn-secondary {
+    @apply border border-line bg-white text-ink hover:bg-surface;
+  }
+  .btn-ghost {
+    @apply text-muted-ink hover:bg-surface hover:text-ink;
+  }
+  .btn-add {
+    @apply inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand text-ink transition-colors duration-150 hover:bg-brand-hover;
+  }
+  .btn-icon {
+    @apply inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-ink transition-colors duration-150 hover:bg-surface;
+  }
+
+  /* Selectores tipo píldora */
+  .pill {
+    @apply inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-full border border-line bg-white px-5 text-base font-bold text-ink transition-colors duration-150 hover:bg-surface;
+  }
+  .pill-active {
+    @apply border-ink bg-ink text-white hover:bg-ink;
+  }
+
+  /* Etiquetas de estado: texto + punto, nunca solo color */
+  .tag {
+    @apply inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1 text-[14px] font-bold text-ink;
+  }
+
+  /* Campos */
+  .field {
+    @apply h-14 w-full rounded-2xl border border-line bg-white px-4 text-base text-ink placeholder:text-muted-ink focus:border-ink focus:outline-none;
+  }
+  .field-error {
+    @apply border-red-300;
+  }
+  .error-text {
+    @apply mt-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[15px] text-ink;
+  }
+
+  /* Carga */
+  .skeleton {
+    @apply animate-pulse rounded-[24px] bg-surface;
   }
 }
 
@@ -136,4 +228,12 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@keyframes kds-flash {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35); }
+}
+.kds-new {
+  animation: kds-flash 1s ease-in-out 3;
 }
