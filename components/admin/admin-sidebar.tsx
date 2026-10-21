@@ -37,13 +37,11 @@ const roleLabelMap: Record<StaffRole, string> = {
 
 const navigation: readonly NavItem[] = [
   { href: '/admin', label: 'Resumen', icon: LayoutDashboard, roles: ['owner', 'admin', 'host'] },
-  { href: '/admin/mesas', label: 'Mesas & Salón', icon: UtensilsCrossed, roles: ['owner', 'admin', 'host', 'cashier'] },
+  { href: '/admin/mesas', label: 'Mesas, Salón & Pedidos', icon: UtensilsCrossed, roles: ['owner', 'admin', 'host', 'cashier'] },
   { href: '/admin/reservas', label: 'Reservas', icon: Calendar, roles: ['owner', 'admin', 'host', 'cashier'] },
   { href: '/admin/menu', label: 'Menú & Platos', icon: BookOpen, roles: ['owner', 'admin', 'host'] },
   { href: '/admin/personal', label: 'Equipo & Personal', icon: Users, roles: ['owner', 'admin', 'host'] },
   { href: '/admin/cocina', label: 'KDS Cocina', icon: ChefHat, roles: ['owner', 'admin', 'host', 'kitchen', 'cashier'] },
-  { href: '/admin/mesero', label: 'Comandero & Pedidos', icon: ConciergeBell, roles: ['owner', 'admin', 'host', 'cashier'] },
-  { href: '/admin/pedidos', label: 'Pedidos & Cobros', icon: ClipboardList, roles: ['owner', 'admin', 'host', 'cashier'] },
   { href: '/admin/reportes', label: 'Reportes & Cierre', icon: TrendingUp, roles: ['owner', 'admin', 'host', 'cashier'] },
   { href: '/admin/ajustes', label: 'Ajustes', icon: Settings, roles: ['owner', 'admin', 'host'] },
 ];

@@ -17,10 +17,15 @@ import {
   Edit2,
   Trash2,
   Layers,
+  LayoutGrid,
+  ConciergeBell,
+  ClipboardList,
 } from 'lucide-react';
 import type { RestaurantTable, TableStatus, AvailableReservation } from '@/lib/tables/types';
 import type { StaffRole } from '@/lib/auth/get-current-staff';
 import { TableCheckoutModal, type TableOrderDetails } from './table-checkout-modal';
+import { WaiterManager } from '@/components/waiter/waiter-manager';
+import { OrderManager } from '@/components/orders/order-manager';
 
 function playWaiterAlertChime() {
   try {
@@ -79,12 +84,33 @@ const statusConfig: Record<
 
 export function TableManager({
   restaurantId,
+  staffId = '',
   userRole,
+  initialTableId,
+  initialView = 'tables',
 }: {
   restaurantId: string;
+  staffId?: string;
   userRole: StaffRole;
+  initialTableId?: string;
+  initialView?: 'tables' | 'comandero' | 'pedidos';
 }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+
+  // Vista unificada: Plano de Mesas vs Comandero vs Pedidos
+  const [activeTab, setActiveTab] = useState<'tables' | 'comandero' | 'pedidos'>(
+    initialView === 'pedidos'
+      ? 'pedidos'
+      : initialView === 'comandero' || !!initialTableId
+      ? 'comandero'
+      : 'tables'
+  );
+  const [comanderoTableId, setComanderoTableId] = useState<string | undefined>(initialTableId);
+
+  const openComanderoForTable = (tableId: string) => {
+    setComanderoTableId(tableId);
+    setActiveTab('comandero');
+  };
 
   const [tables, setTables] = useState<RestaurantTable[]>([]);
   const [unassignedReservations, setUnassignedReservations] = useState<AvailableReservation[]>([]);
@@ -136,7 +162,7 @@ export function TableManager({
   const [checkoutOrder, setCheckoutOrder] = useState<TableOrderDetails | null>(null);
   const [isFetchingCheckout, setIsFetchingCheckout] = useState(false);
 
-  const canCreateTable = ['owner', 'admin'].includes(userRole);
+  const canCreateTable = ['owner', 'admin', 'host'].includes(userRole);
 
   const loadTables = useCallback(async (isSilent = false) => {
     if (!isSilent) setLoading(true);
@@ -555,8 +581,80 @@ export function TableManager({
 
   return (
     <div className="space-y-6">
-      {/* Tarjetas de Métricas KPI del Salón */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      {/* Switch de Vista: Plano de Mesas vs Comandero vs Pedidos en Vivo */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 shadow-2xs overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab('tables')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'tables'
+                ? 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-xs'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+            }`}
+          >
+            <LayoutGrid className="w-4 h-4 text-[#f3a806]" />
+            <span>Plano de Mesas & Salón</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setComanderoTableId(undefined);
+              setActiveTab('comandero');
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'comandero'
+                ? 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-xs'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+            }`}
+          >
+            <ConciergeBell className="w-4 h-4 text-[#f3a806]" />
+            <span>Comandero & Tomar Pedidos</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('pedidos')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'pedidos'
+                ? 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-xs'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+            }`}
+          >
+            <ClipboardList className="w-4 h-4 text-[#f3a806]" />
+            <span>Pedidos & Cobros en Vivo</span>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
+          <span>
+            {activeTab === 'tables' && 'Monitoreo en vivo de ocupación y cobros'}
+            {activeTab === 'comandero' && 'Toma rápida de comandas en mesa'}
+            {activeTab === 'pedidos' && 'Cola de pedidos digitales y cobros de caja'}
+          </span>
+        </div>
+      </div>
+
+      {activeTab === 'comandero' ? (
+        <div className="space-y-4">
+          <WaiterManager
+            restaurantId={restaurantId}
+            waiterId={staffId}
+            initialTableId={comanderoTableId}
+            onBackToTables={() => {
+              setActiveTab('tables');
+              void loadTables(true);
+            }}
+          />
+        </div>
+      ) : activeTab === 'pedidos' ? (
+        <div className="space-y-4">
+          <OrderManager restaurantId={restaurantId} />
+        </div>
+      ) : (
+        <>
+          {/* Tarjetas de Métricas KPI del Salón */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <p className="text-xs font-medium text-muted-foreground">Total Mesas</p>
           <p className="mt-1 text-2xl font-bold">{totalTables}</p>
@@ -882,13 +980,14 @@ export function TableManager({
                         >
                           Asignar Reserva
                         </button>
-                        <Link
-                          href={`/admin/mesero?tableId=${table.id}`}
-                          className="col-span-2 flex h-8 items-center justify-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 px-3 text-xs font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                        <button
+                          type="button"
+                          onClick={() => openComanderoForTable(table.id)}
+                          className="col-span-2 flex h-8 items-center justify-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 px-3 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                         >
                           <Utensils className="h-3.5 w-3.5 text-primary" />
                           <span>Tomar Comanda</span>
-                        </Link>
+                        </button>
                       </>
                     )}
 
@@ -907,13 +1006,14 @@ export function TableManager({
                         )}
 
                         <div className="grid grid-cols-2 gap-2">
-                          <Link
-                            href={`/admin/mesero?tableId=${table.id}`}
-                            className="flex h-9 items-center justify-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 px-2 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                          <button
+                            type="button"
+                            onClick={() => openComanderoForTable(table.id)}
+                            className="flex h-9 items-center justify-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 px-2 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                           >
                             <Utensils className="h-3.5 w-3.5 text-primary" />
                             <span>+ Comanda</span>
-                          </Link>
+                          </button>
 
                           {table.active_order?.is_paid ? (
                             <button
@@ -964,13 +1064,14 @@ export function TableManager({
                         >
                           Liberar
                         </button>
-                        <Link
-                          href={`/admin/mesero?tableId=${table.id}`}
-                          className="col-span-2 flex h-8 items-center justify-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 px-3 text-xs font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                        <button
+                          type="button"
+                          onClick={() => openComanderoForTable(table.id)}
+                          className="col-span-2 flex h-8 items-center justify-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 px-3 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                         >
                           <Utensils className="h-3.5 w-3.5 text-primary" />
                           <span>Adelantar Comanda</span>
-                        </Link>
+                        </button>
                       </>
                     )}
                   </div>
@@ -1293,6 +1394,8 @@ export function TableManager({
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {/* Modal de Cobro de Mesa (Fase 8) */}

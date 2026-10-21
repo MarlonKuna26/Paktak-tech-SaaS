@@ -15,6 +15,7 @@ import {
   AlertCircle,
   CreditCard,
   Bell,
+  LayoutGrid,
 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { offlineDb, type CachedProduct, type CachedTable, type LocalOrder } from '@/lib/offline/db';
@@ -62,10 +63,12 @@ export function WaiterManager({
   restaurantId,
   waiterId,
   initialTableId,
+  onBackToTables,
 }: {
   restaurantId: string;
   waiterId: string;
   initialTableId?: string;
+  onBackToTables?: () => void;
 }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const initialTableAppliedRef = useRef(false);
@@ -480,6 +483,17 @@ export function WaiterManager({
         </div>
 
         <div className="flex items-center gap-2">
+          {onBackToTables && (
+            <button
+              type="button"
+              onClick={onBackToTables}
+              className="h-10 px-4 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-2xs"
+            >
+              <LayoutGrid className="h-4 w-4 text-[#f3a806]" />
+              <span>Plano de Mesas</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setBatterySaver(!batterySaver)}

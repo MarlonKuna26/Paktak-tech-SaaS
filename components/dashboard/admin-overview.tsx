@@ -172,7 +172,7 @@ export function AdminDashboardOverview({
           <div className="mt-2 flex items-center justify-between text-[11px]">
             <span className="text-zinc-400">Ticket prom: {formatMoney(data.avgTicketCents)}</span>
             <Link
-              href="/admin/pedidos"
+              href="/admin/mesas?view=pedidos"
               className="font-bold text-[#f3a806] hover:underline flex items-center gap-0.5"
             >
               <span>Ver</span>
@@ -260,7 +260,7 @@ export function AdminDashboardOverview({
             <p className="text-xs text-zinc-400">Últimos pedidos recibidos para entrega o cobro</p>
           </div>
           <Link
-            href="/admin/pedidos"
+            href="/admin/mesas?view=pedidos"
             className="text-xs font-bold text-[#f3a806] hover:underline flex items-center gap-1"
           >
             <span>Ir al Panel de Pedidos</span>

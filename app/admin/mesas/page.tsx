@@ -2,11 +2,14 @@ import { getCurrentStaff } from '@/lib/auth/get-current-staff';
 import { TableManager } from '@/components/tables/table-manager';
 
 export const metadata = {
-  title: 'Mesas & Salón | Paktak Tech',
+  title: 'Mesas, Salón & Pedidos | Paktak Tech',
 };
 
-export default async function TablesAdminPage() {
+export default async function TablesAdminPage(props: {
+  searchParams?: Promise<{ tableId?: string; view?: 'tables' | 'comandero' | 'pedidos' }>;
+}) {
   const staff = await getCurrentStaff();
+  const searchParams = props.searchParams ? await props.searchParams : {};
 
   if (!staff || !['owner', 'admin', 'host', 'cashier'].includes(staff.role)) {
     return (
@@ -17,20 +20,26 @@ export default async function TablesAdminPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 pb-16 font-sans">
+    <div className="mx-auto max-w-7xl space-y-6 pb-16 font-sans">
       <div className="space-y-1">
         <span className="text-xs font-bold uppercase tracking-wider text-[#f3a806]">
-          Salón & Servicio
+          Salón & Servicio Central
         </span>
         <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
-          Mesas & Comandas
+          Mesas, Salón & Pedidos
         </h1>
         <p className="text-xs text-zinc-500 max-w-xl">
-          Visualiza en tiempo real el plano de mesas, estado de ocupación, cobro de cuentas y asignación de salón.
+          Visualiza el plano de mesas en vivo, toma comandas directamente en mesa y monitorea pedidos y cobros de caja.
         </p>
       </div>
 
-      <TableManager restaurantId={staff.restaurantId} userRole={staff.role} />
+      <TableManager
+        restaurantId={staff.restaurantId}
+        staffId={staff.id}
+        userRole={staff.role}
+        initialTableId={searchParams.tableId}
+        initialView={searchParams.view}
+      />
     </div>
   );
 }
