@@ -20,6 +20,7 @@ import {
   ChefHat,
   PackageCheck,
   Zap,
+  Eye,
 } from 'lucide-react';
 
 export type KdsItem = {
@@ -89,6 +90,7 @@ export function KdsBoard({
   restaurantId: string;
   userRole?: string;
 }) {
+  const isCook = userRole === 'kitchen';
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   // Datos
@@ -194,6 +196,10 @@ export function KdsBoard({
         .order('opened_at', { ascending: true });
 
       if (!isSilent) setIsRefreshing(false);
+
+      if (error) {
+        console.error('[KDS] Error al consultar comandas:', error);
+      }
 
       if (error || !data) return;
 
@@ -465,12 +471,22 @@ export function KdsBoard({
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   <span>Cocinero en Turno: {kitchenStaffName}</span>
                 </div>
-                {['owner', 'admin', 'host'].includes(userRole) && (
+                {!isCook ? (
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700">
+                    <Eye className="h-3 w-3 text-blue-600 shrink-0" />
+                    <span>Modo Monitoreo / Solo Lectura (Super Usuario)</span>
+                  </div>
+                ) : (
                   <span className="text-[11px] font-medium text-zinc-500">
-                    · Modo Supervisión Superusuario
+                    · Pantalla Operativa de Cocina
                   </span>
                 )}
               </div>
+              {!isCook && (
+                <p className="text-[11px] text-zinc-500 font-medium mt-1">
+                  👁️ Visualización en tiempo real. Los cambios de preparación y despachos corresponden únicamente al Cocinero.
+                </p>
+              )}
             </div>
           </div>
 
@@ -703,6 +719,7 @@ export function KdsBoard({
                         currentTime={currentTime}
                         stage="nuevo"
                         isFlashing={newOrderIds.has(ord.id)}
+                        canAction={isCook}
                         onAdvance={() => void advanceOrderStage(ord, 'preparando')}
                         onAdvanceItem={(id, st) => void advanceSingleItem(id, st)}
                       />
@@ -738,6 +755,7 @@ export function KdsBoard({
                         currentTime={currentTime}
                         stage="preparando"
                         isFlashing={newOrderIds.has(ord.id)}
+                        canAction={isCook}
                         onAdvance={() => void advanceOrderStage(ord, 'listo')}
                         onAdvanceItem={(id, st) => void advanceSingleItem(id, st)}
                       />
@@ -773,6 +791,7 @@ export function KdsBoard({
                         currentTime={currentTime}
                         stage="listo"
                         isFlashing={newOrderIds.has(ord.id)}
+                        canAction={isCook}
                         onAdvance={() => void advanceOrderStage(ord, 'entregado')}
                         onAdvanceItem={(id, st) => void advanceSingleItem(id, st)}
                       />
@@ -801,6 +820,7 @@ export function KdsBoard({
                     currentTime={currentTime}
                     stage={currentStage}
                     isFlashing={newOrderIds.has(ord.id)}
+                    canAction={isCook}
                     onAdvance={() => {
                       if (currentStage === 'nuevo') void advanceOrderStage(ord, 'preparando');
                       else if (currentStage === 'preparando') void advanceOrderStage(ord, 'listo');
@@ -878,16 +898,25 @@ export function KdsBoard({
                     </ul>
                   </div>
 
-                  {/* Botón Reabrir */}
+                  {/* Botón Reabrir (solo para Cocinero) */}
                   <div className="pt-2 border-t border-zinc-100">
-                    <button
-                      type="button"
-                      onClick={() => void reopenDeliveredOrder(ord)}
-                      className="h-10 w-full rounded-full border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-xs font-bold text-zinc-800 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5 text-amber-600" />
-                      <span>Reabrir a Cocina</span>
-                    </button>
+                    {isCook ? (
+                      <button
+                        type="button"
+                        onClick={() => void reopenDeliveredOrder(ord)}
+                        className="h-10 w-full rounded-full border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-xs font-bold text-zinc-800 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 text-amber-600" />
+                        <span>Reabrir a Cocina</span>
+                      </button>
+                    ) : (
+                      <div className="flex items-center justify-between px-2 py-1 text-xs">
+                        <span className="text-[11px] font-medium text-zinc-400">Despacho completado</span>
+                        <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-black text-emerald-800">
+                          ✓ Entregado
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -905,6 +934,7 @@ function KdsTicketCard({
   currentTime,
   stage,
   isFlashing,
+  canAction = true,
   onAdvance,
   onAdvanceItem,
 }: {
@@ -912,6 +942,7 @@ function KdsTicketCard({
   currentTime: number;
   stage: OrderStage;
   isFlashing: boolean;
+  canAction?: boolean;
   onAdvance: () => void;
   onAdvanceItem: (itemId: string, currentStatus: KdsItem['status']) => void;
 }) {
@@ -1016,42 +1047,69 @@ function KdsTicketCard({
                     </div>
                   </div>
 
-                  {/* Estado individual interactivo */}
+                  {/* Estado individual (interactivo para cocinero, informativo para superusuario) */}
                   <div className="shrink-0">
-                    {isPending && (
-                      <button
-                        type="button"
-                        onClick={() => onAdvanceItem(it.id, 'pendiente')}
-                        title="Click para iniciar preparación"
-                        className="rounded-full border border-amber-200 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-800 transition-colors cursor-pointer"
-                      >
-                        ⏳ Espera
-                      </button>
-                    )}
-                    {isCooking && (
-                      <button
-                        type="button"
-                        onClick={() => onAdvanceItem(it.id, 'preparando')}
-                        title="Click para marcar como Listo"
-                        className="rounded-full border border-orange-200 bg-orange-50 hover:bg-orange-100 px-2.5 py-1 text-[11px] font-black text-orange-800 transition-colors cursor-pointer"
-                      >
-                        🔥 Cocinando
-                      </button>
-                    )}
-                    {isReady && (
-                      <button
-                        type="button"
-                        onClick={() => onAdvanceItem(it.id, 'listo')}
-                        title="Click para despachar"
-                        className="rounded-full border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 text-[11px] font-black text-emerald-800 transition-colors cursor-pointer"
-                      >
-                        ✅ ¡Listo!
-                      </button>
-                    )}
-                    {isDelivered && (
-                      <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold text-zinc-500">
-                        ✓ Despachado
-                      </span>
+                    {canAction ? (
+                      <>
+                        {isPending && (
+                          <button
+                            type="button"
+                            onClick={() => onAdvanceItem(it.id, 'pendiente')}
+                            title="Click para iniciar preparación"
+                            className="rounded-full border border-amber-200 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-800 transition-colors cursor-pointer"
+                          >
+                            ⏳ Espera
+                          </button>
+                        )}
+                        {isCooking && (
+                          <button
+                            type="button"
+                            onClick={() => onAdvanceItem(it.id, 'preparando')}
+                            title="Click para marcar como Listo"
+                            className="rounded-full border border-orange-200 bg-orange-50 hover:bg-orange-100 px-2.5 py-1 text-[11px] font-black text-orange-800 transition-colors cursor-pointer"
+                          >
+                            🔥 Cocinando
+                          </button>
+                        )}
+                        {isReady && (
+                          <button
+                            type="button"
+                            onClick={() => onAdvanceItem(it.id, 'listo')}
+                            title="Click para despachar"
+                            className="rounded-full border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 text-[11px] font-black text-emerald-800 transition-colors cursor-pointer"
+                          >
+                            ✅ ¡Listo!
+                          </button>
+                        )}
+                        {isDelivered && (
+                          <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold text-zinc-500">
+                            ✓ Despachado
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {isPending && (
+                          <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-800">
+                            ⏳ En espera
+                          </span>
+                        )}
+                        {isCooking && (
+                          <span className="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-[11px] font-black text-orange-800">
+                            🔥 Cocinando
+                          </span>
+                        )}
+                        {isReady && (
+                          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-800">
+                            ✅ ¡Listo!
+                          </span>
+                        )}
+                        {isDelivered && (
+                          <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold text-zinc-500">
+                            ✓ Entregado
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -1067,16 +1125,40 @@ function KdsTicketCard({
         </ul>
       </div>
 
-      {/* Botón de Acción Masiva para toda la Comanda */}
+      {/* Botón de Acción Masiva para Cocinero O Estado Informativo para Super Usuario */}
       <div className="mt-4 pt-3.5 border-t border-zinc-100">
-        <button
-          type="button"
-          onClick={onAdvance}
-          className={`h-12 w-full rounded-full text-xs font-black tracking-wide transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer shadow-xs ${actionBg}`}
-        >
-          <ActionIcon className="h-4 w-4 stroke-[2.8]" />
-          <span>{actionLabel}</span>
-        </button>
+        {canAction ? (
+          <button
+            type="button"
+            onClick={onAdvance}
+            className={`h-12 w-full rounded-full text-xs font-black tracking-wide transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer shadow-xs ${actionBg}`}
+          >
+            <ActionIcon className="h-4 w-4 stroke-[2.8]" />
+            <span>{actionLabel}</span>
+          </button>
+        ) : (
+          <div className="flex items-center justify-between rounded-2xl bg-zinc-50 border border-zinc-200/80 px-4 py-2.5">
+            <span className="text-[11px] font-bold text-zinc-500 flex items-center gap-1.5">
+              <Eye className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+              Estado en cocina:
+            </span>
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${
+                stage === 'nuevo'
+                  ? 'bg-amber-100/80 text-amber-900 border border-amber-200'
+                  : stage === 'preparando'
+                  ? 'bg-orange-100/80 text-orange-950 border border-orange-200'
+                  : 'bg-emerald-100/80 text-emerald-950 border border-emerald-200'
+              }`}
+            >
+              {stage === 'nuevo'
+                ? '⏳ En Cola de Espera'
+                : stage === 'preparando'
+                ? '🔥 En Preparación'
+                : '✅ Listo para Despachar'}
+            </span>
+          </div>
+        )}
       </div>
     </article>
   );
