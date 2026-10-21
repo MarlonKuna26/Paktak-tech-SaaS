@@ -43,18 +43,60 @@ export async function GET() {
     }
   }
 
-  const tablesWithReservations = (tables ?? []).map((t) => ({
+  // 3. Obtener órdenes activas de mesas ocupadas con el estado de sus platos en cocina
+  const { data: activeOrders } = await supabase
+    .from('orders')
+    .select('id, table_id, order_number, status, total_cents, order_items(id, status)')
+    .eq('restaurant_id', staff.restaurantId)
+    .in('status', ['abierta', 'en_espera']);
+
+  type ActiveOrderSummary = {
+    id: string;
+    order_number: number;
+    total_cents: number;
+    kitchen_status: 'pendiente' | 'preparando' | 'listo' | 'servido';
+    items_count: number;
+    ready_items_count: number;
+  };
+
+  const orderMap = new Map<string, ActiveOrderSummary>();
+  for (const ord of activeOrders ?? []) {
+    if (!ord.table_id) continue;
+    const rawItems = (ord.order_items || []) as Array<{ id: string; status: string }>;
+    const totalItems = rawItems.length;
+    const readyItems = rawItems.filter((it) => it.status === 'listo').length;
+    const preparingItems = rawItems.filter((it) => it.status === 'preparando').length;
+
+    let kStatus: 'pendiente' | 'preparando' | 'listo' | 'servido' = 'pendiente';
+    if (totalItems > 0 && readyItems > 0) {
+      kStatus = 'listo';
+    } else if (preparingItems > 0) {
+      kStatus = 'preparando';
+    }
+
+    orderMap.set(ord.table_id, {
+      id: ord.id,
+      order_number: ord.order_number,
+      total_cents: ord.total_cents,
+      kitchen_status: kStatus,
+      items_count: totalItems,
+      ready_items_count: readyItems,
+    });
+  }
+
+  const tablesWithDetails = (tables ?? []).map((t) => ({
     ...t,
     active_reservation: reservationMap.get(t.id) || null,
+    active_order: orderMap.get(t.id) || null,
   }));
 
-  return NextResponse.json({ tables: tablesWithReservations });
+  return NextResponse.json({ tables: tablesWithDetails });
 }
 
 export async function POST(request: Request) {
   const staff = await getCurrentStaff();
-  if (!staff || !['owner', 'admin', 'host'].includes(staff.role)) {
-    return NextResponse.json({ error: 'No tienes permisos para crear mesas' }, { status: 403 });
+  if (!staff || !['owner', 'admin'].includes(staff.role)) {
+    return NextResponse.json({ error: 'Solo el administrador puede crear nuevas mesas' }, { status: 403 });
   }
 
   const json = await request.json().catch(() => null);

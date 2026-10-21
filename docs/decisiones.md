@@ -95,4 +95,19 @@
   - Integrado en [lib/auth/get-current-staff.ts] y [components/admin/admin-shell.tsx]:
   - Banner dinámico superior que notifica los días restantes de la prueba gratuita y muestra alerta preventiva si el período ha concluido con enlace directo a renovación.
 
+## Separación Estricta de Roles y Flujo Operativo Cocina-Mesero
+
+- **Aislamiento por Rol en Navegación y Páginas:**
+  - `owner` / `admin`: Acceso completo a todos los módulos, creación y edición de mesas y menú.
+  - `waiter`: Menú lateral restringido exclusivamente a **Mesas & Salón** y **App Mesero**. Al iniciar sesión es redirigido automáticamente a `/admin/mesero`.
+  - `kitchen`: Menú lateral restringido únicamente a **KDS Cocina**. Al iniciar sesión es redirigido automáticamente a `/admin/cocina`.
+  - `cashier`: Acceso a **Mesas & Salón**, **Pedidos & Cobros** y **Reportes & Cierre** para arqueo de caja.
+  - Todas las páginas (`/admin/menu`, `/admin/ajustes`, `/admin/cocina`, `/admin/mesero`, `/admin/pedidos`, `/admin/reportes`) validan estrictamente el rol en el servidor para evitar accesos indebidos por URL.
+- **Flujo de Comanda y Cobro por el Mesero:**
+  - El mesero puede agendar la comanda para una mesa (offline/online) y enviarla directamente a cocina.
+  - Se integró `TableCheckoutModal` dentro de la App del Mesero: al seleccionar una mesa ocupada, el mesero puede cobrar la cuenta directamente en salón (efectivo, transferencia, tarjeta), aplicar propinas y dividir la cuenta.
+- **Alertas en Tiempo Real de Cocina a Mesero y Salón:**
+  - Cuando el cocinero en el KDS avanza platos o comandas a estado `listo`:
+    - En el mapa de mesas (`/admin/mesas`): la tarjeta de la mesa parpadea con borde esmeralda y muestra un badge animado `🔔 ¡Comida Lista para Servir!` con contador de platos listos.
+    - En la App del Mesero (`/admin/mesero`): se dispara una alerta sonora armónica con Web Audio API (`playWaiterChime()`) y un banner persistente en la cabecera indicando la comanda lista para retirar y servir.
 

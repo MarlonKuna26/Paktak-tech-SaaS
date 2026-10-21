@@ -32,7 +32,7 @@ const navigation: readonly NavItem[] = [
   { href: '/admin/menu', label: 'Menú & Platos', icon: BookOpen, roles: ['owner', 'admin'] },
   { href: '/admin/cocina', label: 'KDS Cocina', icon: ChefHat, roles: ['owner', 'admin', 'kitchen'] },
   { href: '/admin/mesero', label: 'App Mesero', icon: ConciergeBell, roles: ['owner', 'admin', 'waiter'] },
-  { href: '/admin/pedidos', label: 'Pedidos & Cobros', icon: ClipboardList, roles: ['owner', 'admin', 'kitchen', 'cashier'] },
+  { href: '/admin/pedidos', label: 'Pedidos & Cobros', icon: ClipboardList, roles: ['owner', 'admin', 'cashier'] },
   { href: '/admin/reportes', label: 'Reportes & Cierre', icon: TrendingUp, roles: ['owner', 'admin', 'cashier'] },
   { href: '/admin/ajustes', label: 'Ajustes', icon: Settings, roles: ['owner', 'admin'] },
 ];

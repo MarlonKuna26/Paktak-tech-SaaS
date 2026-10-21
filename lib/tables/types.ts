@@ -1,5 +1,7 @@
 export type TableStatus = 'libre' | 'ocupada' | 'reservada';
 
+export type TableKitchenStatus = 'pendiente' | 'preparando' | 'listo' | 'servido';
+
 export type RestaurantTable = {
   id: string;
   restaurant_id: string;
@@ -14,6 +16,14 @@ export type RestaurantTable = {
     date_time: string;
     guests: number;
     notes: string | null;
+  } | null;
+  active_order?: {
+    id: string;
+    order_number: number;
+    total_cents: number;
+    kitchen_status: TableKitchenStatus;
+    items_count: number;
+    ready_items_count: number;
   } | null;
 };
 

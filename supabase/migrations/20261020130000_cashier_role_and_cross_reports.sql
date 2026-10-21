@@ -1,7 +1,4 @@
--- Migración para soporte de Rol 'cashier' y Cruzamiento de Reportes con Costos y Canales
-
--- 1. Agregar 'cashier' al enum de staff_role
-alter type public.staff_role add value if not exists 'cashier';
+-- 1. Permisos y funciones para rol cashier y Cruzamiento de Reportes
 
 -- 2. Asegurar que cashier tenga permisos de lectura y cobro en pedidos públicos y mesas
 drop policy if exists public_order_requests_staff_update on public.public_order_requests;

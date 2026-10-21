@@ -2,10 +2,38 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
-import { Tag, Check, Plus, CreditCard, Users, X } from 'lucide-react';
+import { Tag, Check, Plus, CreditCard, Users, X, Bell, Flame, Clock } from 'lucide-react';
 import type { RestaurantTable, TableStatus, AvailableReservation } from '@/lib/tables/types';
 import type { StaffRole } from '@/lib/auth/get-current-staff';
 import { TableCheckoutModal, type TableOrderDetails } from './table-checkout-modal';
+
+function playWaiterAlertChime() {
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1046.5, ctx.currentTime); // C6
+    osc.frequency.setValueAtTime(1318.5, ctx.currentTime + 0.14); // E6
+
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.9);
+  } catch {
+    // Si no hay interacción de audio previa
+  }
+}
 
 const statusConfig: Record<
   TableStatus,
@@ -79,7 +107,7 @@ export function TableManager({
   const [checkoutOrder, setCheckoutOrder] = useState<TableOrderDetails | null>(null);
   const [isFetchingCheckout, setIsFetchingCheckout] = useState(false);
 
-  const canManage = ['owner', 'admin', 'host'].includes(userRole);
+  const canCreateTable = ['owner', 'admin'].includes(userRole);
 
   const loadTables = useCallback(async (isSilent = false) => {
     if (!isSilent) setLoading(true);
@@ -152,7 +180,7 @@ export function TableManager({
       void loadUnassignedReservations();
     }, 0);
 
-    // 1. Canal Supabase Realtime para cambios instantáneos
+    // 1. Canal Supabase Realtime para cambios instantáneos de mesas, órdenes y cocina
     const channel = supabase
       .channel(`realtime-tables-${restaurantId}`)
       .on(
@@ -164,6 +192,32 @@ export function TableManager({
           filter: `restaurant_id=eq.${restaurantId}`,
         },
         () => {
+          void loadTables(true);
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `restaurant_id=eq.${restaurantId}`,
+        },
+        () => {
+          void loadTables(true);
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'order_items',
+        },
+        (payload) => {
+          if (payload.new && (payload.new as { status?: string }).status === 'listo') {
+            playWaiterAlertChime();
+          }
           void loadTables(true);
         },
       )
@@ -474,7 +528,7 @@ export function TableManager({
             Realtime activo
           </span>
 
-          {canManage && (
+          {canCreateTable && (
             <button
               type="button"
               onClick={() => setShowAddModal(true)}
@@ -554,10 +608,18 @@ export function TableManager({
             const config = statusConfig[table.status];
             const hasReservation = table.status === 'reservada' && table.active_reservation;
 
+            const isFoodReady = table.status === 'ocupada' && table.active_order?.kitchen_status === 'listo';
+            const isPreparing = table.status === 'ocupada' && table.active_order?.kitchen_status === 'preparando';
+            const isPending = table.status === 'ocupada' && table.active_order?.kitchen_status === 'pendiente';
+
             return (
               <article
                 key={table.id}
-                className={`relative flex flex-col justify-between rounded-2xl border p-5 shadow-sm transition-all hover:shadow-md ${config.borderClass} ${config.bgClass}`}
+                className={`relative flex flex-col justify-between rounded-2xl border p-5 shadow-sm transition-all hover:shadow-md ${
+                  isFoodReady
+                    ? 'border-emerald-500 ring-2 ring-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-950/20'
+                    : `${config.borderClass} ${config.bgClass}`
+                }`}
               >
                 {/* Cabecera de la Mesa */}
                 <div>
@@ -580,6 +642,43 @@ export function TableManager({
                     <Users className="h-3.5 w-3.5" />
                     <span>Capacidad: {table.capacity} personas</span>
                   </div>
+
+                  {/* ESTADO EN VIVO DE COCINA */}
+                  {isFoodReady && (
+                    <div className="mt-3 rounded-xl border border-emerald-500/50 bg-emerald-500/15 p-2.5 text-xs text-emerald-900 dark:text-emerald-200 flex items-center justify-between shadow-xs">
+                      <div className="flex items-center gap-1.5 font-extrabold">
+                        <Bell className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span>¡Comida Lista para Servir!</span>
+                      </div>
+                      <span className="font-mono text-[10px] bg-emerald-600 text-white dark:bg-emerald-500 px-2 py-0.5 rounded-full font-bold">
+                        {table.active_order?.ready_items_count}/{table.active_order?.items_count} listos
+                      </span>
+                    </div>
+                  )}
+
+                  {isPreparing && (
+                    <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-900 dark:text-amber-200 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-semibold">
+                        <Flame className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                        <span>En preparación en cocina</span>
+                      </div>
+                      <span className="font-mono text-[10px] text-amber-700 dark:text-amber-300 font-bold">
+                        #{table.active_order?.order_number}
+                      </span>
+                    </div>
+                  )}
+
+                  {isPending && (
+                    <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/40 p-2 text-xs text-zinc-600 dark:text-zinc-400 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                        <span>En cola de cocina</span>
+                      </div>
+                      <span className="font-mono text-[10px] font-bold">
+                        #{table.active_order?.order_number}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Si tiene reserva asignada */}
                   {hasReservation && (
@@ -607,7 +706,7 @@ export function TableManager({
                   )}
                 </div>
 
-                  {/* Botones de Cambio de Estado Rápido */}
+                {/* Botones de Cambio de Estado Rápido */}
                 <div className="mt-4 border-t border-zinc-100 dark:border-zinc-800 pt-3">
                   <div className="grid grid-cols-2 gap-2">
                     {table.status === 'libre' && (

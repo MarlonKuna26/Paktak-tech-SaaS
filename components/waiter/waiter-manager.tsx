@@ -13,11 +13,42 @@ import {
   Minus,
   Check,
   AlertCircle,
+  CreditCard,
+  Bell,
 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { offlineDb, type CachedProduct, type CachedTable, type LocalOrder } from '@/lib/offline/db';
 import { syncEngine } from '@/lib/offline/sync-engine';
 import { ThermalReceiptModal } from '@/components/orders/thermal-receipt-modal';
+import { TableCheckoutModal, type TableOrderDetails } from '@/components/tables/table-checkout-modal';
+
+function playWaiterChime() {
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1046.5, ctx.currentTime); // C6
+    osc.frequency.setValueAtTime(1318.5, ctx.currentTime + 0.15); // E6
+
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.0);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 1.0);
+  } catch {
+    // Silencio si no hubo interacción previa
+  }
+}
 
 type CartItem = {
   productId: string;
@@ -58,6 +89,70 @@ export function WaiterManager({
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
   const [batterySaver, setBatterySaver] = useState(false);
   const [printingOrder, setPrintingOrder] = useState<LocalOrder | null>(null);
+
+  // Estado para cobro de mesa (Fase 8 & Flujo Mesero)
+  const [checkoutOrder, setCheckoutOrder] = useState<TableOrderDetails | null>(null);
+  const [isFetchingCheckout, setIsFetchingCheckout] = useState(false);
+
+  // Alertas en vivo de cocina
+  const [kitchenAlerts, setKitchenAlerts] = useState<Array<{ id: string; message: string; time: string }>>([]);
+
+  const handleOpenTableCheckout = async (table: CachedTable) => {
+    setIsFetchingCheckout(true);
+    setFeedback(null);
+    try {
+      const { data: orderData, error: ordErr } = await supabase
+        .from('orders')
+        .select('id, order_number, total_cents, order_items(id, product_name, quantity, unit_price_cents, notes)')
+        .eq('table_id', table.id)
+        .in('status', ['abierta', 'en_espera'])
+        .order('opened_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      setIsFetchingCheckout(false);
+
+      if (ordErr || !orderData) {
+        setFeedback({
+          ok: false,
+          text: `No se encontró una comanda abierta para la Mesa #${table.tableNumber}.`,
+        });
+        return;
+      }
+
+      type RawOrderItem = {
+        id: string;
+        product_name: string;
+        quantity: number;
+        unit_price_cents: number;
+        notes: string | null;
+      };
+
+      const rawItems = (orderData.order_items || []) as RawOrderItem[];
+      const subtotal = rawItems.reduce((acc, it) => acc + it.unit_price_cents * it.quantity, 0);
+
+      setCheckoutOrder({
+        orderId: orderData.id,
+        orderNumber: orderData.order_number,
+        tableNumber: table.tableNumber,
+        zone: table.zone,
+        subtotalCents: subtotal,
+        items: rawItems.map((it) => ({
+          id: it.id,
+          productName: it.product_name,
+          quantity: it.quantity,
+          unitPriceCents: it.unit_price_cents,
+          notes: it.notes,
+        })),
+      });
+    } catch {
+      setIsFetchingCheckout(false);
+      setFeedback({
+        ok: false,
+        text: 'Error de red al consultar la comanda de la mesa.',
+      });
+    }
+  };
 
   // 1. Suscribirse al Sync Engine
   useEffect(() => {
@@ -148,6 +243,41 @@ export function WaiterManager({
     const timer = window.setTimeout(() => void loadRecentOrders(), 0);
     return () => window.clearTimeout(timer);
   }, [syncStatus.pendingCount, loadRecentOrders]);
+
+  // Escuchar avisos de platos listos desde cocina
+  useEffect(() => {
+    const channel = supabase
+      .channel(`waiter-kds-alerts-${restaurantId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tables', filter: `restaurant_id=eq.${restaurantId}` },
+        () => void loadData(),
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'order_items' },
+        (payload) => {
+          if (payload.new && (payload.new as { status?: string }).status === 'listo') {
+            const raw = payload.new as { product_name?: string };
+            playWaiterChime();
+            setKitchenAlerts((prev) => [
+              {
+                id: Math.random().toString(),
+                message: `¡Plato listo en cocina! ${raw.product_name || 'Comanda lista para servir'}`,
+                time: new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }),
+              },
+              ...prev.slice(0, 4),
+            ]);
+            void loadData();
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [loadData, restaurantId, supabase]);
 
   function addToCart(product: CachedProduct) {
     setCart((current) => {
@@ -340,6 +470,39 @@ export function WaiterManager({
         </div>
       </div>
 
+      {/* Avisos de Cocina en Tiempo Real */}
+      {kitchenAlerts.length > 0 && (
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 shadow-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-emerald-900 dark:text-emerald-200 font-extrabold text-sm">
+              <Bell className="w-5 h-5 text-emerald-600 animate-bounce" />
+              <span>Platos Listos en Cocina ({kitchenAlerts.length})</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setKitchenAlerts([])}
+              className="text-xs text-emerald-700 hover:text-emerald-900 dark:text-emerald-300 font-bold underline"
+            >
+              Cerrar avisos
+            </button>
+          </div>
+          <div className="space-y-1.5">
+            {kitchenAlerts.map((alt) => (
+              <div
+                key={alt.id}
+                className="flex items-center justify-between text-xs text-emerald-900 dark:text-emerald-100 bg-white/80 dark:bg-zinc-900/80 p-2.5 rounded-xl border border-emerald-500/20"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+                  <span className="font-semibold">{alt.message}</span>
+                </div>
+                <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 font-bold">{alt.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {feedback && (
         <div
           role={feedback.ok ? 'status' : 'alert'}
@@ -392,6 +555,33 @@ export function WaiterManager({
           )}
         </div>
       </section>
+
+      {/* Acciones de Mesa Ocupada: Cobro Directo por el Mesero */}
+      {selectedTable?.status === 'ocupada' && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-50/70 dark:bg-amber-950/20 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-2xs">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+              <span className="font-extrabold text-sm text-zinc-900 dark:text-zinc-100">
+                Mesa #{selectedTable.tableNumber} está actualmente OCUPADA
+              </span>
+            </div>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+              Puedes agregar más platos a la comanda o cerrar la cuenta y cobrar al cliente.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => void handleOpenTableCheckout(selectedTable)}
+            disabled={isFetchingCheckout}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-5 py-2.5 text-xs font-black text-zinc-950 shadow-xs transition-colors shrink-0 disabled:opacity-50"
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>{isFetchingCheckout ? 'Consultando comanda...' : `Cobrar Mesa #${selectedTable.tableNumber}`}</span>
+          </button>
+        </div>
+      )}
 
       {/* 2. Catálogo y Comanda Activa */}
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -655,6 +845,25 @@ export function WaiterManager({
             paymentStatus: printingOrder.status === 'pagada' ? 'pagado' : 'pendiente',
           }}
           onClose={() => setPrintingOrder(null)}
+        />
+      )}
+
+      {/* MODAL DE COBRO DE CUENTA DE MESA (Para el Mesero) */}
+      {checkoutOrder && (
+        <TableCheckoutModal
+          order={checkoutOrder}
+          onClose={() => setCheckoutOrder(null)}
+          onSuccess={() => {
+            const tableNum = checkoutOrder.tableNumber;
+            setCheckoutOrder(null);
+            setSelectedTable(null);
+            setCart([]);
+            setFeedback({
+              ok: true,
+              text: `Mesa #${tableNum} cobrada y liberada exitosamente.`,
+            });
+            void loadData();
+          }}
         />
       )}
     </div>

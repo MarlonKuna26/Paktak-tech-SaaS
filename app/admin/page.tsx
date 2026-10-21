@@ -15,13 +15,17 @@ export default async function AdminPage() {
     redirect('/auth/login');
   }
 
-  // Redirección por roles restringidos
+  // Redirección por roles restringidos al iniciar sesión
   if (staff.role === 'waiter') {
     redirect('/admin/mesero');
   }
 
   if (staff.role === 'kitchen') {
     redirect('/admin/cocina');
+  }
+
+  if (staff.role === 'cashier' || staff.role === 'host') {
+    redirect('/admin/mesas');
   }
 
   // Resolver host URL para links de WhatsApp
