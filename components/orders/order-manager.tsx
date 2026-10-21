@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
-import { RefreshCw, ClipboardList, Check, ArrowRight, Printer, CreditCard } from 'lucide-react';
+import { RefreshCw, ClipboardList, Check, ArrowRight, Printer, CreditCard, DollarSign, Wallet, Search, Receipt } from 'lucide-react';
 import { ThermalReceiptModal } from './thermal-receipt-modal';
+import { TableCheckoutModal, type TableOrderDetails } from '@/components/tables/table-checkout-modal';
 
 type PublicOrder = {
   id: string;
@@ -65,12 +66,13 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [orders, setOrders] = useState<PublicOrder[]>([]);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState<'activos' | 'mesas' | 'pendientes' | 'todos'>('activos');
+  const [filter, setFilter] = useState<'activos' | 'mesas' | 'pendientes' | 'cobrados' | 'todos'>('activos');
+  const [searchQuery, setSearchQuery] = useState('');
   const [rejectingOrderId, setRejectingOrderId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Modal de Cobro & Paleta
+  // Modal de Cobro & Paleta (para pedidos de mostrador / delivery)
   const [payingOrder, setPayingOrder] = useState<PublicOrder | null>(null);
   const [payServiceType, setPayServiceType] = useState<'paleta_madera' | 'mesa_fija' | 'para_llevar'>('paleta_madera');
   const [tokenInput, setTokenInput] = useState('');
@@ -78,6 +80,9 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
   const [cashAmountInput, setCashAmountInput] = useState('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [printingOrder, setPrintingOrder] = useState<PublicOrder | null>(null);
+
+  // Modal de Cobro de Mesa de Salón (con propina, división y liberación de mesa)
+  const [checkoutTableOrder, setCheckoutTableOrder] = useState<TableOrderDetails | null>(null);
 
   const load = useCallback(async (isSilent = false) => {
     if (!isSilent) setIsRefreshing(true);
@@ -89,7 +94,16 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
         .order('created_at', { ascending: false }),
       supabase
         .from('orders')
-        .select('id,order_number,total_cents,status,opened_at,tables(table_number,zone),order_items(product_name,quantity,unit_price_cents,notes,status)')
+        .select(`
+          id,
+          order_number,
+          total_cents,
+          status,
+          opened_at,
+          tables(table_number,zone),
+          order_items(id,product_name,quantity,unit_price_cents,notes,status),
+          payments(method,amount_cents)
+        `)
         .eq('restaurant_id', restaurantId)
         .order('opened_at', { ascending: false }),
     ]);
@@ -99,6 +113,7 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
     if (queryError) {
       setError('No se pudieron cargar los pedidos en tiempo real.');
     } else {
+      type PaymentRow = { method: 'efectivo' | 'transferencia' | 'tarjeta' | 'otro'; amount_cents: number };
       type OrderItemRow = { product_name: string; quantity: number; unit_price_cents: number; notes: string | null; status: string };
       type TableOrderRow = {
         id: string;
@@ -108,6 +123,7 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
         opened_at: string;
         tables: { table_number: number; zone: string | null } | null;
         order_items: OrderItemRow[];
+        payments: PaymentRow[];
       };
 
       const formattedTableOrders: PublicOrder[] = ((tableOrdersData ?? []) as unknown as TableOrderRow[]).map((tOrder) => {
@@ -124,6 +140,10 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
                 ? 'preparando'
                 : 'listo';
 
+        const paymentMethod = (tOrder.payments && tOrder.payments.length > 0)
+          ? tOrder.payments[0].method
+          : (tOrder.status === 'pagada' ? 'efectivo' : null);
+
         return {
           id: tOrder.id,
           tracking_code: `MESA-${tableNum}`,
@@ -135,9 +155,9 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
           service_type: 'mesa_fija',
           table_or_token_number: String(tableNum),
           payment_status: tOrder.status === 'pagada' ? 'pagado' : 'pendiente',
-          payment_method: null,
-          paid_amount_cents: null,
-          change_cents: null,
+          payment_method: paymentMethod,
+          paid_amount_cents: tOrder.total_cents,
+          change_cents: 0,
           rejection_reason: null,
           created_at: tOrder.opened_at,
           public_order_items: (tOrder.order_items ?? []).map((it) => ({
@@ -290,21 +310,54 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
     setRejectReason('');
   }
 
+  const paidOrders = useMemo(() => orders.filter((o) => o.payment_status === 'pagado'), [orders]);
+  const paidTotalCents = useMemo(() => paidOrders.reduce((sum, o) => sum + (o.total_cents || 0), 0), [paidOrders]);
+  const cashTotalCents = useMemo(
+    () => paidOrders.filter((o) => o.payment_method === 'efectivo').reduce((sum, o) => sum + (o.total_cents || 0), 0),
+    [paidOrders]
+  );
+  const digitalTotalCents = paidTotalCents - cashTotalCents;
+  const cashCount = paidOrders.filter((o) => o.payment_method === 'efectivo').length;
+  const digitalCount = paidOrders.length - cashCount;
+
   const filteredOrders = useMemo(() => {
+    let result = orders;
     switch (filter) {
       case 'activos':
-        return orders.filter((o) => ['pendiente', 'confirmado', 'preparando', 'listo'].includes(o.status));
+        result = orders.filter((o) => ['pendiente', 'confirmado', 'preparando', 'listo'].includes(o.status) && o.payment_status !== 'pagado');
+        break;
       case 'pendientes':
-        return orders.filter((o) => o.status === 'pendiente');
+        result = orders.filter((o) => o.status === 'pendiente');
+        break;
       case 'mesas':
-        return orders.filter((o) => o.service_type === 'mesa_fija');
+        result = orders.filter((o) => o.service_type === 'mesa_fija');
+        break;
+      case 'cobrados':
+        result = orders.filter((o) => o.payment_status === 'pagado');
+        break;
       case 'todos':
       default:
-        return orders;
+        result = orders;
+        break;
     }
-  }, [filter, orders]);
 
-  const activeCount = orders.filter((o) => ['pendiente', 'confirmado', 'preparando', 'listo'].includes(o.status)).length;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(
+        (o) =>
+          o.tracking_code.toLowerCase().includes(q) ||
+          o.customer_name.toLowerCase().includes(q) ||
+          (o.table_or_token_number && o.table_or_token_number.includes(q)) ||
+          o.customer_phone.toLowerCase().includes(q)
+      );
+    }
+
+    return result;
+  }, [filter, orders, searchQuery]);
+
+  const activeCount = orders.filter(
+    (o) => ['pendiente', 'confirmado', 'preparando', 'listo'].includes(o.status) && o.payment_status !== 'pagado'
+  ).length;
   const pendingCount = orders.filter((o) => o.status === 'pendiente').length;
 
   return (
@@ -312,11 +365,11 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
       {/* 1. Header & Filtros Limpios (Whitespace y Jerarquía) */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2">
         {/* Píldoras de Filtro Minimalistas */}
-        <div className="inline-flex rounded-full bg-zinc-100 dark:bg-zinc-800/80 p-1 shadow-2xs">
+        <div className="inline-flex rounded-full bg-zinc-100 dark:bg-zinc-800/80 p-1 shadow-2xs overflow-x-auto max-w-full">
           <button
             type="button"
             onClick={() => setFilter('activos')}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
               filter === 'activos'
                 ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
                 : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
@@ -327,7 +380,7 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
           <button
             type="button"
             onClick={() => setFilter('pendientes')}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
               filter === 'pendientes'
                 ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
                 : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
@@ -338,7 +391,7 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
           <button
             type="button"
             onClick={() => setFilter('mesas')}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
               filter === 'mesas'
                 ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
                 : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
@@ -348,8 +401,19 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
           </button>
           <button
             type="button"
+            onClick={() => setFilter('cobrados')}
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+              filter === 'cobrados'
+                ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 font-bold shadow-xs'
+                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+            }`}
+          >
+            Cobrados Hoy ({paidOrders.length})
+          </button>
+          <button
+            type="button"
             onClick={() => setFilter('todos')}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
               filter === 'todos'
                 ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
                 : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
@@ -359,8 +423,19 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
           </button>
         </div>
 
-        {/* Estado en Vivo y Refrescar */}
-        <div className="flex items-center gap-3">
+        {/* Buscador & Estado en Vivo y Refrescar */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+            <input
+              type="text"
+              placeholder="Buscar mesa, código o cliente..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-8 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 pl-8 pr-3 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#f3a806]"
+            />
+          </div>
+
           <div className="flex items-center gap-2 text-xs font-medium text-zinc-500">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -380,6 +455,55 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
           </button>
         </div>
       </div>
+
+      {/* BANNER DE ARQUEO EN VIVO PARA EL CAJERO AL SELECCIONAR 'COBRADOS HOY' */}
+      {filter === 'cobrados' && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs animate-in fade-in duration-150">
+          <div>
+            <div className="flex items-center gap-1.5 text-zinc-400">
+              <Wallet className="w-3.5 h-3.5 text-emerald-500" />
+              <span className="text-[11px] font-bold uppercase tracking-wider">Total Cobrado Hoy</span>
+            </div>
+            <p className="mt-1.5 text-3xl font-black text-emerald-600 dark:text-emerald-400">
+              ${(paidTotalCents / 100).toFixed(2)}
+            </p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">{paidOrders.length} cobros completados</p>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-1.5 text-zinc-400">
+              <DollarSign className="w-3.5 h-3.5 text-[#f3a806]" />
+              <span className="text-[11px] font-bold uppercase tracking-wider">Efectivo en Gaveta</span>
+            </div>
+            <p className="mt-1.5 text-3xl font-black text-zinc-900 dark:text-zinc-100">
+              ${(cashTotalCents / 100).toFixed(2)}
+            </p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">{cashCount} cobros en efectivo</p>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-1.5 text-zinc-400">
+              <CreditCard className="w-3.5 h-3.5 text-blue-500" />
+              <span className="text-[11px] font-bold uppercase tracking-wider">Digital / Tarjeta</span>
+            </div>
+            <p className="mt-1.5 text-3xl font-black text-zinc-900 dark:text-zinc-100">
+              ${(digitalTotalCents / 100).toFixed(2)}
+            </p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">{digitalCount} cobros bancarios</p>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-1.5 text-zinc-400">
+              <Receipt className="w-3.5 h-3.5 text-zinc-400" />
+              <span className="text-[11px] font-bold uppercase tracking-wider">Ticket Promedio</span>
+            </div>
+            <p className="mt-1.5 text-3xl font-black text-[#f3a806]">
+              ${paidOrders.length > 0 ? (paidTotalCents / (paidOrders.length * 100)).toFixed(2) : '0.00'}
+            </p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">Por comanda cobrada</p>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div role="alert" className="rounded-2xl bg-red-50 dark:bg-red-950/30 p-4 text-xs font-medium text-red-700 dark:text-red-400">
@@ -505,15 +629,46 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
 
                   {/* 3. Panel de Acciones con Regla de Color Único (Warm Amber Primario) */}
                   <div className="flex flex-col gap-2.5 sm:min-w-[210px] pt-2 lg:pt-0">
-                    {/* Botón Destacado: Cobrar al Retirar si está pendiente de pago */}
+                    {/* Botón Destacado: Cobrar al Retirar / Cobrar Mesa si está pendiente de pago */}
                     {!isPaid && (
                       <button
                         type="button"
-                        onClick={() => openPaymentModal(order)}
+                        onClick={() => {
+                          if (order.service_type === 'mesa_fija') {
+                            const tableNum = parseInt(order.table_or_token_number || '1', 10);
+                            setCheckoutTableOrder({
+                              orderId: order.id,
+                              orderNumber: tableNum,
+                              tableNumber: tableNum,
+                              zone: order.customer_phone,
+                              subtotalCents: order.total_cents,
+                              items: order.public_order_items.map((it, idx) => ({
+                                id: `${order.id}-${idx}`,
+                                productName: it.product_name,
+                                quantity: it.quantity,
+                                unitPriceCents: it.unit_price_cents,
+                                notes: it.notes,
+                              })),
+                            });
+                          } else {
+                            openPaymentModal(order);
+                          }
+                        }}
                         className="h-11 w-full rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2"
                       >
                         <CreditCard className="w-4 h-4" />
-                        <span>Cobrar al Retirar</span>
+                        <span>{order.service_type === 'mesa_fija' ? 'Cobrar Mesa (Salón)' : 'Cobrar Pedido'}</span>
+                      </button>
+                    )}
+
+                    {isPaid && (
+                      <button
+                        type="button"
+                        onClick={() => setPrintingOrder(order)}
+                        className="h-11 w-full rounded-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 text-xs font-bold shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                      >
+                        <Printer className="w-4 h-4" />
+                        <span>Reimprimir Comprobante</span>
                       </button>
                     )}
 
@@ -568,15 +723,16 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
                       </button>
                     )}
 
-                    {/* Botones Secundarios: Fondo blanco con borde sutil o estilo Ghost */}
-                    <button
-                      type="button"
-                      onClick={() => setPrintingOrder(order)}
-                      className="h-10 w-full rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 shadow-2xs"
-                    >
-                      <Printer className="w-4 h-4" />
-                      <span>Imprimir Comprobante</span>
-                    </button>
+                    {!isPaid && (
+                      <button
+                        type="button"
+                        onClick={() => setPrintingOrder(order)}
+                        className="h-10 w-full rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 shadow-2xs"
+                      >
+                        <Printer className="w-4 h-4" />
+                        <span>Pre-cuenta / Ticket</span>
+                      </button>
+                    )}
 
                     {order.status === 'pendiente' && (
                       <button
@@ -776,6 +932,19 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
             changeCents: printingOrder.change_cents || undefined,
           }}
           onClose={() => setPrintingOrder(null)}
+        />
+      )}
+
+      {/* Modal de Cobro de Mesa para el Cajero */}
+      {checkoutTableOrder && (
+        <TableCheckoutModal
+          order={checkoutTableOrder}
+          onClose={() => setCheckoutTableOrder(null)}
+          onSuccess={() => {
+            const tableNum = checkoutTableOrder.tableNumber;
+            setCheckoutTableOrder(null);
+            void load(true);
+          }}
         />
       )}
     </div>

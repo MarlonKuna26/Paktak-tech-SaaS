@@ -16,7 +16,7 @@ export default async function SettingsPage() {
   const supabase = await createSupabaseServerClient();
   const { data: restaurant } = await supabase
     .from('restaurants')
-    .select('id, name, slug, timezone, currency, plan, status, trial_ends_at')
+    .select('id, name, slug, timezone, currency, settings, plan, status, trial_ends_at')
     .eq('id', staff.restaurantId)
     .single();
 
@@ -48,6 +48,7 @@ export default async function SettingsPage() {
           plan: restaurant.plan,
           status: restaurant.status,
           trialEndsAt: restaurant.trial_ends_at,
+          settings: restaurant.settings,
         }}
       />
     </div>

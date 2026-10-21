@@ -203,18 +203,50 @@ export function KdsBoard({ restaurantId }: { restaurantId: string }) {
 
   // Avanzar todos los ítems de una orden al siguiente estado
   const advanceOrderStage = async (order: KdsOrder, targetStatus: 'preparando' | 'listo' | 'entregado') => {
-    const itemIds = order.items.map((it) => it.id);
+    // Si vamos a "preparando", tomamos solo los pendientes
+    // Si vamos a "listo", tomamos pendientes y preparando
+    // Si vamos a "entregado", tomamos los listos
+    let targetItems = order.items;
+    if (targetStatus === 'preparando') {
+      targetItems = order.items.filter((it) => it.status === 'pendiente');
+    } else if (targetStatus === 'listo') {
+      targetItems = order.items.filter((it) => it.status === 'pendiente' || it.status === 'preparando');
+    } else if (targetStatus === 'entregado') {
+      targetItems = order.items.filter((it) => it.status === 'listo');
+    }
+
+    const itemIds = targetItems.map((it) => it.id);
     if (!itemIds.length) return;
 
     try {
       await fetch('/api/kds/status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemIds, nextStatus: targetStatus }),
+        body: JSON.stringify({ itemIds, status: targetStatus, nextStatus: targetStatus }),
       });
       await loadKdsData(true);
     } catch {
       // Reintentar en siguiente ciclo de sync
+    }
+  };
+
+  // Avanzar un ítem individual al hacer clic directamente en él
+  const advanceSingleItem = async (itemId: string, currentStatus: KdsItem['status']) => {
+    let nextStatus: KdsItem['status'] = 'preparando';
+    if (currentStatus === 'pendiente') nextStatus = 'preparando';
+    else if (currentStatus === 'preparando') nextStatus = 'listo';
+    else if (currentStatus === 'listo') nextStatus = 'entregado';
+    else return;
+
+    try {
+      await fetch('/api/kds/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemIds: [itemId], status: nextStatus, nextStatus }),
+      });
+      await loadKdsData(true);
+    } catch {
+      // Ignorar error de red puntual
     }
   };
 
@@ -236,13 +268,17 @@ export function KdsBoard({ restaurantId }: { restaurantId: string }) {
     const listo: KdsOrder[] = [];
 
     for (const ord of filteredOrders) {
-      const hasPending = ord.items.some((it) => it.status === 'pendiente');
-      const hasPreparing = ord.items.some((it) => it.status === 'preparando');
-      const allReady = ord.items.length > 0 && ord.items.every((it) => it.status === 'listo');
+      // Filtrar ítems que no estén ya entregados para visibilidad activa
+      const activeItems = ord.items.filter((it) => it.status !== 'entregado');
+      if (!activeItems.length) continue;
 
-      if (hasPending) {
+      const hasPending = activeItems.some((it) => it.status === 'pendiente');
+      const hasPreparing = activeItems.some((it) => it.status === 'preparando');
+      const allReady = activeItems.every((it) => it.status === 'listo');
+
+      if (hasPending && !hasPreparing) {
         nuevo.push(ord);
-      } else if (hasPreparing) {
+      } else if (hasPreparing || hasPending) {
         preparando.push(ord);
       } else if (allReady) {
         listo.push(ord);
@@ -349,6 +385,7 @@ export function KdsBoard({ restaurantId }: { restaurantId: string }) {
                   stage="nuevo"
                   isFlashing={newOrderIds.has(ord.id)}
                   onAdvance={() => void advanceOrderStage(ord, 'preparando')}
+                  onAdvanceItem={(id, st) => void advanceSingleItem(id, st)}
                 />
               ))}
             </div>
@@ -380,6 +417,7 @@ export function KdsBoard({ restaurantId }: { restaurantId: string }) {
                   stage="preparando"
                   isFlashing={newOrderIds.has(ord.id)}
                   onAdvance={() => void advanceOrderStage(ord, 'listo')}
+                  onAdvanceItem={(id, st) => void advanceSingleItem(id, st)}
                 />
               ))}
             </div>
@@ -411,6 +449,7 @@ export function KdsBoard({ restaurantId }: { restaurantId: string }) {
                   stage="listo"
                   isFlashing={newOrderIds.has(ord.id)}
                   onAdvance={() => void advanceOrderStage(ord, 'entregado')}
+                  onAdvanceItem={(id, st) => void advanceSingleItem(id, st)}
                 />
               ))}
             </div>
@@ -427,22 +466,20 @@ function KdsCard({
   stage,
   isFlashing,
   onAdvance,
+  onAdvanceItem,
 }: {
   order: KdsOrder;
   currentTime: number;
   stage: OrderStage;
   isFlashing: boolean;
   onAdvance: () => void;
+  onAdvanceItem: (itemId: string, currentStatus: KdsItem['status']) => void;
 }) {
   const minutesElapsed =
     currentTime > 0
       ? Math.max(0, Math.floor((currentTime - new Date(order.openedAt).getTime()) / 60000))
       : 0;
 
-  // Semáforo con texto explícito (no solo color):
-  // <10 min: normal
-  // 10-20 min: demora moderada (ámbar)
-  // >20 min: demora alta (rojo)
   let borderClass = 'border-[#2E2E2E]';
   let waitStatusText = `${minutesElapsed} min · A tiempo`;
   let timeBadgeColor = 'text-[#888888]';
@@ -457,17 +494,16 @@ function KdsCard({
     timeBadgeColor = 'text-[#FFC21A] font-extrabold';
   }
 
-  // Botón enorme de acción única
-  let actionLabel = 'Empezar a preparar';
+  let actionLabel = 'Marchar Toda la Comanda';
   let actionIcon = Flame;
   let actionBg = 'bg-[#FFC21A] text-[#111111] hover:bg-[#F2B400]';
 
   if (stage === 'preparando') {
-    actionLabel = 'Marcar como listo';
+    actionLabel = 'Marcar Todo Listo';
     actionIcon = Check;
     actionBg = 'bg-[#FFC21A] text-[#111111] hover:bg-[#F2B400]';
   } else if (stage === 'listo') {
-    actionLabel = 'Entregar al mesero';
+    actionLabel = 'Despachar al Mesero';
     actionIcon = CheckCheck;
     actionBg = 'bg-white text-[#111111] hover:bg-zinc-200';
   }
@@ -503,30 +539,87 @@ function KdsCard({
           </div>
         </div>
 
-        {/* Lista de Platos en 22px+ ExtraBold para lectura a distancia */}
+        {/* Lista de Platos en 20px+ con transición individual clickeable */}
         <ul className="divide-y divide-[#2E2E2E]/60 py-4 space-y-4">
-          {order.items.map((it) => (
-            <li key={it.id} className="pt-4 first:pt-0">
-              <div className="flex items-baseline gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#252525] border border-[#333333] text-[22px] font-extrabold text-[#FFC21A]">
-                  {it.quantity}
-                </span>
-                <span className="text-[22px] font-extrabold text-white leading-snug">
-                  {it.productName}
-                </span>
-              </div>
+          {order.items.map((it) => {
+            const isReady = it.status === 'listo';
+            const isCooking = it.status === 'preparando';
+            const isPending = it.status === 'pendiente';
+            const isDelivered = it.status === 'entregado';
 
-              {it.notes && (
-                <div className="mt-2 ml-13 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-base font-bold text-[#FFC21A]">
-                  Nota: {it.notes}
+            return (
+              <li key={it.id} className="pt-4 first:pt-0">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-baseline gap-3 flex-1 min-w-0">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#252525] border border-[#333333] text-[22px] font-extrabold text-[#FFC21A]">
+                      {it.quantity}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <span
+                        className={`text-[20px] font-extrabold leading-snug block ${
+                          isReady ? 'text-emerald-400 line-through opacity-80' : 'text-white'
+                        }`}
+                      >
+                        {it.productName}
+                      </span>
+                      <span className="text-[11px] uppercase font-bold text-[#888888]">
+                        Estación: {it.station}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Botón de Estado Individual */}
+                  <div className="shrink-0 pt-0.5">
+                    {isPending && (
+                      <button
+                        type="button"
+                        onClick={() => onAdvanceItem(it.id, 'pendiente')}
+                        title="Click para pasar a Preparando"
+                        className="rounded-full border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/25 px-3 py-1.5 text-xs font-extrabold text-amber-400 transition-colors cursor-pointer"
+                      >
+                        ⏳ Pendiente
+                      </button>
+                    )}
+                    {isCooking && (
+                      <button
+                        type="button"
+                        onClick={() => onAdvanceItem(it.id, 'preparando')}
+                        title="Click para marcar como Listo"
+                        className="rounded-full border border-orange-500/30 bg-orange-500/15 hover:bg-orange-500/30 px-3 py-1.5 text-xs font-extrabold text-orange-400 transition-colors cursor-pointer"
+                      >
+                        🔥 Cocinando
+                      </button>
+                    )}
+                    {isReady && (
+                      <button
+                        type="button"
+                        onClick={() => onAdvanceItem(it.id, 'listo')}
+                        title="Click para marcar como Servido"
+                        className="rounded-full border border-emerald-500/40 bg-emerald-500/20 hover:bg-emerald-500/30 px-3 py-1.5 text-xs font-extrabold text-emerald-300 transition-colors cursor-pointer"
+                      >
+                        ✅ ¡Listo!
+                      </button>
+                    )}
+                    {isDelivered && (
+                      <span className="rounded-full bg-zinc-800 px-3 py-1.5 text-xs font-bold text-zinc-500">
+                        ✓ Servido
+                      </span>
+                    )}
+                  </div>
                 </div>
-              )}
-            </li>
-          ))}
+
+                {it.notes && (
+                  <div className="mt-2 ml-13 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-sm font-bold text-[#FFC21A]">
+                    Nota: {it.notes}
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </div>
 
-      {/* Un solo botón enorme por tarjeta (Mínimo 64px de alto) */}
+      {/* Botón de acción masiva para toda la comanda */}
       <div className="mt-6 pt-4 border-t border-[#2E2E2E]">
         <button
           type="button"

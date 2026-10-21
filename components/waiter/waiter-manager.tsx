@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Wifi,
   WifiOff,
@@ -61,11 +61,14 @@ type CartItem = {
 export function WaiterManager({
   restaurantId,
   waiterId,
+  initialTableId,
 }: {
   restaurantId: string;
   waiterId: string;
+  initialTableId?: string;
 }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const initialTableAppliedRef = useRef(false);
 
   // Estado de sincronización
   const [syncStatus, setSyncStatus] = useState({
@@ -238,6 +241,17 @@ export function WaiterManager({
     const timer = window.setTimeout(() => void loadData(), 0);
     return () => window.clearTimeout(timer);
   }, [loadData]);
+
+  // Preseleccionar mesa automáticamente si viene por URL (?tableId=...)
+  useEffect(() => {
+    if (!initialTableAppliedRef.current && initialTableId && tables.length > 0) {
+      const targetTable = tables.find((t) => t.id === initialTableId);
+      if (targetTable) {
+        setSelectedTable(targetTable);
+        initialTableAppliedRef.current = true;
+      }
+    }
+  }, [initialTableId, tables]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void loadRecentOrders(), 0);

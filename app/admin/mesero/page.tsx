@@ -1,7 +1,9 @@
 import { getCurrentStaff } from '@/lib/auth/get-current-staff';
 import { WaiterManager } from '@/components/waiter/waiter-manager';
 
-export default async function WaiterPage() {
+export default async function WaiterPage(props: {
+  searchParams: Promise<{ tableId?: string }>;
+}) {
   const staff = await getCurrentStaff();
 
   if (!staff || !['owner', 'admin', 'waiter'].includes(staff.role)) {
@@ -11,6 +13,8 @@ export default async function WaiterPage() {
       </div>
     );
   }
+
+  const { tableId } = await props.searchParams;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -22,7 +26,7 @@ export default async function WaiterPage() {
         </p>
       </div>
 
-      <WaiterManager restaurantId={staff.restaurantId} waiterId={staff.id} />
+      <WaiterManager restaurantId={staff.restaurantId} waiterId={staff.id} initialTableId={tableId} />
     </div>
   );
 }

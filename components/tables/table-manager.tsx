@@ -1,8 +1,23 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
-import { Tag, Check, Plus, CreditCard, Users, X, Bell, Flame, Clock } from 'lucide-react';
+import {
+  Tag,
+  Check,
+  Plus,
+  CreditCard,
+  Users,
+  X,
+  Bell,
+  Flame,
+  Clock,
+  Utensils,
+  Edit2,
+  Trash2,
+  Layers,
+} from 'lucide-react';
 import type { RestaurantTable, TableStatus, AvailableReservation } from '@/lib/tables/types';
 import type { StaffRole } from '@/lib/auth/get-current-staff';
 import { TableCheckoutModal, type TableOrderDetails } from './table-checkout-modal';
@@ -98,6 +113,20 @@ export function TableManager({
   const [newCapacity, setNewCapacity] = useState('4');
   const [newZone, setNewZone] = useState('Salón Principal');
   const [isCreating, setIsCreating] = useState(false);
+
+  // Estado para editar mesa
+  const [editingTable, setEditingTable] = useState<RestaurantTable | null>(null);
+  const [editCapacity, setEditCapacity] = useState('4');
+  const [editZone, setEditZone] = useState('');
+  const [isUpdatingTable, setIsUpdatingTable] = useState(false);
+
+  // Estado para generar lote de mesas
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [batchStart, setBatchStart] = useState('1');
+  const [batchCount, setBatchCount] = useState('5');
+  const [batchCapacity, setBatchCapacity] = useState('4');
+  const [batchZone, setBatchZone] = useState('Salón Principal');
+  const [isCreatingBatch, setIsCreatingBatch] = useState(false);
 
   // Estado para asignar reserva
   const [assigningTable, setAssigningTable] = useState<RestaurantTable | null>(null);
@@ -376,6 +405,96 @@ export function TableManager({
     }
   }
 
+  // Editar mesa existente
+  async function handleEditTable(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingTable) return;
+    const cap = parseInt(editCapacity, 10);
+    if (isNaN(cap) || cap <= 0) {
+      setError('Capacidad inválida');
+      return;
+    }
+    setIsUpdatingTable(true);
+    try {
+      const res = await fetch(`/api/tables/${editingTable.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          capacity: cap,
+          zone: editZone.trim() || null,
+        }),
+      });
+      setIsUpdatingTable(false);
+      if (res.ok) {
+        setSuccessMsg(`Mesa #${editingTable.table_number} actualizada.`);
+        setEditingTable(null);
+        await loadTables();
+      } else {
+        const body = (await res.json()) as { error?: string };
+        setError(body.error || 'Error al actualizar mesa.');
+      }
+    } catch {
+      setIsUpdatingTable(false);
+      setError('Error de red al actualizar mesa.');
+    }
+  }
+
+  // Eliminar mesa libre
+  async function handleDeleteTable(table: RestaurantTable) {
+    if (!confirm(`¿Eliminar permanentemente la Mesa #${table.table_number}?`)) return;
+    try {
+      const res = await fetch(`/api/tables/${table.id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setSuccessMsg(`Mesa #${table.table_number} eliminada del salón.`);
+        await loadTables();
+      } else {
+        const body = (await res.json()) as { error?: string };
+        setError(body.error || 'No se pudo eliminar la mesa.');
+      }
+    } catch {
+      setError('Error de red al eliminar mesa.');
+    }
+  }
+
+  // Generar lote de mesas
+  async function handleCreateBatchTables(e: React.FormEvent) {
+    e.preventDefault();
+    const start = parseInt(batchStart, 10);
+    const count = parseInt(batchCount, 10);
+    const cap = parseInt(batchCapacity, 10);
+    if (isNaN(start) || isNaN(count) || isNaN(cap) || start <= 0 || count <= 0 || cap <= 0) {
+      setError('Verifica los datos del lote.');
+      return;
+    }
+    setIsCreatingBatch(true);
+    try {
+      const res = await fetch('/api/tables/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startNumber: start,
+          count,
+          capacity: cap,
+          zone: batchZone.trim() || undefined,
+        }),
+      });
+      const body = (await res.json()) as { error?: string; message?: string };
+      setIsCreatingBatch(false);
+      if (res.ok) {
+        setSuccessMsg(body.message || 'Lote de mesas generado exitosamente.');
+        setShowBatchModal(false);
+        await loadTables();
+      } else {
+        setError(body.error || 'Error al crear lote de mesas.');
+      }
+    } catch {
+      setIsCreatingBatch(false);
+      setError('Error de red al crear lote de mesas.');
+    }
+  }
+
   // Asignar reserva a mesa
   async function handleAssignReservation(reservationId: string) {
     if (!assigningTable) return;
@@ -529,14 +648,24 @@ export function TableManager({
           </span>
 
           {canCreateTable && (
-            <button
-              type="button"
-              onClick={() => setShowAddModal(true)}
-              className="inline-flex h-9 items-center justify-center rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5 mr-1" />
-              <span>Nueva Mesa</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setShowBatchModal(true)}
+                className="inline-flex h-9 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 shadow-2xs transition-colors"
+              >
+                <Layers className="w-3.5 h-3.5 mr-1" />
+                <span>Generar Lote</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(true)}
+                className="inline-flex h-9 items-center justify-center rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1" />
+                <span>Nueva Mesa</span>
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -631,9 +760,37 @@ export function TableManager({
                       <h3 className="text-2xl font-extrabold tracking-tight">Mesa #{table.table_number}</h3>
                     </div>
 
-                    <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${config.badgeClass}`}>
-                      <span className={`h-1.5 w-1.5 rounded-full ${config.dotClass}`} />
-                      <span>{config.label}</span>
+                    <div className="flex flex-col items-end gap-1.5">
+                      <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${config.badgeClass}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${config.dotClass}`} />
+                        <span>{config.label}</span>
+                      </div>
+                      {canCreateTable && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingTable(table);
+                              setEditCapacity(table.capacity.toString());
+                              setEditZone(table.zone || '');
+                            }}
+                            title="Editar mesa"
+                            className="h-6 w-6 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </button>
+                          {table.status === 'libre' && (
+                            <button
+                              type="button"
+                              onClick={() => void handleDeleteTable(table)}
+                              title="Eliminar mesa"
+                              className="h-6 w-6 rounded-full flex items-center justify-center text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -725,20 +882,36 @@ export function TableManager({
                         >
                           Asignar Reserva
                         </button>
+                        <Link
+                          href={`/admin/mesero?tableId=${table.id}`}
+                          className="col-span-2 flex h-8 items-center justify-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 px-3 text-xs font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                        >
+                          <Utensils className="h-3.5 w-3.5 text-primary" />
+                          <span>Tomar Comanda</span>
+                        </Link>
                       </>
                     )}
 
                     {table.status === 'ocupada' && (
                       <div className="col-span-2 flex flex-col gap-2">
-                        <button
-                          type="button"
-                          onClick={() => void openTableCheckout(table)}
-                          disabled={isFetchingCheckout}
-                          className="h-9 w-full rounded-full bg-[#f3a806] hover:bg-[#e09804] px-3 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5"
-                        >
-                          <CreditCard className="w-3.5 h-3.5" />
-                          <span>Cobrar Cuenta</span>
-                        </button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Link
+                            href={`/admin/mesero?tableId=${table.id}`}
+                            className="flex h-9 items-center justify-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 px-2 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                          >
+                            <Utensils className="h-3.5 w-3.5 text-primary" />
+                            <span>+ Comanda</span>
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => void openTableCheckout(table)}
+                            disabled={isFetchingCheckout}
+                            className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <CreditCard className="w-3.5 h-3.5" />
+                            <span>Cobrar</span>
+                          </button>
+                        </div>
                         <button
                           type="button"
                           onClick={() => void updateTableStatus(table.id, 'libre')}
@@ -765,6 +938,13 @@ export function TableManager({
                         >
                           Liberar
                         </button>
+                        <Link
+                          href={`/admin/mesero?tableId=${table.id}`}
+                          className="col-span-2 flex h-8 items-center justify-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 px-3 text-xs font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                        >
+                          <Utensils className="h-3.5 w-3.5 text-primary" />
+                          <span>Adelantar Comanda</span>
+                        </Link>
                       </>
                     )}
                   </div>
@@ -852,6 +1032,159 @@ export function TableManager({
                   className="h-9 flex-1 rounded-lg bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
                   {isCreating ? 'Guardando...' : 'Crear Mesa'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Editar Mesa */}
+      {editingTable && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-xl">
+            <h3 className="text-lg font-bold">Editar Mesa #{editingTable.table_number}</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Ajusta la cantidad de asientos o el sector asignado.
+            </p>
+
+            <form onSubmit={(e) => void handleEditTable(e)} className="mt-4 space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
+                  Capacidad de Comensales (Sillas) *
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  required
+                  value={editCapacity}
+                  onChange={(e) => setEditCapacity(e.target.value)}
+                  className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
+                  Zona / Área (Opcional)
+                </label>
+                <input
+                  type="text"
+                  value={editZone}
+                  onChange={(e) => setEditZone(e.target.value)}
+                  placeholder="Ej. Salón Principal, Terraza, VIP"
+                  className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+              </div>
+
+              <div className="mt-5 flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingTable(null)}
+                  className="h-9 flex-1 rounded-lg border bg-background text-xs font-medium hover:bg-muted"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingTable}
+                  className="h-9 flex-1 rounded-lg bg-[#f3a806] hover:bg-[#e09804] text-xs font-bold text-zinc-950 shadow-xs"
+                >
+                  {isUpdatingTable ? 'Guardando...' : 'Guardar Cambios'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Generar Lote de Mesas */}
+      {showBatchModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-xl">
+            <h3 className="text-lg font-bold">Generar Lote de Mesas</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Crea múltiples mesas consecutivas rápidamente (ej. Mesas de la 1 a la 10).
+            </p>
+
+            <form onSubmit={(e) => void handleCreateBatchTables(e)} className="mt-4 space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">
+                    Número Inicial *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="999"
+                    required
+                    value={batchStart}
+                    onChange={(e) => setBatchStart(e.target.value)}
+                    placeholder="1"
+                    className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">
+                    Cantidad a Crear *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    required
+                    value={batchCount}
+                    onChange={(e) => setBatchCount(e.target.value)}
+                    placeholder="10"
+                    className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
+                  Capacidad por Mesa (Sillas) *
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  required
+                  value={batchCapacity}
+                  onChange={(e) => setBatchCapacity(e.target.value)}
+                  placeholder="4"
+                  className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">
+                  Zona / Área
+                </label>
+                <input
+                  type="text"
+                  value={batchZone}
+                  onChange={(e) => setBatchZone(e.target.value)}
+                  placeholder="Ej. Salón Principal"
+                  className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+              </div>
+
+              <div className="mt-5 flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowBatchModal(false)}
+                  className="h-9 flex-1 rounded-lg border bg-background text-xs font-medium hover:bg-muted"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingBatch}
+                  className="h-9 flex-1 rounded-lg bg-[#f3a806] hover:bg-[#e09804] text-xs font-bold text-zinc-950 shadow-xs"
+                >
+                  {isCreatingBatch ? 'Generando...' : 'Crear Lote'}
                 </button>
               </div>
             </form>

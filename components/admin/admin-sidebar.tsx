@@ -12,6 +12,7 @@ import {
   ClipboardList,
   TrendingUp,
   Settings,
+  Users,
   ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
@@ -30,6 +31,7 @@ const navigation: readonly NavItem[] = [
   { href: '/admin/mesas', label: 'Mesas & Salón', icon: UtensilsCrossed, roles: ['owner', 'admin', 'host', 'waiter', 'cashier'] },
   { href: '/admin/reservas', label: 'Reservas', icon: Calendar, roles: ['owner', 'admin', 'host'] },
   { href: '/admin/menu', label: 'Menú & Platos', icon: BookOpen, roles: ['owner', 'admin'] },
+  { href: '/admin/personal', label: 'Equipo & Personal', icon: Users, roles: ['owner', 'admin'] },
   { href: '/admin/cocina', label: 'KDS Cocina', icon: ChefHat, roles: ['owner', 'admin', 'kitchen'] },
   { href: '/admin/mesero', label: 'App Mesero', icon: ConciergeBell, roles: ['owner', 'admin', 'waiter'] },
   { href: '/admin/pedidos', label: 'Pedidos & Cobros', icon: ClipboardList, roles: ['owner', 'admin', 'cashier'] },
