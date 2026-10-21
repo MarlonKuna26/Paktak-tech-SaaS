@@ -18,7 +18,7 @@ export default async function KitchenPage() {
 
   return (
     <div className="space-y-6 font-sans">
-      <KdsBoard restaurantId={staff.restaurantId} />
+      <KdsBoard restaurantId={staff.restaurantId} userRole={staff.role} />
     </div>
   );
 }

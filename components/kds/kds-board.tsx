@@ -82,7 +82,13 @@ function playKitchenChime() {
   }
 }
 
-export function KdsBoard({ restaurantId }: { restaurantId: string }) {
+export function KdsBoard({
+  restaurantId,
+  userRole = 'kitchen',
+}: {
+  restaurantId: string;
+  userRole?: string;
+}) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   // Datos
@@ -91,6 +97,26 @@ export function KdsBoard({ restaurantId }: { restaurantId: string }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
+  const [kitchenStaffName, setKitchenStaffName] = useState<string>('Chef Ejecutivo');
+
+  // Cargar nombre del personal de cocina asignado
+  useEffect(() => {
+    async function loadKitchenStaff() {
+      try {
+        const res = await fetch('/api/staff');
+        if (res.ok) {
+          const body = (await res.json()) as { staff?: Array<{ role: string; fullName: string; active: boolean }> };
+          const cooks = (body.staff || []).filter((s) => s.role === 'kitchen' && s.active);
+          if (cooks.length > 0) {
+            setKitchenStaffName(cooks.map((c) => c.fullName).join(', '));
+          }
+        }
+      } catch {
+        // Fallback default
+      }
+    }
+    void loadKitchenStaff();
+  }, []);
 
   // Controles de Visualización
   const [activeTab, setActiveTab] = useState<'activos' | 'finalizados'>('activos');
@@ -434,6 +460,17 @@ export function KdsBoard({ restaurantId }: { restaurantId: string }) {
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900">
                 Comandero de Cocina
               </h1>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  <span>Cocinero en Turno: {kitchenStaffName}</span>
+                </div>
+                {['owner', 'admin', 'host'].includes(userRole) && (
+                  <span className="text-[11px] font-medium text-zinc-500">
+                    · Modo Supervisión Superusuario
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

@@ -11,6 +11,7 @@ import {
   Users,
   Store,
   ArrowRight,
+  ChefHat,
 } from 'lucide-react';
 import type { CurrentStaff } from '@/lib/auth/get-current-staff';
 
@@ -179,6 +180,40 @@ export function AdminDashboardOverview({
               <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Monitor de Estado de Cocina & Cocinero */}
+      <section className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-[#f3a806] border border-amber-500/20 shadow-2xs">
+            <ChefHat className="h-5 w-5 stroke-[2.2]" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                Cocina & Cocinero en Turno
+              </span>
+              <span className="rounded-full bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+                Activa / En Turno
+              </span>
+            </div>
+            <p className="text-xs text-zinc-500 mt-0.5">
+              Supervisión en vivo de comandas, cocineros asignados, semáforos de fuego y despacho.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href="/admin/cocina"
+            className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 px-4 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors flex items-center gap-1.5 shadow-2xs"
+          >
+            <ChefHat className="w-3.5 h-3.5 text-[#f3a806]" />
+            <span>Monitorear KDS Cocina</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </section>
 
