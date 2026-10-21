@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
-import { RefreshCw, ClipboardList, Check, ArrowRight, Printer, CreditCard, DollarSign, Wallet, Search, Receipt } from 'lucide-react';
+import { RefreshCw, ClipboardList, Check, ArrowRight, Printer, CreditCard, DollarSign, Wallet, Search, Receipt, LayoutGrid, Utensils } from 'lucide-react';
 import { ThermalReceiptModal } from './thermal-receipt-modal';
 import { TableCheckoutModal, type TableOrderDetails } from '@/components/tables/table-checkout-modal';
 
@@ -62,7 +62,15 @@ const statusBadges: Record<PublicOrder['status'], { label: string; className: st
   },
 };
 
-export function OrderManager({ restaurantId }: { restaurantId: string }) {
+export function OrderManager({
+  restaurantId,
+  onGoToTables,
+  onGoToComandero,
+}: {
+  restaurantId: string;
+  onGoToTables?: () => void;
+  onGoToComandero?: () => void;
+}) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [orders, setOrders] = useState<PublicOrder[]>([]);
   const [error, setError] = useState('');
@@ -453,6 +461,28 @@ export function OrderManager({ restaurantId }: { restaurantId: string }) {
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span>Actualizar</span>
           </button>
+
+          {onGoToTables && (
+            <button
+              type="button"
+              onClick={onGoToTables}
+              className="h-8 px-3 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            >
+              <LayoutGrid className="w-3.5 h-3.5 text-[#f3a806]" />
+              <span>Plano de Mesas</span>
+            </button>
+          )}
+
+          {onGoToComandero && (
+            <button
+              type="button"
+              onClick={onGoToComandero}
+              className="h-8 px-3 rounded-full border border-amber-500/30 bg-amber-500/10 text-xs font-bold text-amber-900 dark:text-amber-300 hover:bg-amber-500/20 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            >
+              <Utensils className="w-3.5 h-3.5 text-[#f3a806]" />
+              <span>+ Tomar Comanda</span>
+            </button>
+          )}
         </div>
       </div>
 

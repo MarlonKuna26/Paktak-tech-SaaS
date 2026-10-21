@@ -37,7 +37,7 @@ const roleLabelMap: Record<StaffRole, string> = {
 
 const navigation: readonly NavItem[] = [
   { href: '/admin', label: 'Resumen', icon: LayoutDashboard, roles: ['owner', 'admin', 'host'] },
-  { href: '/admin/mesas', label: 'Mesas, Salón & Pedidos', icon: UtensilsCrossed, roles: ['owner', 'admin', 'host', 'cashier'] },
+  { href: '/admin/mesas', label: 'Caja, Salón & Comandas', icon: UtensilsCrossed, roles: ['owner', 'admin', 'host', 'cashier'] },
   { href: '/admin/reservas', label: 'Reservas', icon: Calendar, roles: ['owner', 'admin', 'host', 'cashier'] },
   { href: '/admin/menu', label: 'Menú & Platos', icon: BookOpen, roles: ['owner', 'admin', 'host'] },
   { href: '/admin/personal', label: 'Equipo & Personal', icon: Users, roles: ['owner', 'admin', 'host'] },

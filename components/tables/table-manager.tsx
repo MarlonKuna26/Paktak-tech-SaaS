@@ -581,57 +581,67 @@ export function TableManager({
 
   return (
     <div className="space-y-6">
-      {/* Switch de Vista: Plano de Mesas vs Comandero vs Pedidos en Vivo */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800">
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/80 shadow-2xs overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab('tables')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'tables'
-                ? 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-xs'
-                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
-            }`}
-          >
-            <LayoutGrid className="w-4 h-4 text-[#f3a806]" />
-            <span>Plano de Mesas & Salón</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setComanderoTableId(undefined);
-              setActiveTab('comandero');
-            }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'comandero'
-                ? 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-xs'
-                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
-            }`}
-          >
-            <ConciergeBell className="w-4 h-4 text-[#f3a806]" />
-            <span>Comandero & Tomar Pedidos</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('pedidos')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'pedidos'
-                ? 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-xs'
-                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
-            }`}
-          >
-            <ClipboardList className="w-4 h-4 text-[#f3a806]" />
-            <span>Pedidos & Cobros en Vivo</span>
-          </button>
-        </div>
+      {/* Switch de Vista del Cajero: Mesas, Comandero y Caja/Cobros */}
+      <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2.5 sm:p-3 shadow-xs">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/80 overflow-x-auto">
+            <button
+              type="button"
+              onClick={() => setActiveTab('tables')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'tables'
+                  ? 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4 text-[#f3a806]" />
+              <span>1. Plano de Mesas & Salón</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                activeTab === 'tables' ? 'bg-[#f3a806]/20 text-zinc-950 dark:text-amber-300' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300'
+              }`}>
+                {occupiedTables}/{totalTables}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setComanderoTableId(undefined);
+                setActiveTab('comandero');
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'comandero'
+                  ? 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+              }`}
+            >
+              <ConciergeBell className="w-4 h-4 text-[#f3a806]" />
+              <span>2. Comandero & Tomar Comanda</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('pedidos')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'pedidos'
+                  ? 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+              }`}
+            >
+              <ClipboardList className="w-4 h-4 text-[#f3a806]" />
+              <span>3. Caja, Pedidos & Cobros</span>
+            </button>
+          </div>
 
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
-          <span>
-            {activeTab === 'tables' && 'Monitoreo en vivo de ocupación y cobros'}
-            {activeTab === 'comandero' && 'Toma rápida de comandas en mesa'}
-            {activeTab === 'pedidos' && 'Cola de pedidos digitales y cobros de caja'}
-          </span>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground px-2">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-[11px] font-medium">
+              {activeTab === 'tables' && 'Plano de ocupación en vivo y cobro de cuentas'}
+              {activeTab === 'comandero' && 'Toma rápida de comandas en mesa y mostrador'}
+              {activeTab === 'pedidos' && 'Cola de cobro, arqueo diario en vivo e impresión'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -645,11 +655,24 @@ export function TableManager({
               setActiveTab('tables');
               void loadTables(true);
             }}
+            onGoToOrders={() => {
+              setActiveTab('pedidos');
+            }}
           />
         </div>
       ) : activeTab === 'pedidos' ? (
         <div className="space-y-4">
-          <OrderManager restaurantId={restaurantId} />
+          <OrderManager
+            restaurantId={restaurantId}
+            onGoToTables={() => {
+              setActiveTab('tables');
+              void loadTables(true);
+            }}
+            onGoToComandero={() => {
+              setComanderoTableId(undefined);
+              setActiveTab('comandero');
+            }}
+          />
         </div>
       ) : (
         <>

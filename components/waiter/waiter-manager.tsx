@@ -16,6 +16,7 @@ import {
   CreditCard,
   Bell,
   LayoutGrid,
+  ClipboardList,
 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { offlineDb, type CachedProduct, type CachedTable, type LocalOrder } from '@/lib/offline/db';
@@ -64,11 +65,13 @@ export function WaiterManager({
   waiterId,
   initialTableId,
   onBackToTables,
+  onGoToOrders,
 }: {
   restaurantId: string;
   waiterId: string;
   initialTableId?: string;
   onBackToTables?: () => void;
+  onGoToOrders?: () => void;
 }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const initialTableAppliedRef = useRef(false);
@@ -487,10 +490,21 @@ export function WaiterManager({
             <button
               type="button"
               onClick={onBackToTables}
-              className="h-10 px-4 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-2xs"
+              className="h-10 px-4 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-2xs cursor-pointer"
             >
               <LayoutGrid className="h-4 w-4 text-[#f3a806]" />
               <span>Plano de Mesas</span>
+            </button>
+          )}
+
+          {onGoToOrders && (
+            <button
+              type="button"
+              onClick={onGoToOrders}
+              className="h-10 px-4 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-2xs cursor-pointer"
+            >
+              <ClipboardList className="h-4 w-4 text-[#f3a806]" />
+              <span>Caja & Cobros</span>
             </button>
           )}
 

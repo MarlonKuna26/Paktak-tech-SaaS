@@ -2,7 +2,7 @@ import { getCurrentStaff } from '@/lib/auth/get-current-staff';
 import { TableManager } from '@/components/tables/table-manager';
 
 export const metadata = {
-  title: 'Mesas, Salón & Pedidos | Paktak Tech',
+  title: 'Caja, Salón & Comandas | Paktak Tech',
 };
 
 export default async function TablesAdminPage(props: {
@@ -23,13 +23,13 @@ export default async function TablesAdminPage(props: {
     <div className="mx-auto max-w-7xl space-y-6 pb-16 font-sans">
       <div className="space-y-1">
         <span className="text-xs font-bold uppercase tracking-wider text-[#f3a806]">
-          Salón & Servicio Central
+          Punto de Venta & Operación del Cajero
         </span>
         <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
-          Mesas, Salón & Pedidos
+          Caja, Salón & Comandas
         </h1>
         <p className="text-xs text-zinc-500 max-w-xl">
-          Visualiza el plano de mesas en vivo, toma comandas directamente en mesa y monitorea pedidos y cobros de caja.
+          Los 3 módulos esenciales del cajero en una sola pantalla: plano de mesas en vivo, toma ágil de comandas y cobros con arqueo diario.
         </p>
       </div>
 
