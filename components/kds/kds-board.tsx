@@ -93,7 +93,7 @@ export function KdsBoard({
   restaurantId: string;
   userRole?: string;
 }) {
-  const isCook = ['kitchen', 'host', 'admin', 'owner', 'cashier'].includes(userRole);
+  const isCook = userRole === 'kitchen';
   const [collapseAll, setCollapseAll] = useState(false);
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
@@ -319,6 +319,7 @@ export function KdsBoard({
 
   // Avanzar todos los ítems de una orden
   const advanceOrderStage = async (order: KdsOrder, targetStatus: 'preparando' | 'listo' | 'entregado') => {
+    if (!isCook) return;
     let targetItems = order.items;
     if (targetStatus === 'preparando') {
       targetItems = order.items.filter((it) => it.status === 'pendiente');
@@ -345,6 +346,7 @@ export function KdsBoard({
 
   // Reabrir / Deshacer una orden finalizada y devolverla a la cocina
   const reopenDeliveredOrder = async (order: KdsOrder) => {
+    if (!isCook) return;
     const itemIds = order.items.map((it) => it.id);
     if (!itemIds.length) return;
 
@@ -362,6 +364,7 @@ export function KdsBoard({
 
   // Avanzar un ítem individual
   const advanceSingleItem = async (itemId: string, currentStatus: KdsItem['status']) => {
+    if (!isCook) return;
     let nextStatus: KdsItem['status'] = 'preparando';
     if (currentStatus === 'pendiente') nextStatus = 'preparando';
     else if (currentStatus === 'preparando') nextStatus = 'listo';
@@ -525,8 +528,9 @@ export function KdsBoard({
                   <span>Cocinero en Turno: {kitchenStaffName}</span>
                 </div>
                 {userRole !== 'kitchen' && (
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/80 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-900">
-                    <span>Supervisión Operativa ({userRole})</span>
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-300/80 bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-900 shadow-2xs">
+                    <Eye className="h-3 w-3 text-blue-600 shrink-0" />
+                    <span>Modo Supervisión ({userRole === 'admin' ? 'Administrador' : userRole}) · Solo Lectura</span>
                   </div>
                 )}
                 <span className="text-[11px] font-medium text-zinc-500">
@@ -1198,7 +1202,7 @@ function KdsTicketCard({
           <div className="flex items-center justify-between rounded-2xl bg-zinc-50 border border-zinc-200/80 px-4 py-2">
             <span className="text-[11px] font-bold text-zinc-500 flex items-center gap-1.5">
               <Eye className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-              Estado en cocina:
+              Supervisión en cocina:
             </span>
             <span
               className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${
@@ -1206,14 +1210,18 @@ function KdsTicketCard({
                   ? 'bg-amber-100/80 text-amber-900 border border-amber-200'
                   : stage === 'preparando'
                   ? 'bg-orange-100/80 text-orange-950 border border-orange-200'
-                  : 'bg-emerald-100/80 text-emerald-950 border border-emerald-200'
+                  : stage === 'listo'
+                  ? 'bg-emerald-100/80 text-emerald-950 border border-emerald-200'
+                  : 'bg-zinc-100 text-zinc-700 border border-zinc-200'
               }`}
             >
               {stage === 'nuevo'
                 ? '⏳ En Cola de Espera'
                 : stage === 'preparando'
                 ? '🔥 En Preparación'
-                : '✅ Listo para Despachar'}
+                : stage === 'listo'
+                ? '✅ Listo para Despachar'
+                : '✓ Despachado'}
             </span>
           </div>
         )}

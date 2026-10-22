@@ -6,6 +6,8 @@ export const metadata = {
   title: 'Caja, Salón & Órdenes | Paktak Tech',
 };
 
+export const instant = false;
+
 export default async function TablesAdminPage(props: {
   searchParams?: Promise<{ tableId?: string; view?: 'tables' | 'comandero' | 'pedidos' }>;
 }) {

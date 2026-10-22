@@ -11,6 +11,8 @@ export const metadata = {
   title: 'Resumen Ejecutivo | Paktak Tech',
 };
 
+export const instant = false;
+
 export default async function AdminPage(props: {
   searchParams?: Promise<{ period?: string }>;
 }) {
