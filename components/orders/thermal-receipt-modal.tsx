@@ -39,7 +39,7 @@ export function ThermalReceiptModal({
   }
 
   function handleSendToChefWhatsApp() {
-    let msg = `*COMANDA DE COCINA*\n`;
+    let msg = `*ORDEN DE COCINA*\n`;
     msg += `*Ubicacion:* ${data.tableOrToken ? `${data.tableOrToken}` : 'Mostrador'}\n`;
     if (data.orderNumber) msg += `*Orden:* #${data.orderNumber}\n`;
     msg += `*Hora:* ${new Date(data.dateTime).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}\n`;
@@ -65,7 +65,7 @@ export function ThermalReceiptModal({
           <div>
             <h3 className="font-extrabold text-base text-[#1A1A1A] flex items-center gap-2">
               <Printer className="h-4 w-4" />
-              <span>Ticket térmico / Comanda</span>
+              <span>Ticket térmico / Orden</span>
             </h3>
             <p className="text-xs text-[#6B6B6B]">Compatible con impresoras de 58mm y 80mm</p>
           </div>
@@ -131,7 +131,7 @@ export function ThermalReceiptModal({
             <div className="w-full rounded-[24px] bg-[#111111] p-6 text-white space-y-4 border border-[#2E2E2E]">
               <div className="border-b border-[#2E2E2E] pb-3 flex items-center justify-between">
                 <div>
-                  <span className="text-xs uppercase tracking-widest text-[#A1A1AA]">Comanda Cocina</span>
+                  <span className="text-xs uppercase tracking-widest text-[#A1A1AA]">Orden Cocina</span>
                   <h2 className="text-3xl font-extrabold text-white">
                     {data.tableOrToken ? `${data.tableOrToken}` : `Orden #${data.orderNumber}`}
                   </h2>
@@ -177,7 +177,7 @@ export function ThermalReceiptModal({
                 <p className="font-bold text-sm tracking-wider uppercase">
                   {data.restaurantName || 'PAKTAK RESTAURANTE'}
                 </p>
-                <p className="text-[10px]">TICKET DE COMANDA</p>
+                <p className="text-[10px]">TICKET DE ORDEN</p>
                 <p className="font-extrabold text-base">
                   {data.tableOrToken ? `${data.tableOrToken}` : `ORDEN #${data.orderNumber}`}
                 </p>

@@ -237,3 +237,23 @@
 .kds-new {
   animation: kds-flash 1s ease-in-out 3;
 }
+
+/* Scrollbar estilizada para columnas KDS y listas internas de tickets */
+.kds-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.kds-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.kds-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(161, 161, 170, 0.35);
+  border-radius: 9999px;
+}
+.kds-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(161, 161, 170, 0.65);
+}
+.kds-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(161, 161, 170, 0.35) transparent;
+}

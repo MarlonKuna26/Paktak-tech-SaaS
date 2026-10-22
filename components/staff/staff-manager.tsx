@@ -54,7 +54,7 @@ const roleDetails: Record<
     color: 'text-emerald-800 dark:text-emerald-300',
     bg: 'bg-emerald-500/10',
     border: 'border-emerald-500/20',
-    desc: 'Atención en salón y mostrador: asigna mesas, toma comandas y cobra antes o después de servir.',
+    desc: 'Atención en salón y mostrador: asigna mesas, toma órdenes y cobra antes o después de servir.',
   },
   waiter: {
     label: 'Cajero & Servicio',
@@ -70,7 +70,7 @@ const roleDetails: Record<
     color: 'text-rose-800 dark:text-rose-300',
     bg: 'bg-rose-500/10',
     border: 'border-rose-500/20',
-    desc: 'Pantalla KDS táctil con semáforos de tiempo y despacho de comandas.',
+    desc: 'Pantalla KDS táctil con semáforos de tiempo y despacho de órdenes.',
   },
   host: {
     label: 'Anfitrión (Superusuario)',
@@ -329,7 +329,7 @@ export function StaffManager() {
         <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Cajeros & Servicio</p>
           <p className="mt-1 text-2xl font-black text-emerald-600 dark:text-emerald-400">{countByRole.cashiers}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Mesas, comanda y cobro</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Mesas, orden y cobro</p>
         </div>
         <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Cocina / Barra</p>

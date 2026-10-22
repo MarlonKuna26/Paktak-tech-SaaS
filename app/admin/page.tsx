@@ -1,14 +1,17 @@
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
+import { connection } from 'next/server';
 import { getCurrentStaff } from '@/lib/auth/get-current-staff';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { AdminDashboardOverview } from '@/components/dashboard/admin-overview';
+import { getLocalDayRange } from '@/lib/utils/date-range';
 
 export const metadata = {
   title: 'Resumen Ejecutivo | Paktak Tech',
 };
 
 export default async function AdminPage() {
+  await connection();
   const staff = await getCurrentStaff();
 
   if (!staff) {
@@ -31,14 +34,13 @@ export default async function AdminPage() {
   const hostUrl = `${protocol}://${host}`;
 
   const supabase = await createSupabaseServerClient();
-  const today = new Date().toISOString().split('T')[0];
-  const startIso = `${today}T00:00:00.000Z`;
-  const endIso = `${today}T23:59:59.999Z`;
+  const timezone = staff.restaurantTimezone || 'America/Guayaquil';
+  const { startIso, endIso } = getLocalDayRange(timezone);
 
   // 1. Cargar Órdenes de Salón del día
   const { data: rawSalonOrders } = await supabase
     .from('orders')
-    .select('id, total_cents, order_number, status, closed_at, waiter_id, waiter:staff_members(role)')
+    .select('id, total_cents, order_number, status, closed_at, opened_at, waiter_id, waiter:staff_members(role)')
     .eq('restaurant_id', staff.restaurantId)
     .gte('opened_at', startIso)
     .lte('opened_at', endIso)
@@ -149,7 +151,9 @@ export default async function AdminPage() {
       channel: 'Mesa Salón',
       isPaid: so.status === 'pagada',
       status: so.status,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time: so.closed_at || so.opened_at
+        ? new Date(so.closed_at || so.opened_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : 'Hoy',
     })),
   ].slice(0, 6);
 

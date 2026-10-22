@@ -102,9 +102,9 @@ export class OrderController {
    */
   static async updateKdsStatus(request: Request) {
     const staff = await getCurrentStaff();
-    if (!staff || staff.role !== 'kitchen') {
+    if (!staff || !['kitchen', 'host', 'admin', 'owner', 'cashier'].includes(staff.role)) {
       return NextResponse.json(
-        { error: 'Solo el personal de cocina (cocinero) puede cambiar el estado de los pedidos.' },
+        { error: 'No tienes permisos para cambiar el estado de los pedidos en cocina.' },
         { status: 403 },
       );
     }

@@ -47,11 +47,16 @@ type DailyReportData = {
   payment_methods: PaymentMethodStat[];
 };
 
+function getLocalTodayString(): string {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function DailyReportView({ restaurantName }: { restaurantName: string }) {
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
+  const [selectedDate, setSelectedDate] = useState<string>(getLocalTodayString);
   const [costPercentage, setCostPercentage] = useState<number>(35);
   const [report, setReport] = useState<DailyReportData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -178,7 +183,7 @@ export function DailyReportView({ restaurantName }: { restaurantName: string }) 
           />
           <button
             type="button"
-            onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+            onClick={() => setSelectedDate(getLocalTodayString())}
             className="h-10 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-2xs"
           >
             Hoy

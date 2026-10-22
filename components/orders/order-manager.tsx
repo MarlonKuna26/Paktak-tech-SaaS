@@ -201,6 +201,11 @@ export function OrderManager({
         { event: '*', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${restaurantId}` },
         () => void load(true)
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'order_items' },
+        () => void load(true)
+      )
       .subscribe();
 
     const interval = setInterval(() => void load(true), 10000);
@@ -480,7 +485,7 @@ export function OrderManager({
               className="h-8 px-3 rounded-full border border-amber-500/30 bg-amber-500/10 text-xs font-bold text-amber-900 dark:text-amber-300 hover:bg-amber-500/20 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
             >
               <Utensils className="w-3.5 h-3.5 text-[#f3a806]" />
-              <span>+ Tomar Comanda</span>
+              <span>+ Tomar Orden</span>
             </button>
           )}
         </div>
@@ -530,7 +535,7 @@ export function OrderManager({
             <p className="mt-1.5 text-3xl font-black text-[#f3a806]">
               ${paidOrders.length > 0 ? (paidTotalCents / (paidOrders.length * 100)).toFixed(2) : '0.00'}
             </p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">Por comanda cobrada</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">Por orden cobrada</p>
           </div>
         </div>
       )}
@@ -613,7 +618,7 @@ export function OrderManager({
                     {/* Desglose de Productos Limpio (Sin cajas toscas) */}
                     <div className="pt-2">
                       <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
-                        Comanda:
+                        Detalle de la Orden:
                       </p>
                       <ul className="space-y-1.5 text-xs text-zinc-700 dark:text-zinc-300">
                         {order.public_order_items.map((item, idx) => (

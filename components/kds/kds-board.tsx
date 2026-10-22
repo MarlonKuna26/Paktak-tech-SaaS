@@ -21,6 +21,9 @@ import {
   PackageCheck,
   Zap,
   Eye,
+  ChevronDown,
+  ChevronUp,
+  ChevronsUpDown,
 } from 'lucide-react';
 
 export type KdsItem = {
@@ -90,7 +93,8 @@ export function KdsBoard({
   restaurantId: string;
   userRole?: string;
 }) {
-  const isCook = userRole === 'kitchen';
+  const isCook = ['kitchen', 'host', 'admin', 'owner', 'cashier'].includes(userRole);
+  const [collapseAll, setCollapseAll] = useState(false);
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   // Datos
@@ -128,6 +132,8 @@ export function KdsBoard({
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const previousOrderIdsRef = useRef<Set<string>>(new Set());
+  const previousReadyIdsRef = useRef<Set<string>>(new Set());
+  const [readyToast, setReadyToast] = useState<{ id: string; tableNumber: number; orderNumber: number; count: number } | null>(null);
 
   // Ticker de tiempo cada 5 segundos
   useEffect(() => {
@@ -261,6 +267,26 @@ export function KdsBoard({
         }
       }
       previousOrderIdsRef.current = currentIds;
+
+      // Detección de órdenes listas para despacho (notificación al cajero/mesero)
+      const readyOrders = activeMapped.filter((o) => o.items.length > 0 && o.items.every((it) => it.status === 'listo'));
+      const currentReadyIds = new Set(readyOrders.map((o) => o.id));
+
+      if (previousReadyIdsRef.current.size > 0) {
+        const newlyReady = readyOrders.filter((o) => !previousReadyIdsRef.current.has(o.id));
+        if (newlyReady.length > 0) {
+          if (soundEnabled) playKitchenChime();
+          const first = newlyReady[0];
+          setReadyToast({
+            id: first.id,
+            tableNumber: first.tableNumber,
+            orderNumber: first.orderNumber,
+            count: first.items.length,
+          });
+          setTimeout(() => setReadyToast(null), 8000);
+        }
+      }
+      previousReadyIdsRef.current = currentReadyIds;
 
       setOrders(mapped);
     },
@@ -448,6 +474,33 @@ export function KdsBoard({
 
   return (
     <div className="space-y-6 font-sans">
+      {/* Toast Flotante cuando una Orden está Lista para Despachar */}
+      {readyToast && (
+        <div className="fixed top-5 right-5 z-50 rounded-2xl border-2 border-emerald-500 bg-white p-4 shadow-xl flex items-start gap-3 max-w-sm w-full animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-auto">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white font-black shadow-xs">
+            <CheckCheck className="w-5 h-5 animate-pulse" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-xs font-black uppercase tracking-wider text-emerald-800">
+              ¡Orden Lista para Despachar!
+            </h4>
+            <p className="mt-0.5 text-sm font-extrabold text-zinc-900">
+              Mesa #{readyToast.tableNumber} · Orden #{readyToast.orderNumber}
+            </p>
+            <p className="text-[11px] text-zinc-500">
+              {readyToast.count} {readyToast.count === 1 ? 'platillo preparado' : 'platillos preparados'} esperando retiro en cocina.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setReadyToast(null)}
+            className="text-zinc-400 hover:text-zinc-600 text-xs font-bold cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* 1. Header Principal y Barra de Herramientas de Cocina (Tema Claro y Dorado) */}
       <header className="rounded-3xl border border-zinc-200/90 bg-white p-5 sm:p-6 shadow-xs space-y-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -471,22 +524,15 @@ export function KdsBoard({
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   <span>Cocinero en Turno: {kitchenStaffName}</span>
                 </div>
-                {!isCook ? (
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700">
-                    <Eye className="h-3 w-3 text-blue-600 shrink-0" />
-                    <span>Modo Monitoreo / Solo Lectura (Super Usuario)</span>
+                {userRole !== 'kitchen' && (
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/80 bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-900">
+                    <span>Supervisión Operativa ({userRole})</span>
                   </div>
-                ) : (
-                  <span className="text-[11px] font-medium text-zinc-500">
-                    · Pantalla Operativa de Cocina
-                  </span>
                 )}
+                <span className="text-[11px] font-medium text-zinc-500">
+                  · Pantalla Operativa de Cocina
+                </span>
               </div>
-              {!isCook && (
-                <p className="text-[11px] text-zinc-500 font-medium mt-1">
-                  👁️ Visualización en tiempo real. Los cambios de preparación y despachos corresponden únicamente al Cocinero.
-                </p>
-              )}
             </div>
           </div>
 
@@ -570,6 +616,17 @@ export function KdsBoard({
                 </button>
               </div>
             )}
+
+            {/* Alternador Global de Detalle (Expandir / Compactar Todo) */}
+            <button
+              type="button"
+              onClick={() => setCollapseAll((prev) => !prev)}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-700 hover:bg-zinc-50 transition-colors cursor-pointer shadow-2xs"
+              title={collapseAll ? 'Expandir detalle de todas las órdenes' : 'Compactar todas las órdenes'}
+            >
+              <ChevronsUpDown className="h-3.5 w-3.5 text-[#f3a806]" />
+              <span className="hidden sm:inline">{collapseAll ? 'Expandir Todo' : 'Compactar Todo'}</span>
+            </button>
 
             {/* Sonido */}
             <button
@@ -677,7 +734,7 @@ export function KdsBoard({
               </div>
               <h2 className="text-xl font-black text-zinc-900">Cocina libre de pedidos activos</h2>
               <p className="mt-1 text-xs text-zinc-500 max-w-md mx-auto">
-                No hay comandas pendientes de preparación en este momento. Cuando se tome un pedido en salón o en caja, aparecerá aquí con aviso en tiempo real.
+                No hay órdenes pendientes de preparación en este momento. Cuando se tome un pedido en salón o en caja, aparecerá aquí con aviso en tiempo real.
               </p>
               {searchQuery && (
                 <button
@@ -708,10 +765,10 @@ export function KdsBoard({
 
                 {columns.nuevo.length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-2xs">
-                    <p className="text-xs text-zinc-400">Sin comandas en espera</p>
+                    <p className="text-xs text-zinc-400">Sin órdenes en espera</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3.5 max-h-[calc(100vh-270px)] min-h-[460px] overflow-y-auto pr-1.5 pb-8 overscroll-contain kds-scrollbar">
                     {columns.nuevo.map((ord) => (
                       <KdsTicketCard
                         key={ord.id}
@@ -720,6 +777,7 @@ export function KdsBoard({
                         stage="nuevo"
                         isFlashing={newOrderIds.has(ord.id)}
                         canAction={isCook}
+                        collapseAll={collapseAll}
                         onAdvance={() => void advanceOrderStage(ord, 'preparando')}
                         onAdvanceItem={(id, st) => void advanceSingleItem(id, st)}
                       />
@@ -747,7 +805,7 @@ export function KdsBoard({
                     <p className="text-xs text-zinc-400">Ningún plato en fuego actualmente</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3.5 max-h-[calc(100vh-270px)] min-h-[460px] overflow-y-auto pr-1.5 pb-8 overscroll-contain kds-scrollbar">
                     {columns.preparando.map((ord) => (
                       <KdsTicketCard
                         key={ord.id}
@@ -756,6 +814,7 @@ export function KdsBoard({
                         stage="preparando"
                         isFlashing={newOrderIds.has(ord.id)}
                         canAction={isCook}
+                        collapseAll={collapseAll}
                         onAdvance={() => void advanceOrderStage(ord, 'listo')}
                         onAdvanceItem={(id, st) => void advanceSingleItem(id, st)}
                       />
@@ -783,7 +842,7 @@ export function KdsBoard({
                     <p className="text-xs text-zinc-400">Sin platos listos esperando despacho</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3.5 max-h-[calc(100vh-270px)] min-h-[460px] overflow-y-auto pr-1.5 pb-8 overscroll-contain kds-scrollbar">
                     {columns.listo.map((ord) => (
                       <KdsTicketCard
                         key={ord.id}
@@ -792,6 +851,7 @@ export function KdsBoard({
                         stage="listo"
                         isFlashing={newOrderIds.has(ord.id)}
                         canAction={isCook}
+                        collapseAll={collapseAll}
                         onAdvance={() => void advanceOrderStage(ord, 'entregado')}
                         onAdvanceItem={(id, st) => void advanceSingleItem(id, st)}
                       />
@@ -802,7 +862,7 @@ export function KdsBoard({
             </div>
           ) : (
             /* VISTA CUADRÍCULA COMPACTA (MULTITASKING PARA MUCHOS PEDIDOS) */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 max-h-[calc(100vh-270px)] overflow-y-auto pr-1.5 pb-8 kds-scrollbar">
               {activeOrders.map((ord) => {
                 const activeItems = ord.items.filter((it) => it.status !== 'entregado');
                 const hasPending = activeItems.some((it) => it.status === 'pendiente');
@@ -821,6 +881,7 @@ export function KdsBoard({
                     stage={currentStage}
                     isFlashing={newOrderIds.has(ord.id)}
                     canAction={isCook}
+                    collapseAll={collapseAll}
                     onAdvance={() => {
                       if (currentStage === 'nuevo') void advanceOrderStage(ord, 'preparando');
                       else if (currentStage === 'preparando') void advanceOrderStage(ord, 'listo');
@@ -842,7 +903,7 @@ export function KdsBoard({
             <div>
               <h2 className="text-base font-black text-zinc-900 flex items-center gap-2">
                 <PackageCheck className="h-5 w-5 text-emerald-600" />
-                Historial de Comandas Entregadas ({completedOrders.length})
+                Historial de Órdenes Entregadas ({completedOrders.length})
               </h2>
               <p className="text-xs text-zinc-500 mt-0.5">
                 Platos y pedidos despachados durante el turno de hoy. Si marcaste un pedido como entregado por error, puedes pulsar &quot;Reabrir a Cocina&quot; para recuperarlo inmediatamente.
@@ -928,13 +989,14 @@ export function KdsBoard({
   );
 }
 
-// Subcomponente de Tarjeta de Comanda (Tema Claro & Dorado)
+// Subcomponente de Tarjeta de Comanda (Tema Claro & Dorado con Plegado y Scroll Interno)
 function KdsTicketCard({
   order,
   currentTime,
   stage,
   isFlashing,
   canAction = true,
+  collapseAll = false,
   onAdvance,
   onAdvanceItem,
 }: {
@@ -943,9 +1005,16 @@ function KdsTicketCard({
   stage: OrderStage;
   isFlashing: boolean;
   canAction?: boolean;
+  collapseAll?: boolean;
   onAdvance: () => void;
   onAdvanceItem: (itemId: string, currentStatus: KdsItem['status']) => void;
 }) {
+  const [isExpanded, setIsExpanded] = useState(!collapseAll);
+
+  useEffect(() => {
+    setIsExpanded(!collapseAll);
+  }, [collapseAll]);
+
   const minutesElapsed =
     currentTime > 0
       ? Math.max(0, Math.floor((currentTime - new Date(order.openedAt).getTime()) / 60000))
@@ -981,6 +1050,7 @@ function KdsTicketCard({
   }
 
   const ActionIcon = actionIcon;
+  const totalItemsCount = order.items.reduce((acc, it) => acc + it.quantity, 0);
 
   return (
     <article
@@ -990,7 +1060,7 @@ function KdsTicketCard({
     >
       <div>
         {/* Cabecera del Ticket */}
-        <div className="flex items-start justify-between gap-3 border-b border-zinc-100 pb-3.5">
+        <div className="flex items-start justify-between gap-3 border-b border-zinc-100 pb-3">
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
@@ -1018,126 +1088,114 @@ function KdsTicketCard({
           </div>
         </div>
 
-        {/* Lista de Platos con Acciones Interactivas por Ítem */}
-        <ul className="divide-y divide-zinc-100 py-3 space-y-3">
-          {order.items.map((it) => {
-            const isReady = it.status === 'listo';
-            const isCooking = it.status === 'preparando';
-            const isPending = it.status === 'pendiente';
-            const isDelivered = it.status === 'entregado';
+        {/* Botón Plegar / Desplegar Detalle */}
+        <button
+          type="button"
+          onClick={() => setIsExpanded((prev) => !prev)}
+          className="mt-3 flex items-center justify-between w-full rounded-2xl bg-zinc-50 hover:bg-zinc-100/90 border border-zinc-200/80 px-3 py-2 text-xs font-bold text-zinc-700 transition-colors cursor-pointer shadow-2xs"
+        >
+          <span className="flex items-center gap-2">
+            <UtensilsCrossed className="w-3.5 h-3.5 text-[#f3a806]" />
+            <span>{isExpanded ? 'Ocultar Detalle' : 'Ver Detalle'}</span>
+            <span className="text-[11px] font-semibold text-zinc-500">
+              ({totalItemsCount} {totalItemsCount === 1 ? 'plato' : 'platos'})
+            </span>
+          </span>
+          <span className="flex items-center gap-1 text-[11px] text-zinc-400 font-semibold">
+            <span>{isExpanded ? 'Plegar' : 'Desplegar'}</span>
+            {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </span>
+        </button>
 
-            return (
-              <li key={it.id} className="pt-3 first:pt-0">
-                <div className="flex items-start justify-between gap-2.5">
-                  <div className="flex items-baseline gap-2.5 flex-1 min-w-0">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/25 text-base font-black text-[#f3a806]">
-                      {it.quantity}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <span
-                        className={`text-base font-extrabold leading-snug block transition-opacity ${
-                          isReady ? 'text-emerald-700 line-through opacity-80' : 'text-zinc-900'
-                        }`}
-                      >
-                        {it.productName}
-                      </span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                        {it.station === 'barra' ? '🥤 Barra' : '🍳 Cocina'}
-                      </span>
-                    </div>
-                  </div>
+        {/* Vista Compacta (cuando está plegado para que se haga pequeño) */}
+        {!isExpanded && (
+          <p className="mt-2 text-[11px] text-zinc-500 font-medium truncate px-1">
+            {order.items.map((it) => `${it.quantity}× ${it.productName}`).join(' · ')}
+          </p>
+        )}
 
-                  {/* Estado individual (interactivo para cocinero, informativo para superusuario) */}
-                  <div className="shrink-0">
-                    {canAction ? (
-                      <>
-                        {isPending && (
-                          <button
-                            type="button"
-                            onClick={() => onAdvanceItem(it.id, 'pendiente')}
-                            title="Click para iniciar preparación"
-                            className="rounded-full border border-amber-200 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-800 transition-colors cursor-pointer"
+        {/* Vista Detallada con Scroll Interno (para que no se vaya hasta abajo la pantalla) */}
+        {isExpanded && (
+          <div className="mt-3 max-h-52 overflow-y-auto pr-1 kds-scrollbar">
+            <ul className="divide-y divide-zinc-100 space-y-2.5">
+              {order.items.map((it) => {
+                const isReady = it.status === 'listo';
+                const isCooking = it.status === 'preparando';
+                const isPending = it.status === 'pendiente';
+                const isDelivered = it.status === 'entregado';
+
+                return (
+                  <li key={it.id} className="pt-2.5 first:pt-0">
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-baseline gap-2.5 flex-1 min-w-0">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/25 text-sm font-black text-[#f3a806]">
+                          {it.quantity}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <span
+                            className={`text-sm font-extrabold leading-snug block transition-opacity ${
+                              isReady ? 'text-emerald-700 line-through opacity-80' : 'text-zinc-900'
+                            }`}
                           >
+                            {it.productName}
+                          </span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                            {it.station === 'barra' ? '🥤 Barra' : '🍳 Cocina'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Estado del ítem */}
+                      <div className="shrink-0">
+                        {isPending && (
+                          <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800">
                             ⏳ Espera
-                          </button>
+                          </span>
                         )}
                         {isCooking && (
-                          <button
-                            type="button"
-                            onClick={() => onAdvanceItem(it.id, 'preparando')}
-                            title="Click para marcar como Listo"
-                            className="rounded-full border border-orange-200 bg-orange-50 hover:bg-orange-100 px-2.5 py-1 text-[11px] font-black text-orange-800 transition-colors cursor-pointer"
-                          >
+                          <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-black text-orange-800">
                             🔥 Cocinando
-                          </button>
+                          </span>
                         )}
                         {isReady && (
-                          <button
-                            type="button"
-                            onClick={() => onAdvanceItem(it.id, 'listo')}
-                            title="Click para despachar"
-                            className="rounded-full border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 text-[11px] font-black text-emerald-800 transition-colors cursor-pointer"
-                          >
-                            ✅ ¡Listo!
-                          </button>
+                          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-800">
+                            ✅ Listo
+                          </span>
                         )}
                         {isDelivered && (
-                          <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold text-zinc-500">
+                          <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-bold text-zinc-500">
                             ✓ Despachado
                           </span>
                         )}
-                      </>
-                    ) : (
-                      <>
-                        {isPending && (
-                          <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-800">
-                            ⏳ En espera
-                          </span>
-                        )}
-                        {isCooking && (
-                          <span className="rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-[11px] font-black text-orange-800">
-                            🔥 Cocinando
-                          </span>
-                        )}
-                        {isReady && (
-                          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-black text-emerald-800">
-                            ✅ ¡Listo!
-                          </span>
-                        )}
-                        {isDelivered && (
-                          <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold text-zinc-500">
-                            ✓ Entregado
-                          </span>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
+                      </div>
+                    </div>
 
-                {it.notes && (
-                  <div className="mt-1.5 ml-10 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-900">
-                    ⚠️ Nota: {it.notes}
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+                    {it.notes && (
+                      <div className="mt-1.5 ml-9 rounded-xl border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-900">
+                        ⚠️ Nota: {it.notes}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </div>
 
-      {/* Botón de Acción Masiva para Cocinero O Estado Informativo para Super Usuario */}
-      <div className="mt-4 pt-3.5 border-t border-zinc-100">
+      {/* Botón de Acción Principal para Avanzar la Orden */}
+      <div className="mt-3.5 pt-3 border-t border-zinc-100">
         {canAction ? (
           <button
             type="button"
             onClick={onAdvance}
-            className={`h-12 w-full rounded-full text-xs font-black tracking-wide transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer shadow-xs ${actionBg}`}
+            className={`h-11 w-full rounded-full text-xs font-black tracking-wide transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer shadow-xs ${actionBg}`}
           >
             <ActionIcon className="h-4 w-4 stroke-[2.8]" />
             <span>{actionLabel}</span>
           </button>
         ) : (
-          <div className="flex items-center justify-between rounded-2xl bg-zinc-50 border border-zinc-200/80 px-4 py-2.5">
+          <div className="flex items-center justify-between rounded-2xl bg-zinc-50 border border-zinc-200/80 px-4 py-2">
             <span className="text-[11px] font-bold text-zinc-500 flex items-center gap-1.5">
               <Eye className="h-3.5 w-3.5 text-blue-500 shrink-0" />
               Estado en cocina:

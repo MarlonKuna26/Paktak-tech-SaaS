@@ -349,11 +349,11 @@ export function WaiterManager({
     setFeedback(null);
 
     if (!selectedTable) {
-      setFeedback({ ok: false, text: 'Por favor selecciona una mesa antes de enviar la comanda.' });
+      setFeedback({ ok: false, text: 'Por favor selecciona una mesa antes de enviar la orden.' });
       return;
     }
     if (!cart.length) {
-      setFeedback({ ok: false, text: 'Agrega al menos un producto a la comanda.' });
+      setFeedback({ ok: false, text: 'Agrega al menos un producto a la orden.' });
       return;
     }
 
@@ -433,7 +433,7 @@ export function WaiterManager({
       setIsSubmitting(false);
       setFeedback({
         ok: true,
-        text: `Comanda de Mesa #${selectedTable.tableNumber} registrada exitosamente.`,
+        text: `Orden de Mesa #${selectedTable.tableNumber} registrada exitosamente.`,
       });
       await loadRecentOrders();
     } catch {
@@ -629,7 +629,7 @@ export function WaiterManager({
               </span>
             </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-              Puedes agregar más platos a la comanda o cerrar la cuenta y cobrar al cliente.
+              Puedes agregar más platos a la orden o cerrar la cuenta y cobrar al cliente.
             </p>
           </div>
 
@@ -640,7 +640,7 @@ export function WaiterManager({
             className="inline-flex items-center justify-center gap-2 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-5 py-2.5 text-xs font-black text-zinc-950 shadow-xs transition-colors shrink-0 disabled:opacity-50"
           >
             <CreditCard className="w-4 h-4" />
-            <span>{isFetchingCheckout ? 'Consultando comanda...' : `Cobrar Mesa #${selectedTable.tableNumber}`}</span>
+            <span>{isFetchingCheckout ? 'Consultando orden...' : `Cobrar Mesa #${selectedTable.tableNumber}`}</span>
           </button>
         </div>
       )}
@@ -752,11 +752,11 @@ export function WaiterManager({
           )}
         </section>
 
-        {/* Comanda Activa Lateral */}
+        {/* Orden Activa Lateral */}
         <aside className="h-fit rounded-[24px] border border-[#E8E8E8] bg-white p-5 lg:sticky lg:top-4 space-y-4">
           <div className="flex items-center justify-between border-b border-[#E8E8E8] pb-3">
             <div>
-              <h3 className="font-extrabold text-[#1A1A1A]">Comanda actual</h3>
+              <h3 className="font-extrabold text-[#1A1A1A]">Orden actual</h3>
               <p className="text-xs text-[#6B6B6B]">
                 {selectedTable ? `Mesa #${selectedTable.tableNumber}` : 'Selecciona una mesa'}
               </p>
@@ -818,7 +818,7 @@ export function WaiterManager({
 
             {!cart.length && (
               <div className="py-8 text-center text-xs text-[#6B6B6B]">
-                Agrega platos o bebidas para armar la comanda.
+                Agrega platos o bebidas para armar la orden.
               </div>
             )}
           </div>
@@ -859,11 +859,11 @@ export function WaiterManager({
         </aside>
       </div>
 
-      {/* Comandas Recientes en este Dispositivo */}
+      {/* Órdenes Recientes en este Dispositivo */}
       {recentOrders.length > 0 && (
         <section className="border-t border-[#E8E8E8] pt-6 space-y-4">
           <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B6B6B]">
-            Comandas recientes en este teléfono ({recentOrders.length})
+            Órdenes recientes en este dispositivo ({recentOrders.length})
           </h3>
 
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">

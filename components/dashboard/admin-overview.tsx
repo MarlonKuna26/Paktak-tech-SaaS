@@ -76,62 +76,7 @@ export function AdminDashboardOverview({
 
   return (
     <div className="space-y-8 font-sans">
-      {/* 1. Módulo Destacado de Captación por WhatsApp */}
-      <section className="rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:p-8 shadow-xs space-y-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40">
-                <MessageSquare className="w-3.5 h-3.5" />
-              </span>
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                Flujo de Captación WhatsApp
-              </span>
-            </div>
-            <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100">
-              Auto-Respuesta & Enlace de Menú Digital
-            </h2>
-            <p className="text-xs text-zinc-500 max-w-2xl leading-relaxed">
-              Configura este mensaje en la respuesta automática de WhatsApp Business. Cuando un cliente te escriba, recibirá el enlace de tu menú web para hacer su pedido al instante sin necesidad de pagar por adelantado.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => void copyToClipboard(menuUrl, 'link')}
-              className="h-10 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs"
-            >
-              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedLink ? 'Enlace Copiado' : 'Copiar Enlace'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => void copyToClipboard(whatsappTemplate, 'msg')}
-              className="h-10 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-5 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center gap-2"
-            >
-              {copiedMessage ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedMessage ? 'Mensaje Copiado' : 'Copiar Mensaje para WhatsApp'}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Vista previa del mensaje formateado */}
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-800/40 p-4 text-xs text-zinc-600 dark:text-zinc-300 space-y-1.5 font-mono">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 not-mono font-sans mb-1">
-            Plantilla de Mensaje Automático:
-          </p>
-          <p>¡Hola! Gracias por comunicarte con {staff.restaurantName}.</p>
-          <p>Puedes revisar nuestra carta y realizar tu pedido directamente aquí:</p>
-          <p className="font-bold text-[#f3a806] underline">{menuUrl}</p>
-          <p className="text-zinc-400">
-            No necesitas pagar por adelantado; prepararemos tu pedido y podrás pagar al momento de retirarlo en el local.
-          </p>
-        </div>
-      </section>
-
-      {/* 2. Tarjetas KPI de Resumen Ejecutivo y Costos de Operación */}
+      {/* 1. Tarjetas KPI de Resumen Ejecutivo y Costos de Operación */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs">
           <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Ventas del Día</span>
@@ -200,7 +145,7 @@ export function AdminDashboardOverview({
               </span>
             </div>
             <p className="text-xs text-zinc-500 mt-0.5">
-              Supervisión en vivo de comandas, cocineros asignados, semáforos de fuego y despacho.
+              Supervisión en vivo de órdenes, cocineros asignados, semáforos de fuego y despacho.
             </p>
           </div>
         </div>
@@ -344,6 +289,70 @@ export function AdminDashboardOverview({
             ))}
           </div>
         )}
+      </section>
+
+      {/* 5. Herramienta de Captación: Auto-Respuesta WhatsApp & Enlace de Menú (Al final del Resumen) */}
+      <section className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 border border-emerald-500/20 shadow-2xs">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                  Enlace y Auto-Respuesta para WhatsApp
+                </h3>
+                <span className="rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+                  Captación de Clientes
+                </span>
+              </div>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                Comparte tu menú digital directo o configúralo como mensaje de bienvenida en WhatsApp Business.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => void copyToClipboard(menuUrl, 'link')}
+              className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs"
+            >
+              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedLink ? 'Enlace Copiado' : 'Copiar Enlace'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void copyToClipboard(whatsappTemplate, 'msg')}
+              className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center gap-1.5"
+            >
+              {copiedMessage ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedMessage ? 'Mensaje Copiado' : 'Copiar Mensaje para WhatsApp'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Vista previa limpia y elegante estilo mensaje WhatsApp */}
+        <div className="rounded-2xl border border-emerald-500/15 bg-gradient-to-r from-emerald-50/40 via-zinc-50/50 to-white dark:from-emerald-950/20 dark:via-zinc-900 dark:to-zinc-900 p-4 text-xs text-zinc-700 dark:text-zinc-300">
+          <div className="flex items-start gap-2.5">
+            <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-2xs">
+              <MessageSquare className="w-3.5 h-3.5 fill-current" />
+            </div>
+            <div className="space-y-1 text-xs">
+              <p className="font-medium text-zinc-800 dark:text-zinc-200">
+                ¡Hola! Gracias por comunicarte con <strong className="font-bold text-zinc-900 dark:text-zinc-100">{staff.restaurantName}</strong>. Puedes revisar nuestra carta y pedir directamente aquí:
+              </p>
+              <p className="font-mono text-emerald-700 dark:text-emerald-400 font-bold break-all">
+                {menuUrl}
+              </p>
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                No necesitas pagar por adelantado; prepararemos tu pedido y podrás pagar al momento de retirarlo en el local.
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   );

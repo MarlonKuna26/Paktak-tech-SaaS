@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import {
-  Tag,
   Check,
   Plus,
   CreditCard,
@@ -114,17 +113,6 @@ export function TableManager({
 
   const [tables, setTables] = useState<RestaurantTable[]>([]);
   const [unassignedReservations, setUnassignedReservations] = useState<AvailableReservation[]>([]);
-  const [activePaletas, setActivePaletas] = useState<
-    Array<{
-      id: string;
-      tracking_code: string;
-      customer_name: string;
-      table_or_token_number: string;
-      status: string;
-      created_at: string;
-      total_cents: number;
-    }>
-  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -161,6 +149,9 @@ export function TableManager({
   // Estado para cobrar cuenta de mesa (Fase 8)
   const [checkoutOrder, setCheckoutOrder] = useState<TableOrderDetails | null>(null);
   const [isFetchingCheckout, setIsFetchingCheckout] = useState(false);
+  const [readyAlerts, setReadyAlerts] = useState<
+    Array<{ id: string; productName: string; quantity: number; time: string }>
+  >([]);
 
   const canCreateTable = ['owner', 'admin', 'host'].includes(userRole);
 
@@ -173,48 +164,12 @@ export function TableManager({
         setTables(body.tables || []);
       }
 
-      // Cargar paletas de madera en salón
-      const { data: paletasData } = await supabase
-        .from('public_order_requests')
-        .select('id, tracking_code, customer_name, table_or_token_number, status, created_at, total_cents')
-        .eq('restaurant_id', restaurantId)
-        .eq('service_type', 'paleta_madera')
-        .not('table_or_token_number', 'is', null)
-        .in('status', ['confirmado', 'preparando', 'listo']);
-
-      if (paletasData) {
-        setActivePaletas(
-          paletasData as Array<{
-            id: string;
-            tracking_code: string;
-            customer_name: string;
-            table_or_token_number: string;
-            status: string;
-            created_at: string;
-            total_cents: number;
-          }>,
-        );
-      }
     } catch {
       // Ignorar error de red en polling silencioso
     } finally {
       if (!isSilent) setLoading(false);
     }
-  }, [restaurantId, supabase]);
-
-  async function releasePaleta(orderId: string, tokenNum: string) {
-    try {
-      await fetch(`/api/orders/${orderId}/status`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'completado' }),
-      });
-      setSuccessMsg(`Paleta #${tokenNum} recogida y liberada.`);
-      await loadTables(true);
-    } catch {
-      setError('No se pudo liberar la paleta.');
-    }
-  }
+  }, []);
 
   const loadUnassignedReservations = useCallback(async () => {
     try {
@@ -272,6 +227,20 @@ export function TableManager({
         (payload) => {
           if (payload.new && (payload.new as { status?: string }).status === 'listo') {
             playWaiterAlertChime();
+            const newItem = payload.new as { id?: string; product_name?: string; quantity?: number };
+            const alertId = `${Date.now()}-${Math.random()}`;
+            setReadyAlerts((prev) => [
+              {
+                id: alertId,
+                productName: newItem.product_name ?? 'Platillo',
+                quantity: newItem.quantity ?? 1,
+                time: new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }),
+              },
+              ...prev.slice(0, 2),
+            ]);
+            setTimeout(() => {
+              setReadyAlerts((prev) => prev.filter((a) => a.id !== alertId));
+            }, 8000);
           }
           void loadTables(true);
         },
@@ -344,7 +313,7 @@ export function TableManager({
 
       if (queryError || !orderData) {
         const confirmFree = window.confirm(
-          `La Mesa #${table.table_number} está marcada como ocupada pero no tiene una comanda activa registrada. ¿Deseas liberar la mesa directamente?`
+          `La Mesa #${table.table_number} está marcada como ocupada pero no tiene una orden activa registrada. ¿Deseas liberar la mesa directamente?`
         );
         if (confirmFree) {
           await updateTableStatus(table.id, 'libre');
@@ -380,7 +349,7 @@ export function TableManager({
       });
     } catch {
       setIsFetchingCheckout(false);
-      setError('Error al consultar comanda de la mesa.');
+      setError('Error al consultar orden de la mesa.');
     }
   }
 
@@ -581,6 +550,55 @@ export function TableManager({
 
   return (
     <div className="space-y-6">
+      {/* Toast Flotante de Alerta de Cocina en Tiempo Real para el Cajero */}
+      {readyAlerts.length > 0 && (
+        <div className="fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-auto">
+          {readyAlerts.map((alert) => (
+            <div
+              key={alert.id}
+              className="rounded-2xl border-2 border-emerald-500 bg-white dark:bg-zinc-900 p-4 shadow-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-4 duration-300"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white font-black shadow-xs">
+                <Bell className="w-5 h-5 animate-pulse" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                    ¡Plato Listo en Cocina!
+                  </h4>
+                  <span className="text-[10px] text-zinc-400 font-mono">{alert.time}</span>
+                </div>
+                <p className="mt-1 text-sm font-extrabold text-zinc-900 dark:text-zinc-100">
+                  {alert.quantity}× {alert.productName}
+                </p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">
+                  Listo para recoger de la barra y despachar al salón.
+                </p>
+                <div className="mt-2.5 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('tables');
+                      setReadyAlerts((prev) => prev.filter((a) => a.id !== alert.id));
+                    }}
+                    className="rounded-full bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Ver Plano de Mesas
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReadyAlerts((prev) => prev.filter((a) => a.id !== alert.id))}
+                    className="rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 px-2.5 py-1 text-xs font-semibold hover:bg-zinc-100 transition-colors cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Switch de Vista del Cajero: Mesas, Comandero y Caja/Cobros */}
       <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2.5 sm:p-3 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
@@ -615,7 +633,7 @@ export function TableManager({
               }`}
             >
               <ConciergeBell className="w-4 h-4 text-[#f3a806]" />
-              <span>2. Comandero & Tomar Comanda</span>
+              <span>2. Tomar Orden</span>
             </button>
             <button
               type="button"
@@ -638,7 +656,7 @@ export function TableManager({
             </span>
             <span className="text-[11px] font-medium">
               {activeTab === 'tables' && 'Plano de ocupación en vivo y cobro de cuentas'}
-              {activeTab === 'comandero' && 'Toma rápida de comandas en mesa y mostrador'}
+              {activeTab === 'comandero' && 'Toma rápida de órdenes en mesa y mostrador'}
               {activeTab === 'pedidos' && 'Cola de cobro, arqueo diario en vivo e impresión'}
             </span>
           </div>
@@ -791,63 +809,7 @@ export function TableManager({
         </div>
       </div>
 
-      {/* SECCIÓN: Paletas / Fichas de Madera en Salón (Modo Fast Casual) */}
-      {activePaletas.length > 0 && (
-        <section className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40">
-                <Tag className="w-3.5 h-3.5" />
-              </span>
-              <div>
-                <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                  Paletas / Fichas en Circulación ({activePaletas.length})
-                </h3>
-                <p className="text-xs text-zinc-500">
-                  Clientes sentados en el salón comiendo con número móvil. Al limpiar la mesa o recoger el número, presiona &ldquo;Liberar&rdquo;.
-                </p>
-              </div>
-            </div>
-            <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full">
-              {activePaletas.length} mesas ocupadas
-            </span>
-          </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 pt-1">
-            {activePaletas.map((pal) => (
-              <div
-                key={pal.id}
-                className="flex flex-col justify-between rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 p-4 shadow-2xs"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-base font-extrabold text-zinc-900 dark:text-zinc-100">
-                      Paleta #{pal.table_or_token_number}
-                    </span>
-                    <span className="text-[10px] rounded-full bg-zinc-100 dark:bg-zinc-700 px-2 py-0.5 font-mono text-zinc-500">
-                      {new Date(pal.created_at).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-
-                  <p className="mt-1 text-xs font-semibold text-zinc-800 dark:text-zinc-200">{pal.customer_name}</p>
-                  <p className="text-[11px] text-zinc-400">
-                    Código: {pal.tracking_code} · ${(pal.total_cents / 100).toFixed(2)}
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => void releasePaleta(pal.id, pal.table_or_token_number)}
-                  className="mt-3 h-8 w-full rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
-                >
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Recoger y Liberar</span>
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Grid Visual de Mesas */}
       {loading && !tables.length ? (
@@ -861,6 +823,7 @@ export function TableManager({
             const isFoodReady = table.status === 'ocupada' && table.active_order?.kitchen_status === 'listo';
             const isPreparing = table.status === 'ocupada' && table.active_order?.kitchen_status === 'preparando';
             const isPending = table.status === 'ocupada' && table.active_order?.kitchen_status === 'pendiente';
+            const isServido = table.status === 'ocupada' && table.active_order?.kitchen_status === 'servido';
 
             return (
               <article
@@ -958,6 +921,18 @@ export function TableManager({
                     </div>
                   )}
 
+                  {isServido && (
+                    <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/40 p-2 text-xs text-zinc-600 dark:text-zinc-400 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-medium">
+                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span>Comida servida en mesa</span>
+                      </div>
+                      <span className="font-mono text-[10px] text-zinc-400">
+                        #{table.active_order?.order_number}
+                      </span>
+                    </div>
+                  )}
+
                   {/* Si tiene reserva asignada */}
                   {hasReservation && (
                     <div className="mt-3 rounded-xl border border-amber-500/30 bg-background/90 p-3 text-xs shadow-xs">
@@ -991,25 +966,18 @@ export function TableManager({
                       <>
                         <button
                           type="button"
-                          onClick={() => void updateTableStatus(table.id, 'ocupada')}
-                          className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors"
+                          onClick={() => openComanderoForTable(table.id)}
+                          className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                         >
-                          Sentar Clientes
+                          <Utensils className="h-3.5 w-3.5 text-zinc-950" />
+                          <span>Tomar Orden</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setAssigningTable(table)}
-                          className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+                          className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                         >
                           Asignar Reserva
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => openComanderoForTable(table.id)}
-                          className="col-span-2 flex h-8 items-center justify-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 px-3 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
-                        >
-                          <Utensils className="h-3.5 w-3.5 text-primary" />
-                          <span>Tomar Comanda</span>
                         </button>
                       </>
                     )}
@@ -1035,7 +1003,7 @@ export function TableManager({
                             className="flex h-9 items-center justify-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80 px-2 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                           >
                             <Utensils className="h-3.5 w-3.5 text-primary" />
-                            <span>+ Comanda</span>
+                            <span>+ Orden</span>
                           </button>
 
                           {table.active_order?.is_paid ? (
@@ -1093,7 +1061,7 @@ export function TableManager({
                           className="col-span-2 flex h-8 items-center justify-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 px-3 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                         >
                           <Utensils className="h-3.5 w-3.5 text-primary" />
-                          <span>Adelantar Comanda</span>
+                          <span>Adelantar Orden</span>
                         </button>
                       </>
                     )}

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentStaff } from '@/lib/auth/get-current-staff';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getLocalDayRange } from '@/lib/utils/date-range';
 
 export async function GET(request: Request) {
   const staff = await getCurrentStaff();
@@ -9,12 +10,12 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const targetDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
+  const targetDate = searchParams.get('date');
   const costPercentage = Math.min(100, Math.max(0, Number(searchParams.get('costPercentage') || 35)));
 
   const supabase = await createSupabaseServerClient();
-  const startIso = `${targetDate}T00:00:00.000Z`;
-  const endIso = `${targetDate}T23:59:59.999Z`;
+  const timezone = staff.restaurantTimezone || 'America/Guayaquil';
+  const { startIso, endIso } = getLocalDayRange(timezone, targetDate);
 
   try {
     // 1. Cargar Órdenes de Salón

@@ -68,10 +68,13 @@ export class TableModel {
       const totalItems = rawItems.length;
       const readyItems = rawItems.filter((it) => it.status === 'listo').length;
       const preparingItems = rawItems.filter((it) => it.status === 'preparando').length;
+      const deliveredItems = rawItems.filter((it) => it.status === 'entregado').length;
 
       let kStatus: 'pendiente' | 'preparando' | 'listo' | 'servido' = 'pendiente';
       if (totalItems > 0 && readyItems > 0) {
         kStatus = 'listo';
+      } else if (totalItems > 0 && deliveredItems === totalItems) {
+        kStatus = 'servido';
       } else if (preparingItems > 0) {
         kStatus = 'preparando';
       }

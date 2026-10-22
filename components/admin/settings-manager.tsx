@@ -373,7 +373,7 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
                     <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Timbre y Alertas de Sonido en Vivo</span>
                   </div>
                   <p className="text-[11px] text-zinc-500">
-                    Reproduce campana acústica al entrar nueva comanda en KDS y cuando la cocina pasa un plato a &ldquo;Listo&rdquo;.
+                    Reproduce campana acústica al entrar nueva orden en KDS y cuando la cocina pasa un plato a &ldquo;Listo&rdquo;.
                   </p>
                 </div>
 
