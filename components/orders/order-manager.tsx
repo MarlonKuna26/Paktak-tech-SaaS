@@ -38,15 +38,15 @@ const statusBadges: Record<PublicOrder['status'], { label: string; className: st
   },
   confirmado: {
     label: 'Confirmado',
-    className: 'bg-blue-50 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
+    className: 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200',
   },
   preparando: {
     label: 'En Cocina',
-    className: 'bg-orange-50 text-orange-800 dark:bg-orange-950/40 dark:text-orange-300',
+    className: 'bg-amber-500/15 text-amber-950 dark:text-amber-200 border border-[#f3a806]/40',
   },
   listo: {
     label: 'Listo para Entrega',
-    className: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
+    className: 'bg-zinc-950 text-[#f3a806] dark:bg-zinc-800 dark:text-amber-300 border border-zinc-800',
   },
   completado: {
     label: 'Completado',
@@ -586,8 +586,8 @@ export function OrderManager({
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           isPaid
-                            ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
-                            : 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
+                            ? 'bg-amber-500/15 text-amber-950 dark:text-amber-200 border border-[#f3a806]/30'
+                            : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border border-zinc-200'
                         }`}
                       >
                         {isPaid ? `Pagado (${order.payment_method || 'caja'})` : 'Pago al Retirar'}
@@ -595,7 +595,7 @@ export function OrderManager({
 
                       {/* Badge de Ubicación / Paleta */}
                       {order.table_or_token_number && (
-                        <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300 px-2.5 py-0.5 text-xs font-semibold">
+                        <span className="inline-flex items-center rounded-full bg-amber-500/10 text-amber-950 dark:text-amber-200 border border-[#f3a806]/20 px-2.5 py-0.5 text-xs font-semibold">
                           {order.service_type === 'paleta_madera' ? `Paleta #${order.table_or_token_number}` : `Mesa #${order.table_or_token_number}`}
                         </span>
                       )}

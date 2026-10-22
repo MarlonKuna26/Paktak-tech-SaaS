@@ -58,26 +58,26 @@ export function ThermalReceiptModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-      <div className="w-full max-w-lg rounded-[24px] border border-[#E8E8E8] bg-white p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="w-full max-w-lg rounded-3xl border border-zinc-200/90 bg-white p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200 font-sans">
         {/* Cabecera y Controles */}
-        <div className="flex items-center justify-between border-b border-[#E8E8E8] pb-4 no-print">
+        <div className="flex items-center justify-between border-b border-zinc-100 pb-4 no-print">
           <div>
-            <h3 className="font-extrabold text-base text-[#1A1A1A] flex items-center gap-2">
-              <Printer className="h-4 w-4" />
+            <h3 className="font-extrabold text-base text-zinc-900 flex items-center gap-2">
+              <Printer className="h-4 w-4 text-[#f3a806]" />
               <span>Ticket térmico / Orden</span>
             </h3>
-            <p className="text-xs text-[#6B6B6B]">Compatible con impresoras de 58mm y 80mm</p>
+            <p className="text-xs text-zinc-500">Compatible con impresoras de 58mm y 80mm</p>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setKitchenVisualMode(!kitchenVisualMode)}
-              className={`h-9 px-3.5 rounded-full text-xs font-bold transition-colors ${
+              className={`h-9 px-3.5 rounded-full text-xs font-bold transition-colors cursor-pointer ${
                 kitchenVisualMode
-                  ? 'bg-[#1A1A1A] text-white'
-                  : 'border border-[#E8E8E8] bg-white text-[#1A1A1A] hover:bg-[#F7F7F7]'
+                  ? 'bg-zinc-950 text-[#f3a806]'
+                  : 'border border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50'
               }`}
             >
               {kitchenVisualMode ? 'Pantalla cocina' : 'Formato papel'}
@@ -85,7 +85,7 @@ export function ThermalReceiptModal({
             <button
               type="button"
               onClick={onClose}
-              className="h-9 w-9 rounded-full border border-[#E8E8E8] flex items-center justify-center text-[#1A1A1A] hover:bg-[#F7F7F7]"
+              className="h-9 w-9 rounded-full border border-zinc-200 flex items-center justify-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors cursor-pointer"
               aria-label="Cerrar modal"
             >
               <X className="h-4 w-4" />
@@ -228,11 +228,11 @@ export function ThermalReceiptModal({
         </div>
 
         {/* Botones de Acción */}
-        <div className="flex flex-wrap gap-2.5 pt-3 border-t border-[#E8E8E8] no-print">
+        <div className="flex flex-wrap gap-2.5 pt-3 border-t border-zinc-100 no-print">
           <button
             type="button"
             onClick={handlePrint}
-            className="flex-1 h-12 rounded-full bg-[#FFC21A] text-[#1A1A1A] font-extrabold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+            className="flex-1 h-12 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 font-black text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
           >
             <Printer className="h-4 w-4" />
             <span>Imprimir ticket ({paperWidth})</span>
@@ -241,16 +241,16 @@ export function ThermalReceiptModal({
           <button
             type="button"
             onClick={handleSendToChefWhatsApp}
-            className="h-12 px-5 rounded-full border border-[#E8E8E8] bg-white text-[#1A1A1A] font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#F7F7F7] transition-colors"
+            className="h-12 px-5 rounded-full border border-zinc-200 bg-white text-zinc-800 font-bold text-sm flex items-center justify-center gap-2 hover:bg-zinc-50 transition-colors shadow-2xs cursor-pointer"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-4 w-4 text-[#f3a806]" />
             <span>WhatsApp Cocina</span>
           </button>
 
           <button
             type="button"
             onClick={onClose}
-            className="h-12 px-5 rounded-full border border-[#E8E8E8] bg-white text-[#1A1A1A] font-bold text-sm hover:bg-[#F7F7F7]"
+            className="h-12 px-5 rounded-full border border-zinc-200 bg-white text-zinc-800 font-bold text-sm hover:bg-zinc-50 transition-colors shadow-2xs cursor-pointer"
           >
             Cerrar
           </button>

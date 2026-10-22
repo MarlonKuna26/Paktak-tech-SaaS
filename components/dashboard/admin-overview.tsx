@@ -144,7 +144,7 @@ export function AdminDashboardOverview({
           </div>
 
           <div className="flex items-center gap-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400 px-2 shrink-0">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="flex h-2 w-2 rounded-full bg-[#f3a806] animate-pulse" />
             <span>Total Histórico:</span>
             <span className="font-mono font-black text-zinc-950 dark:text-zinc-100 text-sm">
               {formatMoney(data.allTimeSalesCents)}
@@ -157,13 +157,13 @@ export function AdminDashboardOverview({
 
         {/* Alerta informativa amigable cuando 'Hoy' aún tiene $0 */}
         {data.selectedPeriod === 'hoy' && data.todaySalesCents === 0 && (
-          <div className="rounded-2xl border border-amber-300/70 dark:border-amber-800/40 bg-amber-50/80 dark:bg-amber-950/20 p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
+          <div className="rounded-3xl border border-amber-300/70 dark:border-amber-800/40 bg-amber-50/70 dark:bg-amber-950/20 p-4.5 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
             <div className="flex items-start sm:items-center gap-3">
               <div className="h-10 w-10 rounded-2xl bg-[#f3a806] text-zinc-950 flex items-center justify-center font-black shrink-0 shadow-xs">
                 <Clock className="w-5 h-5 stroke-[2.5]" />
               </div>
               <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-200">
+                <h4 className="text-xs font-black uppercase tracking-wider text-amber-950 dark:text-amber-200">
                   Nuevo Día Operativo en Curso
                 </h4>
                 <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5">
@@ -174,14 +174,14 @@ export function AdminDashboardOverview({
             <div className="flex items-center gap-2 shrink-0">
               <Link
                 href="/admin?period=ayer"
-                className="h-8.5 px-3.5 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 shadow-2xs flex items-center gap-1.5 transition-colors"
+                className="h-9 px-4 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 shadow-2xs flex items-center gap-1.5 transition-colors"
               >
                 <span>Ver Ventas de Ayer</span>
                 <ArrowRight className="w-3.5 h-3.5 text-[#f3a806]" />
               </Link>
               <Link
                 href="/admin?period=semana"
-                className="h-8.5 px-3.5 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 text-xs font-black shadow-xs flex items-center gap-1.5 transition-colors"
+                className="h-9 px-4 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 text-xs font-black shadow-xs flex items-center gap-1.5 transition-colors"
               >
                 <span>Últimos 7 Días</span>
               </Link>
@@ -193,10 +193,10 @@ export function AdminDashboardOverview({
       {/* 2. Torre de Control Operativa en Vivo */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Salón y Mesas */}
-        <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs flex flex-col justify-between">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-[#f3a806] flex items-center justify-center font-bold">
+              <div className="h-9 w-9 rounded-2xl bg-amber-500/15 text-[#f3a806] flex items-center justify-center font-bold">
                 <Utensils className="w-4 h-4" />
               </div>
               <div>
@@ -209,12 +209,12 @@ export function AdminDashboardOverview({
             </span>
           </div>
 
-          <div className="mt-3 space-y-1.5">
+          <div className="mt-4 space-y-1.5">
             <div className="flex items-center justify-between text-[11px] text-zinc-500 font-medium">
               <span>{occupancyRate}% ocupación</span>
               <span>{data.operationalStatus.freeTables} mesas libres</span>
             </div>
-            <div className="h-1.5 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
               <div
                 className="h-full bg-[#f3a806] rounded-full transition-all"
                 style={{ width: `${occupancyRate}%` }}
@@ -224,18 +224,18 @@ export function AdminDashboardOverview({
 
           <Link
             href="/admin/mesas"
-            className="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-bold text-[#f3a806] hover:underline"
+            className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-bold text-[#f3a806] hover:underline"
           >
             <span>Gestionar Salón</span>
-            <ArrowRight className="w-3 h-3" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {/* Cocina KDS */}
-        <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs flex flex-col justify-between">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
+              <div className="h-9 w-9 rounded-2xl bg-amber-500/15 text-[#f3a806] flex items-center justify-center font-bold">
                 <Flame className="w-4 h-4" />
               </div>
               <div>
@@ -243,41 +243,41 @@ export function AdminDashboardOverview({
                 <p className="text-[11px] text-zinc-400">Platos en turno</p>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-300/40 px-2.5 py-0.5 text-[10px] font-bold">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#f3a806] animate-pulse" />
               KDS Activo
             </span>
           </div>
 
-          <div className="mt-3 flex items-center gap-2 text-xs">
-            <div className="flex-1 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 p-2 text-center">
-              <p className="font-mono text-base font-black text-amber-600 dark:text-amber-400">
+          <div className="mt-4 flex items-center gap-2 text-xs">
+            <div className="flex-1 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 p-2.5 text-center border border-zinc-100 dark:border-zinc-800">
+              <p className="font-mono text-base font-black text-zinc-900 dark:text-zinc-100">
                 {data.operationalStatus.kitchenPreparingCount}
               </p>
               <p className="text-[10px] text-zinc-400 font-medium">En preparación</p>
             </div>
-            <div className="flex-1 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 p-2 text-center">
-              <p className="font-mono text-base font-black text-emerald-600 dark:text-emerald-400">
+            <div className="flex-1 rounded-2xl bg-amber-500/10 border border-[#f3a806]/20 p-2.5 text-center">
+              <p className="font-mono text-base font-black text-[#f3a806]">
                 {data.operationalStatus.kitchenReadyCount}
               </p>
-              <p className="text-[10px] text-zinc-400 font-medium">Listos para servir</p>
+              <p className="text-[10px] text-amber-900 dark:text-amber-300 font-bold">Listos para servir</p>
             </div>
           </div>
 
           <Link
             href="/admin/cocina"
-            className="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline"
+            className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-bold text-[#f3a806] hover:underline"
           >
             <span>Monitorear KDS Cocina</span>
-            <ArrowRight className="w-3 h-3" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {/* Retiro & WhatsApp */}
-        <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs flex flex-col justify-between">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+              <div className="h-9 w-9 rounded-2xl bg-amber-500/15 text-[#f3a806] flex items-center justify-center font-bold">
                 <ShoppingBag className="w-4 h-4" />
               </div>
               <div>
@@ -285,12 +285,12 @@ export function AdminDashboardOverview({
                 <p className="text-[11px] text-zinc-400">Clientes para retirar</p>
               </div>
             </div>
-            <span className="font-mono text-sm font-black text-amber-600 dark:text-amber-400">
+            <span className="font-mono text-sm font-black text-[#f3a806]">
               {data.pendingPickupCount} pendientes
             </span>
           </div>
 
-          <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">
             {data.pendingPickupCount > 0
               ? 'Hay pedidos listos esperando ser cobrados y entregados a los clientes.'
               : 'Todos los pedidos para llevar han sido retirados y cobrados exitosamente.'}
@@ -298,10 +298,10 @@ export function AdminDashboardOverview({
 
           <Link
             href="/admin/mesas?view=pedidos"
-            className="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+            className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-bold text-[#f3a806] hover:underline"
           >
             <span>Ver Bandeja de Pedidos</span>
-            <ArrowRight className="w-3 h-3" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </section>
@@ -309,7 +309,7 @@ export function AdminDashboardOverview({
       {/* 3. Tarjetas KPI Financieras del Período */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Ventas */}
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
           <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
             {data.periodLabel}
           </span>
@@ -323,24 +323,24 @@ export function AdminDashboardOverview({
         </div>
 
         {/* Costo & Margen */}
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
           <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Margen Neto Operativo</span>
-          <p className="mt-2 text-3xl font-black text-emerald-600 dark:text-emerald-400">
+          <p className="mt-2 text-3xl font-black text-zinc-900 dark:text-zinc-100">
             {formatMoney(data.netMarginCents)}
           </p>
-          <div className="mt-2 flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-300 font-medium">
-            <TrendingUp className="w-3.5 h-3.5" />
+          <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[#d97706] font-medium">
+            <TrendingUp className="w-3.5 h-3.5 text-[#f3a806]" />
             <span>Insumos est. (35%): {formatMoney(data.operatingCostCents)}</span>
           </div>
         </div>
 
         {/* Arqueo por Método de Pago */}
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
           <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Caja por Método de Pago</span>
-          <div className="mt-2 space-y-1">
+          <div className="mt-2 space-y-1.5">
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300 font-medium">
-                <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                <Banknote className="w-3.5 h-3.5 text-[#f3a806]" />
                 <span>Efectivo:</span>
               </span>
               <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
@@ -349,7 +349,7 @@ export function AdminDashboardOverview({
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300 font-medium">
-                <Smartphone className="w-3.5 h-3.5 text-sky-600" />
+                <Smartphone className="w-3.5 h-3.5 text-[#f3a806]" />
                 <span>Transferencia:</span>
               </span>
               <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
@@ -358,7 +358,7 @@ export function AdminDashboardOverview({
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300 font-medium">
-                <CreditCard className="w-3.5 h-3.5 text-purple-600" />
+                <CreditCard className="w-3.5 h-3.5 text-[#f3a806]" />
                 <span>Tarjeta:</span>
               </span>
               <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
@@ -369,9 +369,9 @@ export function AdminDashboardOverview({
         </div>
 
         {/* Ticket Promedio */}
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
           <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Ticket Promedio</span>
-          <p className="mt-2 text-3xl font-black text-amber-600 dark:text-amber-400">
+          <p className="mt-2 text-3xl font-black text-[#f3a806]">
             {formatMoney(data.avgTicketCents)}
           </p>
           <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-400">
@@ -567,8 +567,8 @@ export function AdminDashboardOverview({
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
                       o.isPaid
-                        ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
-                        : 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
+                        ? 'bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-[#f3a806]/30'
+                        : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700'
                     }`}
                   >
                     {o.isPaid ? 'Pagado' : 'Pago al Retirar'}
@@ -584,10 +584,10 @@ export function AdminDashboardOverview({
       </section>
 
       {/* 7. Herramienta de Captación: Auto-Respuesta WhatsApp & Enlace de Menú */}
-      <section className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs space-y-4">
+      <section className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 border border-emerald-500/20 shadow-2xs">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 text-[#f3a806] border border-[#f3a806]/30 shadow-2xs">
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>
@@ -595,7 +595,7 @@ export function AdminDashboardOverview({
                 <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                   Enlace y Auto-Respuesta para WhatsApp
                 </h3>
-                <span className="rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded-full bg-amber-50 text-amber-900 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300/40 px-2 py-0.5 text-[10px] font-bold">
                   Captación de Clientes
                 </span>
               </div>
@@ -609,16 +609,16 @@ export function AdminDashboardOverview({
             <button
               type="button"
               onClick={() => void copyToClipboard(menuUrl, 'link')}
-              className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+              className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
             >
-              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              {copiedLink ? <Check className="w-3.5 h-3.5 text-[#f3a806]" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedLink ? 'Enlace Copiado' : 'Copiar Enlace'}</span>
             </button>
 
             <button
               type="button"
               onClick={() => void copyToClipboard(whatsappTemplate, 'msg')}
-              className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4.5 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               {copiedMessage ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedMessage ? 'Mensaje Copiado' : 'Copiar Mensaje para WhatsApp'}</span>
@@ -627,16 +627,16 @@ export function AdminDashboardOverview({
         </div>
 
         {/* Vista previa limpia y elegante estilo mensaje WhatsApp */}
-        <div className="rounded-2xl border border-emerald-500/15 bg-gradient-to-r from-emerald-50/40 via-zinc-50/50 to-white dark:from-emerald-950/20 dark:via-zinc-900 dark:to-zinc-900 p-4 text-xs text-zinc-700 dark:text-zinc-300">
+        <div className="rounded-2xl border border-[#f3a806]/20 bg-amber-50/30 dark:bg-amber-950/10 p-4.5 text-xs text-zinc-700 dark:text-zinc-300">
           <div className="flex items-start gap-2.5">
-            <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-2xs">
+            <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#f3a806] text-zinc-950 shadow-2xs font-bold">
               <MessageSquare className="w-3.5 h-3.5 fill-current" />
             </div>
-            <div className="space-y-1 text-xs">
+            <div className="space-y-1.5 text-xs">
               <p className="font-medium text-zinc-800 dark:text-zinc-200">
                 ¡Hola! Gracias por comunicarte con <strong className="font-bold text-zinc-900 dark:text-zinc-100">{staff.restaurantName}</strong>. Puedes revisar nuestra carta y pedir directamente aquí:
               </p>
-              <p className="font-mono text-emerald-700 dark:text-emerald-400 font-bold break-all">
+              <p className="font-mono text-[#d97706] dark:text-[#f3a806] font-bold break-all">
                 {menuUrl}
               </p>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400">

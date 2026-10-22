@@ -15,7 +15,9 @@ import {
   AlertCircle,
   RefreshCw,
   Search,
+  X,
 } from 'lucide-react';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 
 export type StaffItem = {
   id: string;
@@ -35,49 +37,49 @@ const roleDetails: Record<
   owner: {
     label: 'Dueño',
     icon: Shield,
-    color: 'text-amber-800 dark:text-amber-300',
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/20',
+    color: 'text-amber-950 dark:text-amber-200',
+    bg: 'bg-amber-500/15',
+    border: 'border-[#f3a806]/30',
     desc: 'Dueño fundador. Control irrestricto de sedes y facturación.',
   },
   admin: {
     label: 'Administrador',
     icon: Shield,
-    color: 'text-purple-800 dark:text-purple-300',
-    bg: 'bg-purple-500/10',
-    border: 'border-purple-500/20',
+    color: 'text-amber-950 dark:text-amber-200',
+    bg: 'bg-amber-500/15',
+    border: 'border-[#f3a806]/30',
     desc: 'Gestiona menú, precios, salón, personal y reportes financieros.',
   },
   cashier: {
     label: 'Cajero & Servicio',
     icon: CreditCard,
-    color: 'text-emerald-800 dark:text-emerald-300',
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/20',
+    color: 'text-zinc-900 dark:text-zinc-100',
+    bg: 'bg-zinc-100 dark:bg-zinc-800',
+    border: 'border-zinc-200 dark:border-zinc-700',
     desc: 'Atención en salón y mostrador: asigna mesas, toma órdenes y cobra antes o después de servir.',
   },
   waiter: {
     label: 'Cajero & Servicio',
     icon: CreditCard,
-    color: 'text-emerald-800 dark:text-emerald-300',
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/20',
+    color: 'text-zinc-900 dark:text-zinc-100',
+    bg: 'bg-zinc-100 dark:bg-zinc-800',
+    border: 'border-zinc-200 dark:border-zinc-700',
     desc: 'Atención en salón y mostrador (rol unificado con Cajero).',
   },
   kitchen: {
     label: 'Cocinero / Chef',
     icon: ChefHat,
-    color: 'text-rose-800 dark:text-rose-300',
-    bg: 'bg-rose-500/10',
-    border: 'border-rose-500/20',
+    color: 'text-[#d97706] dark:text-[#f3a806]',
+    bg: 'bg-amber-500/15',
+    border: 'border-[#f3a806]/30',
     desc: 'Pantalla KDS táctil con semáforos de tiempo y despacho de órdenes.',
   },
   host: {
     label: 'Anfitrión (Superusuario)',
     icon: Shield,
-    color: 'text-amber-800 dark:text-amber-300',
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/20',
+    color: 'text-amber-950 dark:text-amber-200',
+    bg: 'bg-amber-500/15',
+    border: 'border-[#f3a806]/30',
     desc: 'Superusuario: Control total del sistema, apartados, menú, personal, reportes y ajustes generales.',
   },
 };
@@ -93,6 +95,14 @@ export function StaffManager() {
   const [showPasswordModal, setShowPasswordModal] = useState<StaffItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
+  const [confirmModalData, setConfirmModalData] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    confirmText?: string;
+    variant?: 'orange' | 'danger';
+    onConfirm: () => Promise<void> | void;
+  } | null>(null);
 
   // Form states nuevo empleado
   const [newName, setNewName] = useState('');
@@ -248,29 +258,32 @@ export function StaffManager() {
   }
 
   // Eliminar empleado
-  async function handleDeleteStaff(staffItem: StaffItem) {
-    if (
-      !confirm(
-        `¿Estás seguro de remover a ${staffItem.fullName} (${staffItem.email}) del personal del restaurante?`,
-      )
-    ) {
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/staff/${staffItem.id}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        setFeedback({ ok: true, text: `Empleado ${staffItem.fullName} removido del restaurante.` });
-        setStaffList((prev) => prev.filter((s) => s.id !== staffItem.id));
-      } else {
-        const body = (await res.json()) as { error?: string };
-        setFeedback({ ok: false, text: body.error || 'Error al remover empleado.' });
-      }
-    } catch {
-      setFeedback({ ok: false, text: 'Error de red al remover empleado.' });
-    }
+  function handleDeleteStaff(staffItem: StaffItem) {
+    setConfirmModalData({
+      isOpen: true,
+      title: `Remover a ${staffItem.fullName || staffItem.email}`,
+      description: `¿Estás seguro de que deseas remover a ${staffItem.fullName} (${staffItem.email}) del personal del restaurante? Esta acción cancelará su acceso operativo.`,
+      confirmText: 'Remover Empleado',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/staff/${staffItem.id}`, {
+            method: 'DELETE',
+          });
+          if (res.ok) {
+            setFeedback({ ok: true, text: `Empleado ${staffItem.fullName} removido del restaurante.` });
+            setStaffList((prev) => prev.filter((s) => s.id !== staffItem.id));
+          } else {
+            const body = (await res.json()) as { error?: string };
+            setFeedback({ ok: false, text: body.error || 'Error al remover empleado.' });
+          }
+        } catch {
+          setFeedback({ ok: false, text: 'Error de red al remover empleado.' });
+        } finally {
+          setConfirmModalData(null);
+        }
+      },
+    });
   }
 
   // Filtros
@@ -323,22 +336,22 @@ export function StaffManager() {
         </div>
         <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Anfitriones</p>
-          <p className="mt-1 text-2xl font-black text-amber-600 dark:text-amber-400">{countByRole.hosts}</p>
+          <p className="mt-1 text-2xl font-black text-[#f3a806]">{countByRole.hosts}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">Superusuario total</p>
         </div>
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Cajeros & Servicio</p>
-          <p className="mt-1 text-2xl font-black text-emerald-600 dark:text-emerald-400">{countByRole.cashiers}</p>
+          <p className="mt-1 text-2xl font-black text-zinc-900 dark:text-zinc-100">{countByRole.cashiers}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">Mesas, orden y cobro</p>
         </div>
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Cocina / Barra</p>
-          <p className="mt-1 text-2xl font-black text-rose-600 dark:text-rose-400">{countByRole.kitchen}</p>
+          <p className="mt-1 text-2xl font-black text-[#f3a806]">{countByRole.kitchen}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">Pantalla KDS</p>
         </div>
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Administradores</p>
-          <p className="mt-1 text-2xl font-black text-purple-600 dark:text-purple-400">{countByRole.admins}</p>
+          <p className="mt-1 text-2xl font-black text-zinc-900 dark:text-zinc-100">{countByRole.admins}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">Gestión y menú</p>
         </div>
       </div>
@@ -608,18 +621,30 @@ export function StaffManager() {
 
       {/* MODAL: Cambiar Contraseña */}
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-2xl">
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-              Cambiar Contraseña
-            </h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Nueva contraseña para <strong>{showPasswordModal.fullName}</strong> ({showPasswordModal.email}).
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200 font-sans">
+            <div className="flex items-start justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <div>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100">
+                  Cambiar Contraseña
+                </h3>
+                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  Nueva contraseña para <strong>{showPasswordModal.fullName}</strong> ({showPasswordModal.email}).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPasswordModal(null)}
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-full transition-colors"
+                aria-label="Cerrar modal"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
 
             <form onSubmit={(e) => void handleResetPassword(e)} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
                   Nueva Contraseña * (mínimo 6 caracteres)
                 </label>
                 <input
@@ -629,7 +654,7 @@ export function StaffManager() {
                   value={resetPasswordVal}
                   onChange={(e) => setResetPasswordVal(e.target.value)}
                   placeholder="Ingresa la nueva clave..."
-                  className="h-10 w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-background px-3.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-xs text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -637,14 +662,14 @@ export function StaffManager() {
                 <button
                   type="button"
                   onClick={() => setShowPasswordModal(null)}
-                  className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 px-3.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                  className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 shadow-2xs cursor-pointer transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs"
+                  className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-5 text-xs font-black text-zinc-950 shadow-xs transition-all active:scale-[0.98] cursor-pointer"
                 >
                   {isSubmitting ? 'Guardando...' : 'Actualizar Clave'}
                 </button>
@@ -652,6 +677,19 @@ export function StaffManager() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Modal de Confirmación Genérico Suave */}
+      {confirmModalData && (
+        <ConfirmModal
+          isOpen={confirmModalData.isOpen}
+          title={confirmModalData.title}
+          description={confirmModalData.description}
+          confirmText={confirmModalData.confirmText}
+          variant={confirmModalData.variant}
+          onConfirm={confirmModalData.onConfirm}
+          onClose={() => setConfirmModalData(null)}
+        />
       )}
     </div>
   );

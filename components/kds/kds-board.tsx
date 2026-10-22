@@ -479,12 +479,12 @@ export function KdsBoard({
     <div className="space-y-6 font-sans">
       {/* Toast Flotante cuando una Orden está Lista para Despachar */}
       {readyToast && (
-        <div className="fixed top-5 right-5 z-50 rounded-2xl border-2 border-emerald-500 bg-white p-4 shadow-xl flex items-start gap-3 max-w-sm w-full animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-auto">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white font-black shadow-xs">
-            <CheckCheck className="w-5 h-5 animate-pulse" />
+        <div className="fixed top-5 right-5 z-50 rounded-3xl border border-[#f3a806]/40 bg-white p-4.5 shadow-2xl flex items-start gap-3 max-w-sm w-full animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-auto">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f3a806] text-zinc-950 font-black shadow-xs">
+            <CheckCheck className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-xs font-black uppercase tracking-wider text-emerald-800">
+            <h4 className="text-xs font-black uppercase tracking-wider text-amber-950">
               ¡Orden Lista para Despachar!
             </h4>
             <p className="mt-0.5 text-sm font-extrabold text-zinc-900">
@@ -514,7 +514,7 @@ export function KdsBoard({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="flex h-2.5 w-2.5 rounded-full bg-[#f3a806] animate-pulse" />
                 <span className="text-[11px] font-black uppercase tracking-wider text-[#f3a806]">
                   KDS Cocina & Barra · En Vivo
                 </span>
@@ -523,13 +523,13 @@ export function KdsBoard({
                 Comandero de Cocina
               </h1>
               <div className="flex flex-wrap items-center gap-2 mt-1">
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-amber-500/10 px-3 py-1 text-[11px] font-bold text-amber-950">
+                  <span className="h-2 w-2 rounded-full bg-[#f3a806] animate-pulse" />
                   <span>Cocinero en Turno: {kitchenStaffName}</span>
                 </div>
                 {userRole !== 'kitchen' && (
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-300/80 bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-900 shadow-2xs">
-                    <Eye className="h-3 w-3 text-blue-600 shrink-0" />
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/80 bg-amber-50 px-3 py-1 text-[11px] font-bold text-amber-950 shadow-2xs">
+                    <Eye className="h-3.5 w-3.5 text-[#f3a806] shrink-0" />
                     <span>Modo Supervisión ({userRole === 'admin' ? 'Administrador' : userRole}) · Solo Lectura</span>
                   </div>
                 )}
@@ -563,13 +563,13 @@ export function KdsBoard({
               onClick={() => setActiveTab('finalizados')}
               className={`flex items-center gap-2 rounded-full px-5 py-2 text-xs font-black transition-all cursor-pointer ${
                 activeTab === 'finalizados'
-                  ? 'bg-emerald-600 text-white shadow-xs'
+                  ? 'bg-zinc-950 text-[#f3a806] shadow-xs'
                   : 'text-zinc-600 hover:text-zinc-900'
               }`}
             >
               <PackageCheck className="h-4 w-4 stroke-[2.5]" />
               <span>Finalizados / Entregados</span>
-              <span className={`ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${activeTab === 'finalizados' ? 'bg-white text-emerald-800' : 'bg-zinc-200 text-zinc-700'}`}>
+              <span className={`ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${activeTab === 'finalizados' ? 'bg-[#f3a806] text-zinc-950' : 'bg-zinc-200 text-zinc-700'}`}>
                 {kpiStats.completedTickets}
               </span>
             </button>
@@ -691,13 +691,13 @@ export function KdsBoard({
               <span className="text-[11px] font-bold text-amber-900">🔥 En Fuego</span>
               <span className="text-base font-black text-[#f3a806]">{kpiStats.cookingCount}</span>
             </div>
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-2.5 flex items-center justify-between shadow-2xs">
-              <span className="text-[11px] font-bold text-emerald-900">🛎️ Listos</span>
-              <span className="text-base font-black text-emerald-700">{kpiStats.readyCount}</span>
+            <div className="rounded-2xl border border-zinc-200/90 bg-white p-2.5 flex items-center justify-between shadow-2xs">
+              <span className="text-[11px] font-bold text-zinc-700">🛎️ Listos</span>
+              <span className="text-base font-black text-[#f3a806]">{kpiStats.readyCount}</span>
             </div>
             <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 flex items-center justify-between shadow-2xs">
               <span className="text-[11px] font-bold text-zinc-600">⏱️ Espera Prom.</span>
-              <span className={`text-base font-black ${kpiStats.avgWait > 15 ? 'text-rose-600' : 'text-zinc-800'}`}>
+              <span className={`text-base font-black ${kpiStats.avgWait > 15 ? 'text-amber-700' : 'text-zinc-800'}`}>
                 {kpiStats.avgWait}m
               </span>
             </div>
@@ -829,14 +829,14 @@ export function KdsBoard({
 
               {/* Columna 3: Listos para Despacho */}
               <section className="space-y-4">
-                <div className="flex items-center justify-between rounded-2xl border border-emerald-200/80 bg-emerald-50/70 px-4 py-3 shadow-2xs">
+                <div className="flex items-center justify-between rounded-2xl border border-amber-300/70 bg-amber-500/10 px-4 py-3 shadow-2xs">
                   <div className="flex items-center gap-2">
-                    <CheckCheck className="h-4 w-4 text-emerald-600" />
-                    <h2 className="text-xs font-black uppercase tracking-wider text-emerald-950">
+                    <CheckCheck className="h-4 w-4 text-[#f3a806]" />
+                    <h2 className="text-xs font-black uppercase tracking-wider text-amber-950">
                       Listos para Entrega
                     </h2>
                   </div>
-                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-600 px-2 text-xs font-black text-white">
+                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#f3a806] px-2 text-xs font-black text-zinc-950">
                     {columns.listo.length}
                   </span>
                 </div>
@@ -906,7 +906,7 @@ export function KdsBoard({
           <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 shadow-2xs">
             <div>
               <h2 className="text-base font-black text-zinc-900 flex items-center gap-2">
-                <PackageCheck className="h-5 w-5 text-emerald-600" />
+                <PackageCheck className="h-5 w-5 text-[#f3a806]" />
                 Historial de Órdenes Entregadas ({completedOrders.length})
               </h2>
               <p className="text-xs text-zinc-500 mt-0.5">
@@ -952,10 +952,10 @@ export function KdsBoard({
                       {ord.items.map((it) => (
                         <li key={it.id} className="pt-2 flex items-center justify-between text-xs">
                           <span className="text-zinc-700 font-semibold flex items-center gap-2">
-                            <span className="font-bold font-mono text-emerald-600">{it.quantity}×</span>
+                            <span className="font-bold font-mono text-[#f3a806]">{it.quantity}×</span>
                             <span className="line-through text-zinc-400">{it.productName}</span>
                           </span>
-                          <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] text-amber-950 font-bold bg-amber-500/10 border border-[#f3a806]/30 px-2.5 py-0.5 rounded-full">
                             Entregado
                           </span>
                         </li>
@@ -971,13 +971,13 @@ export function KdsBoard({
                         onClick={() => void reopenDeliveredOrder(ord)}
                         className="h-10 w-full rounded-full border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-xs font-bold text-zinc-800 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
                       >
-                        <RotateCcw className="h-3.5 w-3.5 text-amber-600" />
+                        <RotateCcw className="h-3.5 w-3.5 text-[#f3a806]" />
                         <span>Reabrir a Cocina</span>
                       </button>
                     ) : (
                       <div className="flex items-center justify-between px-2 py-1 text-xs">
                         <span className="text-[11px] font-medium text-zinc-400">Despacho completado</span>
-                        <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-black text-emerald-800">
+                        <span className="rounded-full bg-amber-500/10 border border-[#f3a806]/30 px-2.5 py-0.5 text-[10px] font-black text-amber-950">
                           ✓ Entregado
                         </span>
                       </div>
@@ -1050,7 +1050,7 @@ function KdsTicketCard({
   } else if (stage === 'listo') {
     actionLabel = 'Despachar al Mesero';
     actionIcon = CheckCheck;
-    actionBg = 'bg-emerald-600 hover:bg-emerald-700 text-white';
+    actionBg = 'bg-zinc-950 hover:bg-zinc-800 text-[#f3a806]';
   }
 
   const ActionIcon = actionIcon;
@@ -1071,7 +1071,7 @@ function KdsTicketCard({
                 {order.zone || 'Salón'}
               </span>
               {order.status === 'pagada' && (
-                <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.2 text-[9px] font-bold text-emerald-800">
+                <span className="rounded-full bg-amber-500/15 border border-[#f3a806]/30 px-2 py-0.2 text-[9px] font-bold text-amber-950">
                   Pre-pagado
                 </span>
               )}
@@ -1138,7 +1138,7 @@ function KdsTicketCard({
                         <div className="min-w-0 flex-1">
                           <span
                             className={`text-sm font-extrabold leading-snug block transition-opacity ${
-                              isReady ? 'text-emerald-700 line-through opacity-80' : 'text-zinc-900'
+                              isReady ? 'text-[#f3a806] line-through opacity-80' : 'text-zinc-900'
                             }`}
                           >
                             {it.productName}
@@ -1162,7 +1162,7 @@ function KdsTicketCard({
                           </span>
                         )}
                         {isReady && (
-                          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-800">
+                          <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-950">
                             ✅ Listo
                           </span>
                         )}
@@ -1201,7 +1201,7 @@ function KdsTicketCard({
         ) : (
           <div className="flex items-center justify-between rounded-2xl bg-zinc-50 border border-zinc-200/80 px-4 py-2">
             <span className="text-[11px] font-bold text-zinc-500 flex items-center gap-1.5">
-              <Eye className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+              <Eye className="h-3.5 w-3.5 text-[#f3a806] shrink-0" />
               Supervisión en cocina:
             </span>
             <span
@@ -1209,9 +1209,9 @@ function KdsTicketCard({
                 stage === 'nuevo'
                   ? 'bg-amber-100/80 text-amber-900 border border-amber-200'
                   : stage === 'preparando'
-                  ? 'bg-orange-100/80 text-orange-950 border border-orange-200'
+                  ? 'bg-amber-500/20 text-amber-950 border border-[#f3a806]/40'
                   : stage === 'listo'
-                  ? 'bg-emerald-100/80 text-emerald-950 border border-emerald-200'
+                  ? 'bg-zinc-950 text-[#f3a806] border border-zinc-800'
                   : 'bg-zinc-100 text-zinc-700 border border-zinc-200'
               }`}
             >

@@ -19,6 +19,7 @@ import {
   Image as ImageIcon,
   Sparkles,
 } from 'lucide-react';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import type { MenuCategory, MenuProduct } from '@/lib/menu/types';
 import { getProductImageUrl, FOOD_PHOTO_PRESETS } from '@/lib/orders/product-images';
@@ -192,6 +193,16 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
 
+  // Modal de confirmación suave (sin alert de navegador)
+  const [confirmModalData, setConfirmModalData] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    confirmText?: string;
+    variant?: 'orange' | 'danger';
+    onConfirm: () => Promise<void> | void;
+  } | null>(null);
+
   const loadMenu = useCallback(async () => {
     setLoading(true);
     try {
@@ -292,26 +303,34 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
     }
   }
 
-  async function handleDeleteCategory(id: string, name: string) {
-    if (!confirm(`¿Eliminar la categoría "${name}"? Los platos quedarán como "Sin categoría".`)) {
-      return;
-    }
-    try {
-      const { error: delErr } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id)
-        .eq('restaurant_id', restaurantId);
+  function handleDeleteCategory(id: string, name: string) {
+    setConfirmModalData({
+      isOpen: true,
+      title: `Eliminar Categoría "${name}"`,
+      description: `¿Estás seguro de que deseas eliminar la categoría "${name}"? Los platos asociados pasarán a "Sin categoría" sin perder su información.`,
+      confirmText: 'Eliminar Categoría',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          const { error: delErr } = await supabase
+            .from('categories')
+            .delete()
+            .eq('id', id)
+            .eq('restaurant_id', restaurantId);
 
-      if (delErr) {
-        setFeedback({ ok: false, text: 'No se pudo eliminar la categoría.' });
-        return;
-      }
-      setFeedback({ ok: true, text: `Categoría "${name}" eliminada.` });
-      await loadMenu();
-    } catch {
-      setFeedback({ ok: false, text: 'Error al eliminar categoría.' });
-    }
+          if (delErr) {
+            setFeedback({ ok: false, text: 'No se pudo eliminar la categoría.' });
+            return;
+          }
+          setFeedback({ ok: true, text: `Categoría "${name}" eliminada.` });
+          await loadMenu();
+        } catch {
+          setFeedback({ ok: false, text: 'Error al eliminar categoría.' });
+        } finally {
+          setConfirmModalData(null);
+        }
+      },
+    });
   }
 
   // 2. Agregar Plato
@@ -434,26 +453,34 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
   }
 
   // 5. Eliminar Plato
-  async function handleDeleteProduct(id: string, name: string) {
-    if (!confirm(`¿Estás seguro de eliminar permanentemente el plato "${name}"?`)) {
-      return;
-    }
-    try {
-      const { error: delErr } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id)
-        .eq('restaurant_id', restaurantId);
+  function handleDeleteProduct(id: string, name: string) {
+    setConfirmModalData({
+      isOpen: true,
+      title: `Eliminar Plato "${name}"`,
+      description: `¿Estás seguro de que deseas eliminar permanentemente el plato "${name}" del menú? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar Plato',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          const { error: delErr } = await supabase
+            .from('products')
+            .delete()
+            .eq('id', id)
+            .eq('restaurant_id', restaurantId);
 
-      if (delErr) {
-        setFeedback({ ok: false, text: 'No se pudo eliminar el plato.' });
-        return;
-      }
-      setFeedback({ ok: true, text: `Plato "${name}" eliminado del menú.` });
-      await loadMenu();
-    } catch {
-      setFeedback({ ok: false, text: 'Error al eliminar plato.' });
-    }
+          if (delErr) {
+            setFeedback({ ok: false, text: 'No se pudo eliminar el plato.' });
+            return;
+          }
+          setFeedback({ ok: true, text: `Plato "${name}" eliminado del menú.` });
+          await loadMenu();
+        } catch {
+          setFeedback({ ok: false, text: 'Error al eliminar plato.' });
+        } finally {
+          setConfirmModalData(null);
+        }
+      },
+    });
   }
 
   // 6. Importar CSV
@@ -568,19 +595,19 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
           <p className="mt-1 text-2xl font-black text-zinc-900 dark:text-zinc-100">{products.length}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">En carta digital & salón</p>
         </div>
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Disponibles</p>
-          <p className="mt-1 text-2xl font-black text-emerald-600 dark:text-emerald-400">{activeCount}</p>
+          <p className="mt-1 text-2xl font-black text-[#f3a806]">{activeCount}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">Listos para ordenar</p>
         </div>
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Agotados / Pausa</p>
-          <p className="mt-1 text-2xl font-black text-amber-600 dark:text-amber-400">{pausedCount}</p>
+          <p className="mt-1 text-2xl font-black text-zinc-900 dark:text-zinc-100">{pausedCount}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">Ocultos temporalmente</p>
         </div>
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
+        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Categorías</p>
-          <p className="mt-1 text-2xl font-black text-purple-600 dark:text-purple-400">{categories.length}</p>
+          <p className="mt-1 text-2xl font-black text-[#f3a806]">{categories.length}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">Secciones del menú</p>
         </div>
       </div>
@@ -753,8 +780,8 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black backdrop-blur-md shadow-xs ${
                         dish.station === 'barra'
-                          ? 'bg-purple-900/80 text-purple-200 border border-purple-500/30'
-                          : 'bg-amber-900/80 text-amber-200 border border-amber-500/30'
+                          ? 'bg-zinc-950/80 text-[#f3a806] border border-[#f3a806]/40'
+                          : 'bg-amber-950/80 text-amber-200 border border-amber-500/40'
                       }`}
                     >
                       {dish.station === 'barra' ? <Wine className="w-3 h-3" /> : <ChefHat className="w-3 h-3" />}
@@ -768,8 +795,8 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
                       ${(dish.price_cents / 100).toFixed(2)}
                     </span>
                     {dish.image_url ? (
-                      <span className="rounded-full bg-emerald-500/90 text-white text-[10px] font-bold px-2 py-0.5 shadow-xs">
-                        Foto asignada
+                      <span className="rounded-full bg-white/90 text-zinc-950 text-[10px] font-black px-2 py-0.5 shadow-xs border border-zinc-200/80">
+                        Foto lista
                       </span>
                     ) : (
                       <span className="rounded-full bg-black/50 backdrop-blur-xs text-zinc-300 text-[10px] font-medium px-2 py-0.5">
@@ -1158,6 +1185,19 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de Confirmación Genérico Suave */}
+      {confirmModalData && (
+        <ConfirmModal
+          isOpen={confirmModalData.isOpen}
+          title={confirmModalData.title}
+          description={confirmModalData.description}
+          confirmText={confirmModalData.confirmText}
+          variant={confirmModalData.variant}
+          onConfirm={confirmModalData.onConfirm}
+          onClose={() => setConfirmModalData(null)}
+        />
       )}
     </div>
   );

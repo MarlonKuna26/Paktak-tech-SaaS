@@ -26,6 +26,7 @@ import type { StaffRole } from '@/lib/auth/get-current-staff';
 import { TableCheckoutModal, type TableOrderDetails } from './table-checkout-modal';
 import { WaiterManager } from '@/components/waiter/waiter-manager';
 import { OrderManager } from '@/components/orders/order-manager';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 
 function playWaiterAlertChime() {
   try {
@@ -62,23 +63,23 @@ const statusConfig: Record<
   libre: {
     label: 'Libre',
     bgClass: 'bg-white dark:bg-zinc-900',
-    borderClass: 'border-zinc-100 dark:border-zinc-800',
-    badgeClass: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
-    dotClass: 'bg-emerald-500',
+    borderClass: 'border-zinc-200/90 dark:border-zinc-800',
+    badgeClass: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border border-zinc-200/80',
+    dotClass: 'bg-zinc-400',
   },
   ocupada: {
     label: 'Ocupada',
     bgClass: 'bg-white dark:bg-zinc-900',
-    borderClass: 'border-zinc-100 dark:border-zinc-800',
-    badgeClass: 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
+    borderClass: 'border-zinc-200/90 dark:border-zinc-800',
+    badgeClass: 'bg-amber-500/15 text-amber-950 dark:text-amber-200 border border-[#f3a806]/40',
     dotClass: 'bg-[#f3a806]',
   },
   reservada: {
     label: 'Reservada',
     bgClass: 'bg-white dark:bg-zinc-900',
-    borderClass: 'border-zinc-100 dark:border-zinc-800',
-    badgeClass: 'bg-blue-50 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
-    dotClass: 'bg-blue-500',
+    borderClass: 'border-zinc-200/90 dark:border-zinc-800',
+    badgeClass: 'bg-zinc-950 text-[#f3a806] dark:bg-zinc-800 dark:text-amber-300 border border-zinc-700',
+    dotClass: 'bg-[#f3a806]',
   },
 };
 
@@ -153,6 +154,16 @@ export function TableManager({
   const [readyAlerts, setReadyAlerts] = useState<
     Array<{ id: string; productName: string; quantity: number; time: string }>
   >([]);
+
+  // Modal de confirmación suave (sin alert de navegador)
+  const [confirmModalData, setConfirmModalData] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    confirmText?: string;
+    variant?: 'orange' | 'danger';
+    onConfirm: () => Promise<void> | void;
+  } | null>(null);
 
   const canCreateTable = ['owner', 'admin', 'host'].includes(userRole);
 
@@ -335,12 +346,17 @@ export function TableManager({
       setIsFetchingCheckout(false);
 
       if (queryError || !orderData) {
-        const confirmFree = window.confirm(
-          `La Mesa #${table.table_number} está marcada como ocupada pero no tiene una orden activa registrada. ¿Deseas liberar la mesa directamente?`
-        );
-        if (confirmFree) {
-          await updateTableStatus(table.id, 'libre');
-        }
+        setConfirmModalData({
+          isOpen: true,
+          title: `Liberar Mesa #${table.table_number}`,
+          description: `La Mesa #${table.table_number} está marcada como ocupada pero no tiene una orden activa registrada. ¿Deseas liberar la mesa de inmediato para dejarla disponible?`,
+          confirmText: 'Liberar Mesa',
+          variant: 'orange',
+          onConfirm: async () => {
+            await updateTableStatus(table.id, 'libre');
+            setConfirmModalData(null);
+          },
+        });
         return;
       }
 
@@ -461,22 +477,32 @@ export function TableManager({
   }
 
   // Eliminar mesa libre
-  async function handleDeleteTable(table: RestaurantTable) {
-    if (!confirm(`¿Eliminar permanentemente la Mesa #${table.table_number}?`)) return;
-    try {
-      const res = await fetch(`/api/tables/${table.id}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        setSuccessMsg(`Mesa #${table.table_number} eliminada del salón.`);
-        await loadTables();
-      } else {
-        const body = (await res.json()) as { error?: string };
-        setError(body.error || 'No se pudo eliminar la mesa.');
-      }
-    } catch {
-      setError('Error de red al eliminar mesa.');
-    }
+  function handleDeleteTable(table: RestaurantTable) {
+    setConfirmModalData({
+      isOpen: true,
+      title: `Eliminar Mesa #${table.table_number}`,
+      description: `¿Estás seguro de que deseas eliminar permanentemente la Mesa #${table.table_number} del salón? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar Mesa',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/tables/${table.id}`, {
+            method: 'DELETE',
+          });
+          if (res.ok) {
+            setSuccessMsg(`Mesa #${table.table_number} eliminada del salón.`);
+            await loadTables();
+          } else {
+            const body = (await res.json()) as { error?: string };
+            setError(body.error || 'No se pudo eliminar la mesa.');
+          }
+        } catch {
+          setError('Error de red al eliminar mesa.');
+        } finally {
+          setConfirmModalData(null);
+        }
+      },
+    });
   }
 
   // Generar lote de mesas
@@ -1167,14 +1193,26 @@ export function TableManager({
 
       {/* MODAL: Crear Nueva Mesa */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-xl">
-            <h3 className="text-lg font-bold">Agregar Nueva Mesa</h3>
-            <p className="mt-1 text-xs text-muted-foreground">Registra una mesa física para el control del salón.</p>
-
-            <form onSubmit={(e) => void handleCreateTable(e)} className="mt-4 space-y-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200 font-sans">
+            <div className="flex items-start justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
               <div>
-                <label htmlFor="modalTableNum" className="block text-xs font-medium text-muted-foreground mb-1">
+                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100">Agregar Nueva Mesa</h3>
+                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">Registra una mesa física para el control del salón.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-full transition-colors"
+                aria-label="Cerrar modal"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => void handleCreateTable(e)} className="mt-4 space-y-3.5">
+              <div>
+                <label htmlFor="modalTableNum" className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
                   Número de Mesa *
                 </label>
                 <input
@@ -1186,12 +1224,12 @@ export function TableManager({
                   value={newTableNumber}
                   onChange={(e) => setNewTableNumber(e.target.value)}
                   placeholder="Ej. 2"
-                  className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label htmlFor="modalCapacity" className="block text-xs font-medium text-muted-foreground mb-1">
+                <label htmlFor="modalCapacity" className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
                   Capacidad de Comensales (Sillas) *
                 </label>
                 <input
@@ -1203,12 +1241,12 @@ export function TableManager({
                   value={newCapacity}
                   onChange={(e) => setNewCapacity(e.target.value)}
                   placeholder="Ej. 4"
-                  className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label htmlFor="modalZone" className="block text-xs font-medium text-muted-foreground mb-1">
+                <label htmlFor="modalZone" className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
                   Zona / Área (Opcional)
                 </label>
                 <input
@@ -1217,22 +1255,22 @@ export function TableManager({
                   value={newZone}
                   onChange={(e) => setNewZone(e.target.value)}
                   placeholder="Ej. Terraza, VIP, Salón 1"
-                  className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
                 />
               </div>
 
-              <div className="mt-5 flex gap-2 pt-2">
+              <div className="mt-5 flex gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="h-9 flex-1 rounded-lg border bg-background text-xs font-medium hover:bg-muted"
+                  className="h-10 flex-1 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 shadow-2xs cursor-pointer transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="h-9 flex-1 rounded-lg bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                  className="h-10 flex-1 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-xs font-black text-zinc-950 shadow-xs transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                 >
                   {isCreating ? 'Guardando...' : 'Crear Mesa'}
                 </button>
@@ -1244,16 +1282,28 @@ export function TableManager({
 
       {/* MODAL: Editar Mesa */}
       {editingTable && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-xl">
-            <h3 className="text-lg font-bold">Editar Mesa #{editingTable.table_number}</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Ajusta la cantidad de asientos o el sector asignado.
-            </p>
-
-            <form onSubmit={(e) => void handleEditTable(e)} className="mt-4 space-y-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200 font-sans">
+            <div className="flex items-start justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
               <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">
+                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100">Editar Mesa #{editingTable.table_number}</h3>
+                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  Ajusta la cantidad de asientos o el sector asignado.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingTable(null)}
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-full transition-colors"
+                aria-label="Cerrar modal"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => void handleEditTable(e)} className="mt-4 space-y-3.5">
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
                   Capacidad de Comensales (Sillas) *
                 </label>
                 <input
@@ -1263,12 +1313,12 @@ export function TableManager({
                   required
                   value={editCapacity}
                   onChange={(e) => setEditCapacity(e.target.value)}
-                  className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
                   Zona / Área (Opcional)
                 </label>
                 <input
@@ -1276,22 +1326,22 @@ export function TableManager({
                   value={editZone}
                   onChange={(e) => setEditZone(e.target.value)}
                   placeholder="Ej. Salón Principal, Terraza, VIP"
-                  className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
                 />
               </div>
 
-              <div className="mt-5 flex gap-2 pt-2">
+              <div className="mt-5 flex gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setEditingTable(null)}
-                  className="h-9 flex-1 rounded-lg border bg-background text-xs font-medium hover:bg-muted"
+                  className="h-10 flex-1 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 shadow-2xs cursor-pointer transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isUpdatingTable}
-                  className="h-9 flex-1 rounded-lg bg-[#f3a806] hover:bg-[#e09804] text-xs font-bold text-zinc-950 shadow-xs"
+                  className="h-10 flex-1 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-xs font-black text-zinc-950 shadow-xs transition-all active:scale-[0.98] cursor-pointer"
                 >
                   {isUpdatingTable ? 'Guardando...' : 'Guardar Cambios'}
                 </button>
@@ -1303,17 +1353,29 @@ export function TableManager({
 
       {/* MODAL: Generar Lote de Mesas */}
       {showBatchModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-xl">
-            <h3 className="text-lg font-bold">Generar Lote de Mesas</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Crea múltiples mesas consecutivas rápidamente (ej. Mesas de la 1 a la 10).
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200 font-sans">
+            <div className="flex items-start justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <div>
+                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100">Generar Lote de Mesas</h3>
+                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  Crea múltiples mesas consecutivas rápidamente (ej. Mesas de la 1 a la 10).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBatchModal(false)}
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-full transition-colors"
+                aria-label="Cerrar modal"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
 
-            <form onSubmit={(e) => void handleCreateBatchTables(e)} className="mt-4 space-y-3">
+            <form onSubmit={(e) => void handleCreateBatchTables(e)} className="mt-4 space-y-3.5">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
                     Número Inicial *
                   </label>
                   <input
@@ -1324,12 +1386,12 @@ export function TableManager({
                     value={batchStart}
                     onChange={(e) => setBatchStart(e.target.value)}
                     placeholder="1"
-                    className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
                     Cantidad a Crear *
                   </label>
                   <input
@@ -1340,13 +1402,13 @@ export function TableManager({
                     value={batchCount}
                     onChange={(e) => setBatchCount(e.target.value)}
                     placeholder="10"
-                    className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
                   Capacidad por Mesa (Sillas) *
                 </label>
                 <input
@@ -1357,12 +1419,12 @@ export function TableManager({
                   value={batchCapacity}
                   onChange={(e) => setBatchCapacity(e.target.value)}
                   placeholder="4"
-                  className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
                   Zona / Área
                 </label>
                 <input
@@ -1370,22 +1432,22 @@ export function TableManager({
                   value={batchZone}
                   onChange={(e) => setBatchZone(e.target.value)}
                   placeholder="Ej. Salón Principal"
-                  className="h-9 w-full rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
                 />
               </div>
 
-              <div className="mt-5 flex gap-2 pt-2">
+              <div className="mt-5 flex gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setShowBatchModal(false)}
-                  className="h-9 flex-1 rounded-lg border bg-background text-xs font-medium hover:bg-muted"
+                  className="h-10 flex-1 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 shadow-2xs cursor-pointer transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isCreatingBatch}
-                  className="h-9 flex-1 rounded-lg bg-[#f3a806] hover:bg-[#e09804] text-xs font-bold text-zinc-950 shadow-xs"
+                  className="h-10 flex-1 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-xs font-black text-zinc-950 shadow-xs transition-all active:scale-[0.98] cursor-pointer"
                 >
                   {isCreatingBatch ? 'Generando...' : 'Crear Lote'}
                 </button>
@@ -1397,19 +1459,19 @@ export function TableManager({
 
       {/* MODAL: Asignar Reserva a Mesa */}
       {assigningTable && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-xl">
-            <div className="flex items-start justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200 font-sans">
+            <div className="flex items-start justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
               <div>
-                <h3 className="text-lg font-bold">Asignar Reserva a Mesa #{assigningTable.table_number}</h3>
-                <p className="text-xs text-muted-foreground">
-                  Capacidad de la mesa: {assigningTable.capacity} personas · Zona: {assigningTable.zone || 'Salón'}
+                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100">Asignar Reserva a Mesa #{assigningTable.table_number}</h3>
+                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  Capacidad: {assigningTable.capacity} personas · Zona: {assigningTable.zone || 'Salón'}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setAssigningTable(null)}
-                className="text-muted-foreground hover:text-foreground text-sm"
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-full transition-colors"
                 aria-label="Cerrar modal"
               >
                 <X className="h-4 w-4" />
@@ -1422,27 +1484,27 @@ export function TableManager({
                 return (
                   <div
                     key={res.id}
-                    className="flex flex-col gap-2 rounded-xl border bg-muted/20 p-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-2 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-800/40 p-3 sm:flex-row sm:items-center sm:justify-between shadow-2xs"
                   >
                     <div>
-                      <p className="font-semibold text-sm">{res.customer_name}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="font-black text-xs text-zinc-900 dark:text-zinc-100">{res.customer_name}</p>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                         {res.guests} personas · Tel: {res.customer_phone}
                       </p>
-                      <p className="text-[11px] font-mono text-primary">
+                      <p className="text-[11px] font-mono font-bold text-[#f3a806]">
                         Hora: {new Date(res.date_time).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
                       </p>
-                      {res.notes && <p className="text-[10px] italic text-muted-foreground">Nota: {res.notes}</p>}
+                      {res.notes && <p className="text-[10px] italic text-zinc-400">Nota: {res.notes}</p>}
                     </div>
 
                     <button
                       type="button"
                       disabled={isAssigning || exceedsCapacity}
                       onClick={() => void handleAssignReservation(res.id)}
-                      className={`h-8 rounded-lg px-3 text-xs font-semibold shadow-xs transition-colors ${
+                      className={`h-8 rounded-full px-3.5 text-xs font-black shadow-2xs transition-all cursor-pointer ${
                         exceedsCapacity
-                          ? 'bg-muted text-muted-foreground opacity-50 cursor-not-allowed'
-                          : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                          ? 'bg-zinc-100 text-zinc-400 opacity-50 cursor-not-allowed'
+                          : 'bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 active:scale-[0.98]'
                       }`}
                       title={exceedsCapacity ? 'Excede la capacidad de la mesa' : 'Asignar'}
                     >
@@ -1453,17 +1515,17 @@ export function TableManager({
               })}
 
               {!unassignedReservations.length && (
-                <div className="py-8 text-center text-xs text-muted-foreground">
+                <div className="py-8 text-center text-xs text-zinc-400">
                   No hay reservas pendientes sin mesa asignada para hoy.
                 </div>
               )}
             </div>
 
-            <div className="mt-4 border-t pt-3 flex justify-end">
+            <div className="mt-4 border-t border-zinc-100 dark:border-zinc-800 pt-3 flex justify-end">
               <button
                 type="button"
                 onClick={() => setAssigningTable(null)}
-                className="h-8 rounded-lg border bg-background px-3 text-xs font-medium hover:bg-muted"
+                className="h-8 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 shadow-2xs cursor-pointer"
               >
                 Cerrar
               </button>
@@ -1485,6 +1547,19 @@ export function TableManager({
             setSuccessMsg(`¡Cuenta de Mesa #${tableNum} cobrada exitosamente!`);
             void loadTables(true);
           }}
+        />
+      )}
+
+      {/* Modal de Confirmación Genérico Suave (sin alert de navegador) */}
+      {confirmModalData && (
+        <ConfirmModal
+          isOpen={confirmModalData.isOpen}
+          title={confirmModalData.title}
+          description={confirmModalData.description}
+          confirmText={confirmModalData.confirmText}
+          variant={confirmModalData.variant}
+          onConfirm={confirmModalData.onConfirm}
+          onClose={() => setConfirmModalData(null)}
         />
       )}
     </div>
