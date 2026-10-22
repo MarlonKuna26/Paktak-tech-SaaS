@@ -63,4 +63,18 @@ export class OrderModel {
     if (error) throw new Error(error.message);
     return data;
   }
+
+  /**
+   * Marca todos los ítems de una orden como servidos en mesa
+   */
+  static async serveOrderItems(orderId: string) {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.rpc('serve_order_items', {
+      p_order_id: orderId,
+    });
+
+    if (error) throw new Error(error.message);
+    return data;
+  }
 }
+

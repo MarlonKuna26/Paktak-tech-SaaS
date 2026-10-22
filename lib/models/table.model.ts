@@ -231,6 +231,45 @@ export class TableModel {
   static async updateStatus(restaurantId: string, tableId: string, status: TableStatus) {
     const supabase = await createSupabaseServerClient();
 
+    if (status === 'libre') {
+      // 1. Obtener la mesa y validar comanda activa
+      const { data: tableData } = await supabase
+        .from('tables')
+        .select('id, table_number')
+        .eq('id', tableId)
+        .eq('restaurant_id', restaurantId)
+        .single();
+
+      const tableNum = tableData?.table_number ? `#${tableData.table_number}` : '';
+
+      // 2. Verificar si hay órdenes activas asociadas a esta mesa
+      const { data: activeOrders } = await supabase
+        .from('orders')
+        .select('id, order_number, status, order_items(id, status)')
+        .eq('table_id', tableId)
+        .eq('restaurant_id', restaurantId)
+        .in('status', ['abierta', 'pagada']);
+
+      if (activeOrders && activeOrders.length > 0) {
+        for (const ord of activeOrders) {
+          const rawItems = (ord.order_items || []) as Array<{ id: string; status: string }>;
+          const unservedItems = rawItems.filter((it) => it.status !== 'entregado');
+
+          if (rawItems.length > 0 && unservedItems.length > 0) {
+            throw new Error(
+              `No se puede liberar la mesa ${tableNum}. La comanda #${ord.order_number} aún tiene comida pendiente de ser servida (${unservedItems.length} plato(s) en cocina/despacho). Debes marcar la comida como servida en mesa antes de liberar.`,
+            );
+          }
+
+          if (ord.status === 'abierta') {
+            throw new Error(
+              `No se puede liberar la mesa ${tableNum}. La comanda #${ord.order_number} aún no ha sido cobrada. Por favor cobra la cuenta antes de liberar la mesa.`,
+            );
+          }
+        }
+      }
+    }
+
     const { data: updatedTable, error: tableError } = await supabase
       .from('tables')
       .update({ status })

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { X, Banknote, Smartphone, CreditCard, Plus, Minus } from 'lucide-react';
+import { X, Banknote, Smartphone, CreditCard, Plus, Minus, Lock } from 'lucide-react';
 import { ThermalReceiptModal } from '@/components/orders/thermal-receipt-modal';
 
 type OrderItem = {
@@ -19,6 +19,7 @@ export type TableOrderDetails = {
   zone: string | null;
   subtotalCents: number;
   items: OrderItem[];
+  isServido?: boolean;
 };
 
 export function TableCheckoutModal({
@@ -37,8 +38,12 @@ export function TableCheckoutModal({
   const [splitPersons, setSplitPersons] = useState<number>(1);
   const [payMethod, setPayMethod] = useState<'efectivo' | 'transferencia' | 'tarjeta'>('efectivo');
   const [cashGivenDollars, setCashGivenDollars] = useState('');
-  const [keepTableOccupied, setKeepTableOccupied] = useState(initialKeepTableOccupied);
+  const isFoodNotServed = order.isServido === false;
+  const [keepTableOccupied, setKeepTableOccupied] = useState(
+    isFoodNotServed ? true : initialKeepTableOccupied,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [error, setError] = useState('');
   const [completedReceiptData, setCompletedReceiptData] = useState<{
     orderNumber: string;
@@ -93,7 +98,7 @@ export function TableCheckoutModal({
           paymentMethod: payMethod,
           tipCents,
           paidCents: payMethod === 'efectivo' && cashGivenCents > 0 ? cashGivenCents : totalCents,
-          releaseTable: !keepTableOccupied,
+          releaseTable: isFoodNotServed ? false : !keepTableOccupied,
         }),
       });
 
@@ -339,35 +344,51 @@ export function TableCheckoutModal({
           </div>
 
           {/* Modalidad de Cobro Anticipado / Pre-pago */}
-          <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-amber-500/25 bg-amber-50/70 dark:bg-amber-950/20 cursor-pointer hover:bg-amber-500/10 transition-colors">
-            <input
-              type="checkbox"
-              checked={keepTableOccupied}
-              onChange={(e) => setKeepTableOccupied(e.target.checked)}
-              className="h-4 w-4 rounded accent-[#f3a806] cursor-pointer"
-            />
-            <div className="text-xs">
-              <span className="font-extrabold text-zinc-900 dark:text-zinc-100 block">
-                Cobro anticipado / Pre-pago antes de servir
-              </span>
-              <p className="text-zinc-500 dark:text-zinc-400 text-[11px] mt-0.5">
-                {keepTableOccupied
-                  ? 'La mesa continuará como OCUPADA en el salón mientras los comensales disfrutan sus platos.'
-                  : 'La mesa se liberará de inmediato tras confirmar este cobro.'}
-              </p>
+          {isFoodNotServed ? (
+            <div className="p-3.5 rounded-2xl border border-amber-500/30 bg-amber-500/10 flex items-start gap-3">
+              <div className="h-6 w-6 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0 mt-0.5">
+                <Lock className="w-3.5 h-3.5" />
+              </div>
+              <div className="text-xs">
+                <span className="font-extrabold text-amber-900 dark:text-amber-200 block">
+                  Cobro anticipado (Mesa permanecerá ocupada)
+                </span>
+                <p className="text-zinc-600 dark:text-zinc-300 text-[11px] mt-0.5 leading-relaxed">
+                  La comida aún no ha sido servida en mesa. Por seguridad operativa, <strong>la mesa continuará ocupada</strong> para que los comensales reciban sus platos. Podrás liberarla una vez servida.
+                </p>
+              </div>
             </div>
-          </label>
+          ) : (
+            <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 cursor-pointer hover:bg-zinc-100/80 dark:hover:bg-zinc-800 transition-colors">
+              <input
+                type="checkbox"
+                checked={keepTableOccupied}
+                onChange={(e) => setKeepTableOccupied(e.target.checked)}
+                className="h-4 w-4 rounded accent-[#f3a806] cursor-pointer"
+              />
+              <div className="text-xs">
+                <span className="font-extrabold text-zinc-900 dark:text-zinc-100 block">
+                  Mantener mesa ocupada tras cobrar
+                </span>
+                <p className="text-zinc-500 dark:text-zinc-400 text-[11px] mt-0.5">
+                  {keepTableOccupied
+                    ? 'La mesa continuará como OCUPADA en el salón mientras los comensales disfrutan sus platos.'
+                    : 'La mesa se liberará de inmediato tras confirmar este cobro (los comensales ya se retiran).'}
+                </p>
+              </div>
+            </label>
+          )}
 
           {/* Botón de Confirmación */}
           <div className="pt-1">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="h-14 w-full rounded-full bg-[#FFC21A] text-base font-extrabold text-[#1A1A1A] transition-opacity hover:opacity-90 disabled:opacity-50 shadow-xs"
+              className="h-14 w-full rounded-full bg-[#FFC21A] text-base font-extrabold text-[#1A1A1A] transition-opacity hover:opacity-90 disabled:opacity-50 shadow-xs cursor-pointer"
             >
               {isSubmitting
                 ? 'Registrando cobro...'
-                : keepTableOccupied
+                : isFoodNotServed || keepTableOccupied
                   ? `Cobrar $${(totalCents / 100).toFixed(2)} (Mesa Ocupada)`
                   : `Cobrar $${(totalCents / 100).toFixed(2)} y Liberar Mesa`}
             </button>

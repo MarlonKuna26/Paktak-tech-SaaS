@@ -102,7 +102,7 @@ export class OrderController {
    */
   static async updateKdsStatus(request: Request) {
     const staff = await getCurrentStaff();
-    if (!staff || !['kitchen', 'host', 'admin', 'owner', 'cashier'].includes(staff.role)) {
+    if (!staff || !['kitchen', 'host', 'admin', 'owner', 'cashier', 'waiter'].includes(staff.role)) {
       return NextResponse.json(
         { error: 'No tienes permisos para cambiar el estado de los pedidos en cocina.' },
         { status: 403 },
@@ -128,4 +128,28 @@ export class OrderController {
       return NextResponse.json({ error: msg }, { status: 400 });
     }
   }
+
+  /**
+   * POST /api/orders/[id]/serve
+   */
+  static async serve(
+    _request: Request,
+    props: { params: Promise<{ id: string }> },
+  ) {
+    const staff = await getCurrentStaff();
+    if (!staff || !['kitchen', 'waiter', 'host', 'cashier', 'admin', 'owner'].includes(staff.role)) {
+      return NextResponse.json({ error: 'No autorizado para marcar comida como servida' }, { status: 403 });
+    }
+
+    const { id: orderId } = await props.params;
+
+    try {
+      const updatedCount = await OrderModel.serveOrderItems(orderId);
+      return NextResponse.json({ success: true, updatedCount });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al marcar comida como servida';
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
+  }
 }
+

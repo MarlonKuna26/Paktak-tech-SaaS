@@ -19,6 +19,7 @@ import {
   LayoutGrid,
   ConciergeBell,
   ClipboardList,
+  Lock,
 } from 'lucide-react';
 import type { RestaurantTable, TableStatus, AvailableReservation } from '@/lib/tables/types';
 import type { StaffRole } from '@/lib/auth/get-current-staff';
@@ -260,6 +261,27 @@ export function TableManager({
     };
   }, [loadTables, loadUnassignedReservations, restaurantId, supabase]);
 
+  // Marcar todos los platos de una comanda como servidos en mesa
+  async function handleServeOrder(orderId: string) {
+    setError('');
+    setSuccessMsg('');
+    try {
+      const res = await fetch(`/api/orders/${orderId}/serve`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        setError(body.error ?? 'No se pudo marcar la comida como servida.');
+        return;
+      }
+      setSuccessMsg('¡Comida marcada como servida en mesa!');
+      setTimeout(() => setSuccessMsg(''), 4000);
+      await loadTables(true);
+    } catch {
+      setError('Error al marcar comida como servida.');
+    }
+  }
+
   // Cambiar estado de mesa
   async function updateTableStatus(tableId: string, nextStatus: TableStatus) {
     setError('');
@@ -299,7 +321,8 @@ export function TableManager({
             product_name,
             quantity,
             unit_price_cents,
-            notes
+            notes,
+            status
           )
         `)
         .eq('table_id', table.id)
@@ -327,11 +350,13 @@ export function TableManager({
         quantity: number;
         unit_price_cents: number;
         notes: string | null;
+        status?: string;
       };
 
       const rawItems = ((orderData.order_items as unknown) as RawOrderItem[]) || [];
       const computedSubtotal = rawItems.reduce((acc, it) => acc + (it.unit_price_cents * it.quantity), 0);
       const subtotal = orderData.subtotal_cents > 0 ? orderData.subtotal_cents : computedSubtotal;
+      const isServido = rawItems.length > 0 && rawItems.every((it) => it.status === 'entregado');
 
       setCheckoutOrder({
         orderId: orderData.id,
@@ -339,6 +364,7 @@ export function TableManager({
         tableNumber: table.table_number,
         zone: table.zone,
         subtotalCents: subtotal,
+        isServido,
         items: rawItems.map((it) => ({
           id: it.id,
           productName: it.product_name,
@@ -824,6 +850,8 @@ export function TableManager({
             const isPreparing = table.status === 'ocupada' && table.active_order?.kitchen_status === 'preparando';
             const isPending = table.status === 'ocupada' && table.active_order?.kitchen_status === 'pendiente';
             const isServido = table.status === 'ocupada' && table.active_order?.kitchen_status === 'servido';
+            const hasActiveOrder = Boolean(table.active_order);
+            const canLiberarMesa = !hasActiveOrder || isServido;
 
             return (
               <article
@@ -886,48 +914,84 @@ export function TableManager({
 
                   {/* ESTADO EN VIVO DE COCINA */}
                   {isFoodReady && (
-                    <div className="mt-3 rounded-xl border border-emerald-500/50 bg-emerald-500/15 p-2.5 text-xs text-emerald-900 dark:text-emerald-200 flex items-center justify-between shadow-xs">
-                      <div className="flex items-center gap-1.5 font-extrabold">
-                        <Bell className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                        <span>¡Comida Lista para Servir!</span>
+                    <div className="mt-3 rounded-xl border border-emerald-500/50 bg-emerald-500/15 p-2.5 text-xs text-emerald-900 dark:text-emerald-200 flex flex-col gap-2 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 font-extrabold">
+                          <Bell className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span>¡Comida Lista para Servir!</span>
+                        </div>
+                        <span className="font-mono text-[10px] bg-emerald-600 text-white dark:bg-emerald-500 px-2 py-0.5 rounded-full font-bold">
+                          {table.active_order?.ready_items_count}/{table.active_order?.items_count} listos
+                        </span>
                       </div>
-                      <span className="font-mono text-[10px] bg-emerald-600 text-white dark:bg-emerald-500 px-2 py-0.5 rounded-full font-bold">
-                        {table.active_order?.ready_items_count}/{table.active_order?.items_count} listos
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => void handleServeOrder(table.active_order!.id)}
+                        className="h-7.5 w-full rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                      >
+                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Marcar como Servido en Mesa</span>
+                      </button>
                     </div>
                   )}
 
                   {isPreparing && (
-                    <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-900 dark:text-amber-200 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 font-semibold">
-                        <Flame className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-                        <span>En preparación en cocina</span>
+                    <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-2 text-xs text-amber-900 dark:text-amber-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 font-semibold">
+                          <Flame className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                          <span>En preparación en cocina</span>
+                        </div>
+                        <span className="font-mono text-[10px] text-amber-700 dark:text-amber-300 font-bold">
+                          #{table.active_order?.order_number}
+                        </span>
                       </div>
-                      <span className="font-mono text-[10px] text-amber-700 dark:text-amber-300 font-bold">
-                        #{table.active_order?.order_number}
-                      </span>
+                      <div className="mt-1 flex items-center justify-end">
+                        <button
+                          type="button"
+                          onClick={() => void handleServeOrder(table.active_order!.id)}
+                          className="text-[10px] font-bold text-amber-700 dark:text-amber-300 hover:underline flex items-center gap-1 cursor-pointer"
+                          title="Si los platos ya fueron llevados a la mesa"
+                        >
+                          <Check className="w-3 h-3 stroke-[2.5]" />
+                          <span>¿Ya se sirvió? Marcar servido</span>
+                        </button>
+                      </div>
                     </div>
                   )}
 
                   {isPending && (
-                    <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/40 p-2 text-xs text-zinc-600 dark:text-zinc-400 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                        <span>En cola de cocina</span>
+                    <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/40 p-2 text-xs text-zinc-600 dark:text-zinc-400">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                          <span>En cola de cocina</span>
+                        </div>
+                        <span className="font-mono text-[10px] font-bold">
+                          #{table.active_order?.order_number}
+                        </span>
                       </div>
-                      <span className="font-mono text-[10px] font-bold">
-                        #{table.active_order?.order_number}
-                      </span>
+                      <div className="mt-1 flex items-center justify-end">
+                        <button
+                          type="button"
+                          onClick={() => void handleServeOrder(table.active_order!.id)}
+                          className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 hover:underline flex items-center gap-1 cursor-pointer"
+                          title="Si los platos ya fueron llevados a la mesa"
+                        >
+                          <Check className="w-3 h-3 stroke-[2.5]" />
+                          <span>¿Ya se sirvió? Marcar servido</span>
+                        </button>
+                      </div>
                     </div>
                   )}
 
                   {isServido && (
-                    <div className="mt-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/40 p-2 text-xs text-zinc-600 dark:text-zinc-400 flex items-center justify-between">
+                    <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 p-2 text-xs text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
                       <div className="flex items-center gap-1.5 font-medium">
-                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                        <span>Comida servida en mesa</span>
+                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.5]" />
+                        <span className="font-semibold text-emerald-800 dark:text-emerald-300">Comida servida en mesa</span>
                       </div>
-                      <span className="font-mono text-[10px] text-zinc-400">
+                      <span className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">
                         #{table.active_order?.order_number}
                       </span>
                     </div>
@@ -1007,19 +1071,31 @@ export function TableManager({
                           </button>
 
                           {table.active_order?.is_paid ? (
-                            <button
-                              type="button"
-                              onClick={() => void updateTableStatus(table.id, 'libre')}
-                              className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5"
-                            >
-                              <span>Liberar Mesa</span>
-                            </button>
+                            canLiberarMesa ? (
+                              <button
+                                type="button"
+                                onClick={() => void updateTableStatus(table.id, 'libre')}
+                                className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                              >
+                                <span>Liberar Mesa</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled
+                                title="No puedes liberar la mesa hasta que la comida esté servida en mesa"
+                                className="h-9 rounded-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 px-2 text-xs font-bold text-zinc-400 dark:text-zinc-500 cursor-not-allowed flex items-center justify-center gap-1.5 opacity-75"
+                              >
+                                <Lock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                                <span>Liberar Mesa</span>
+                              </button>
+                            )
                           ) : (
                             <button
                               type="button"
                               onClick={() => void openTableCheckout(table)}
                               disabled={isFetchingCheckout}
-                              className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                              className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                             >
                               <CreditCard className="w-3.5 h-3.5" />
                               <span>Cobrar</span>
@@ -1027,13 +1103,22 @@ export function TableManager({
                           )}
                         </div>
 
-                        {!table.active_order?.is_paid && (
+                        {/* Indicador y bloqueo cuando la comida aún no se ha servido */}
+                        {table.active_order?.is_paid && !canLiberarMesa && (
+                          <div className="flex items-center justify-center gap-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 px-2.5 py-1 text-[11px] font-semibold text-amber-800 dark:text-amber-300 border border-amber-300/40">
+                            <Lock className="w-3 h-3 shrink-0" />
+                            <span>Comida no servida aún • Servir antes de liberar</span>
+                          </div>
+                        )}
+
+                        {/* Si la mesa está ocupada pero no tiene ninguna comanda activa */}
+                        {!hasActiveOrder && (
                           <button
                             type="button"
                             onClick={() => void updateTableStatus(table.id, 'libre')}
-                            className="h-8 w-full rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+                            className="h-8 w-full rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
                           >
-                            Liberar Mesa
+                            Liberar Mesa (Sin Comanda)
                           </button>
                         )}
                       </div>
