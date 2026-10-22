@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   MessageSquare,
   Copy,
@@ -14,8 +15,14 @@ import {
   ChefHat,
   Calendar,
   Clock,
-  ShieldCheck,
-  RotateCcw,
+  Banknote,
+  CreditCard,
+  Smartphone,
+  Flame,
+  Award,
+  Sparkles,
+  Utensils,
+  Layers,
 } from 'lucide-react';
 import type { CurrentStaff } from '@/lib/auth/get-current-staff';
 import type { PeriodType } from '@/lib/utils/date-range';
@@ -31,6 +38,24 @@ type DashboardData = {
   totalOrders: number;
   avgTicketCents: number;
   pendingPickupCount: number;
+  operationalStatus: {
+    totalTables: number;
+    occupiedTables: number;
+    freeTables: number;
+    kitchenPreparingCount: number;
+    kitchenReadyCount: number;
+  };
+  paymentMethods: {
+    efectivo: { totalCents: number; count: number };
+    tarjeta: { totalCents: number; count: number };
+    transferencia: { totalCents: number; count: number };
+  };
+  topDishes: Array<{
+    name: string;
+    quantity: number;
+    totalCents: number;
+    imageUrl: string;
+  }>;
   channels: Array<{ name: string; count: number; totalCents: number; percentage: number }>;
   creators: Array<{ name: string; role: string; count: number; totalCents: number }>;
   recentOrders: Array<{
@@ -83,9 +108,13 @@ export function AdminDashboardOverview({
     });
   };
 
+  const occupancyRate = data.operationalStatus.totalTables > 0
+    ? Math.round((data.operationalStatus.occupiedTables / data.operationalStatus.totalTables) * 100)
+    : 0;
+
   return (
     <div className="space-y-6 font-sans">
-      {/* Selector de Período y Estado de Información */}
+      {/* 1. Selector de Período y Métrica Total Permanente */}
       <section className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white dark:bg-zinc-900 p-2 sm:p-2.5 rounded-2xl border border-zinc-200/90 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
@@ -161,9 +190,126 @@ export function AdminDashboardOverview({
         )}
       </section>
 
-      {/* 1. Tarjetas KPI de Resumen Ejecutivo y Costos de Operación */}
+      {/* 2. Torre de Control Operativa en Vivo */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Salón y Mesas */}
+        <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-[#f3a806] flex items-center justify-center font-bold">
+                <Utensils className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Salón & Mesas</h4>
+                <p className="text-[11px] text-zinc-400">Capacidad en sala</p>
+              </div>
+            </div>
+            <span className="font-mono text-xs font-bold text-zinc-700 dark:text-zinc-300">
+              {data.operationalStatus.occupiedTables}/{data.operationalStatus.totalTables} ocupadas
+            </span>
+          </div>
+
+          <div className="mt-3 space-y-1.5">
+            <div className="flex items-center justify-between text-[11px] text-zinc-500 font-medium">
+              <span>{occupancyRate}% ocupación</span>
+              <span>{data.operationalStatus.freeTables} mesas libres</span>
+            </div>
+            <div className="h-1.5 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#f3a806] rounded-full transition-all"
+                style={{ width: `${occupancyRate}%` }}
+              />
+            </div>
+          </div>
+
+          <Link
+            href="/admin/mesas"
+            className="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-bold text-[#f3a806] hover:underline"
+          >
+            <span>Gestionar Salón</span>
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        {/* Cocina KDS */}
+        <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
+                <Flame className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Cocina KDS</h4>
+                <p className="text-[11px] text-zinc-400">Platos en turno</p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              KDS Activo
+            </span>
+          </div>
+
+          <div className="mt-3 flex items-center gap-2 text-xs">
+            <div className="flex-1 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 p-2 text-center">
+              <p className="font-mono text-base font-black text-amber-600 dark:text-amber-400">
+                {data.operationalStatus.kitchenPreparingCount}
+              </p>
+              <p className="text-[10px] text-zinc-400 font-medium">En preparación</p>
+            </div>
+            <div className="flex-1 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 p-2 text-center">
+              <p className="font-mono text-base font-black text-emerald-600 dark:text-emerald-400">
+                {data.operationalStatus.kitchenReadyCount}
+              </p>
+              <p className="text-[10px] text-zinc-400 font-medium">Listos para servir</p>
+            </div>
+          </div>
+
+          <Link
+            href="/admin/cocina"
+            className="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline"
+          >
+            <span>Monitorear KDS Cocina</span>
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        {/* Retiro & WhatsApp */}
+        <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                <ShoppingBag className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Takeout & Retiros</h4>
+                <p className="text-[11px] text-zinc-400">Clientes para retirar</p>
+              </div>
+            </div>
+            <span className="font-mono text-sm font-black text-amber-600 dark:text-amber-400">
+              {data.pendingPickupCount} pendientes
+            </span>
+          </div>
+
+          <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+            {data.pendingPickupCount > 0
+              ? 'Hay pedidos listos esperando ser cobrados y entregados a los clientes.'
+              : 'Todos los pedidos para llevar han sido retirados y cobrados exitosamente.'}
+          </p>
+
+          <Link
+            href="/admin/mesas?view=pedidos"
+            className="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+          >
+            <span>Ver Bandeja de Pedidos</span>
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+      </section>
+
+      {/* 3. Tarjetas KPI Financieras del Período */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs">
+        {/* Ventas */}
+        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
           <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
             {data.periodLabel}
           </span>
@@ -172,84 +318,143 @@ export function AdminDashboardOverview({
           </p>
           <div className="mt-2 flex items-center gap-1.5 text-[11px] text-zinc-500 font-medium">
             <ShoppingBag className="w-3.5 h-3.5 text-[#f3a806]" />
-            <span>{data.totalOrders} órdenes procesadas</span>
+            <span>{data.totalOrders} órdenes pagadas</span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs">
-          <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Costos de Insumos (35%)</span>
-          <p className="mt-2 text-3xl font-black text-zinc-500 dark:text-zinc-400">
-            {formatMoney(data.operatingCostCents)}
-          </p>
-          <p className="mt-2 text-[11px] text-zinc-400 font-medium">
-            Costo estimado de materia prima
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs">
+        {/* Costo & Margen */}
+        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
           <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Margen Neto Operativo</span>
           <p className="mt-2 text-3xl font-black text-emerald-600 dark:text-emerald-400">
             {formatMoney(data.netMarginCents)}
           </p>
           <div className="mt-2 flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-300 font-medium">
             <TrendingUp className="w-3.5 h-3.5" />
-            <span>Rentabilidad operativa positiva</span>
+            <span>Insumos est. (35%): {formatMoney(data.operatingCostCents)}</span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs">
-          <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Por Cobrar al Retirar</span>
+        {/* Arqueo por Método de Pago */}
+        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+          <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Caja por Método de Pago</span>
+          <div className="mt-2 space-y-1">
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300 font-medium">
+                <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Efectivo:</span>
+              </span>
+              <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
+                {formatMoney(data.paymentMethods.efectivo.totalCents)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300 font-medium">
+                <Smartphone className="w-3.5 h-3.5 text-sky-600" />
+                <span>Transferencia:</span>
+              </span>
+              <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
+                {formatMoney(data.paymentMethods.transferencia.totalCents)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300 font-medium">
+                <CreditCard className="w-3.5 h-3.5 text-purple-600" />
+                <span>Tarjeta:</span>
+              </span>
+              <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
+                {formatMoney(data.paymentMethods.tarjeta.totalCents)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Ticket Promedio */}
+        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+          <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Ticket Promedio</span>
           <p className="mt-2 text-3xl font-black text-amber-600 dark:text-amber-400">
-            {data.pendingPickupCount}
+            {formatMoney(data.avgTicketCents)}
           </p>
-          <div className="mt-2 flex items-center justify-between text-[11px]">
-            <span className="text-zinc-400">Ticket prom: {formatMoney(data.avgTicketCents)}</span>
+          <div className="mt-2 flex items-center justify-between text-[11px] text-zinc-400">
+            <span>Consumo promedio por comanda</span>
             <Link
-              href="/admin/mesas?view=pedidos"
+              href="/admin/reportes"
               className="font-bold text-[#f3a806] hover:underline flex items-center gap-0.5"
             >
-              <span>Ver</span>
+              <span>Reportes</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Monitor de Estado de Cocina & Cocinero */}
-      <section className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-[#f3a806] border border-amber-500/20 shadow-2xs">
-            <ChefHat className="h-5 w-5 stroke-[2.2]" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                Cocina & Cocinero en Turno
-              </span>
-              <span className="rounded-full bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
-                Activa / En Turno
-              </span>
+      {/* 4. Platos Estrella Más Vendidos (Top Sellers con Fotos) */}
+      <section className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-[#f3a806] flex items-center justify-center font-bold">
+              <Award className="w-4.5 h-4.5 stroke-[2.2]" />
             </div>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              Supervisión en vivo de órdenes, cocineros asignados, semáforos de fuego y despacho.
-            </p>
+            <div>
+              <h3 className="text-sm font-black text-zinc-900 dark:text-zinc-100">
+                Platos Estrella Más Vendidos
+              </h3>
+              <p className="text-xs text-zinc-400">Los platillos favoritos y con mayor recaudación</p>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2 shrink-0">
           <Link
-            href="/admin/cocina"
-            className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 px-4 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors flex items-center gap-1.5 shadow-2xs"
+            href="/admin/menu"
+            className="text-xs font-bold text-[#f3a806] hover:underline flex items-center gap-1"
           >
-            <ChefHat className="w-3.5 h-3.5 text-[#f3a806]" />
-            <span>Monitorear KDS Cocina</span>
+            <span>Ver Carta Completa</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
+
+        {data.topDishes.length === 0 ? (
+          <p className="py-8 text-center text-xs text-zinc-400">
+            Aún no hay platos registrados en este período.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {data.topDishes.map((dish, idx) => (
+              <div
+                key={dish.name}
+                className="group relative rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 p-3 flex flex-col justify-between hover:border-amber-400/50 transition-all shadow-2xs"
+              >
+                <div>
+                  <div className="relative h-28 w-full rounded-xl overflow-hidden mb-2.5 bg-zinc-100 dark:bg-zinc-800">
+                    <img
+                      src={dish.imageUrl}
+                      alt={dish.name}
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <span className="absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full bg-zinc-950/80 text-white text-[11px] font-black backdrop-blur-xs">
+                      #{idx + 1}
+                    </span>
+                  </div>
+
+                  <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 line-clamp-1">
+                    {dish.name}
+                  </h4>
+                  <p className="text-[11px] text-zinc-500 font-medium mt-0.5">
+                    {dish.quantity} órdenes vendidas
+                  </p>
+                </div>
+
+                <div className="mt-2.5 pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60 flex items-center justify-between text-xs">
+                  <span className="text-[10px] uppercase font-bold text-zinc-400">Recaudado</span>
+                  <span className="font-mono font-black text-zinc-950 dark:text-zinc-100">
+                    {formatMoney(dish.totalCents)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* 3. Cruzamiento de Datos: Canales vs Creador del Pedido */}
+      {/* 5. Cruzamiento de Datos: Canales vs Creador del Pedido */}
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Cruzamiento por Canal */}
         <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs space-y-4">
@@ -319,7 +524,7 @@ export function AdminDashboardOverview({
         </div>
       </section>
 
-      {/* 4. Lista Rápida de Pedidos Recientes & Acceso a Módulos */}
+      {/* 6. Lista Rápida de Pedidos Recientes */}
       <section className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -378,7 +583,7 @@ export function AdminDashboardOverview({
         )}
       </section>
 
-      {/* 5. Herramienta de Captación: Auto-Respuesta WhatsApp & Enlace de Menú (Al final del Resumen) */}
+      {/* 7. Herramienta de Captación: Auto-Respuesta WhatsApp & Enlace de Menú */}
       <section className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -404,7 +609,7 @@ export function AdminDashboardOverview({
             <button
               type="button"
               onClick={() => void copyToClipboard(menuUrl, 'link')}
-              className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs"
+              className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
             >
               {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedLink ? 'Enlace Copiado' : 'Copiar Enlace'}</span>
@@ -413,7 +618,7 @@ export function AdminDashboardOverview({
             <button
               type="button"
               onClick={() => void copyToClipboard(whatsappTemplate, 'msg')}
-              className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center gap-1.5"
+              className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               {copiedMessage ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedMessage ? 'Mensaje Copiado' : 'Copiar Mensaje para WhatsApp'}</span>
