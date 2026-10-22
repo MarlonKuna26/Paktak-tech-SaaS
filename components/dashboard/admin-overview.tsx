@@ -12,10 +12,19 @@ import {
   Store,
   ArrowRight,
   ChefHat,
+  Calendar,
+  Clock,
+  ShieldCheck,
+  RotateCcw,
 } from 'lucide-react';
 import type { CurrentStaff } from '@/lib/auth/get-current-staff';
+import type { PeriodType } from '@/lib/utils/date-range';
 
 type DashboardData = {
+  selectedPeriod: PeriodType;
+  periodLabel: string;
+  allTimeSalesCents: number;
+  allTimeOrdersCount: number;
   todaySalesCents: number;
   operatingCostCents: number;
   netMarginCents: number;
@@ -75,11 +84,89 @@ export function AdminDashboardOverview({
   };
 
   return (
-    <div className="space-y-8 font-sans">
+    <div className="space-y-6 font-sans">
+      {/* Selector de Período y Estado de Información */}
+      <section className="space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white dark:bg-zinc-900 p-2 sm:p-2.5 rounded-2xl border border-zinc-200/90 dark:border-zinc-800 shadow-xs">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+            {[
+              { id: 'hoy', label: 'Hoy' },
+              { id: 'ayer', label: 'Ayer' },
+              { id: 'semana', label: 'Últimos 7 Días' },
+              { id: 'mes', label: 'Este Mes' },
+              { id: 'todo', label: 'Histórico Total' },
+            ].map((p) => {
+              const isActive = data.selectedPeriod === p.id;
+              return (
+                <Link
+                  key={p.id}
+                  href={p.id === 'hoy' ? '/admin' : `/admin?period=${p.id}`}
+                  className={`h-9 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                    isActive
+                      ? 'bg-[#f3a806] text-zinc-950 shadow-xs font-black'
+                      : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                  }`}
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>{p.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-semibold text-zinc-600 dark:text-zinc-400 px-2 shrink-0">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Total Histórico:</span>
+            <span className="font-mono font-black text-zinc-950 dark:text-zinc-100 text-sm">
+              {formatMoney(data.allTimeSalesCents)}
+            </span>
+            <span className="text-[11px] text-zinc-400">
+              ({data.allTimeOrdersCount} órdenes seguras)
+            </span>
+          </div>
+        </div>
+
+        {/* Alerta informativa amigable cuando 'Hoy' aún tiene $0 */}
+        {data.selectedPeriod === 'hoy' && data.todaySalesCents === 0 && (
+          <div className="rounded-2xl border border-amber-300/70 dark:border-amber-800/40 bg-amber-50/80 dark:bg-amber-950/20 p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-[#f3a806] text-zinc-950 flex items-center justify-center font-black shrink-0 shadow-xs">
+                <Clock className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-200">
+                  Nuevo Día Operativo en Curso
+                </h4>
+                <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-0.5">
+                  Hoy aún no se han registrado comandas. <strong>Toda tu información está guardada de forma 100% segura en la base de datos</strong> (tienes <strong>{formatMoney(data.allTimeSalesCents)}</strong> en {data.allTimeOrdersCount} pedidos históricos).
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href="/admin?period=ayer"
+                className="h-8.5 px-3.5 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 shadow-2xs flex items-center gap-1.5 transition-colors"
+              >
+                <span>Ver Ventas de Ayer</span>
+                <ArrowRight className="w-3.5 h-3.5 text-[#f3a806]" />
+              </Link>
+              <Link
+                href="/admin?period=semana"
+                className="h-8.5 px-3.5 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 text-xs font-black shadow-xs flex items-center gap-1.5 transition-colors"
+              >
+                <span>Últimos 7 Días</span>
+              </Link>
+            </div>
+          </div>
+        )}
+      </section>
+
       {/* 1. Tarjetas KPI de Resumen Ejecutivo y Costos de Operación */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs">
-          <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Ventas del Día</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+            {data.periodLabel}
+          </span>
           <p className="mt-2 text-3xl font-black text-zinc-900 dark:text-zinc-100">
             {formatMoney(data.todaySalesCents)}
           </p>

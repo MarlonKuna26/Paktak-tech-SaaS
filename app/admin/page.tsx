@@ -4,13 +4,15 @@ import { connection } from 'next/server';
 import { getCurrentStaff } from '@/lib/auth/get-current-staff';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { AdminDashboardOverview } from '@/components/dashboard/admin-overview';
-import { getLocalDayRange } from '@/lib/utils/date-range';
+import { getPeriodDateRange, type PeriodType } from '@/lib/utils/date-range';
 
 export const metadata = {
   title: 'Resumen Ejecutivo | Paktak Tech',
 };
 
-export default async function AdminPage() {
+export default async function AdminPage(props: {
+  searchParams?: Promise<{ period?: string }>;
+}) {
   await connection();
   const staff = await getCurrentStaff();
 
@@ -27,6 +29,9 @@ export default async function AdminPage() {
     redirect('/admin/mesas');
   }
 
+  const searchParams = props.searchParams ? await props.searchParams : {};
+  const requestedPeriod = (searchParams.period as PeriodType) || 'hoy';
+
   // Resolver host URL para links de WhatsApp
   const headersList = await headers();
   const host = headersList.get('host') || 'localhost:3000';
@@ -35,30 +40,60 @@ export default async function AdminPage() {
 
   const supabase = await createSupabaseServerClient();
   const timezone = staff.restaurantTimezone || 'America/Guayaquil';
-  const { startIso, endIso } = getLocalDayRange(timezone);
+  const periodRange = getPeriodDateRange(requestedPeriod, timezone);
 
-  // 1. Cargar Órdenes de Salón del día
-  const { data: rawSalonOrders } = await supabase
+  // 1. Cargar Órdenes de Salón según el período
+  let salonQuery = supabase
     .from('orders')
     .select('id, total_cents, order_number, status, closed_at, opened_at, waiter_id, waiter:staff_members(role)')
     .eq('restaurant_id', staff.restaurantId)
-    .gte('opened_at', startIso)
-    .lte('opened_at', endIso)
     .order('opened_at', { ascending: false });
 
-  // 2. Cargar Pedidos Públicos (WhatsApp / Web / Delivery / Takeout)
-  const { data: rawPublicOrders } = await supabase
+  if (periodRange.startIso && periodRange.endIso) {
+    salonQuery = salonQuery
+      .gte('opened_at', periodRange.startIso)
+      .lte('opened_at', periodRange.endIso);
+  }
+
+  // 2. Cargar Pedidos Públicos según el período
+  let publicQuery = supabase
     .from('public_order_requests')
     .select('id, tracking_code, customer_name, total_cents, status, service_type, payment_status, payment_method, created_at')
     .eq('restaurant_id', staff.restaurantId)
-    .gte('created_at', startIso)
-    .lte('created_at', endIso)
     .order('created_at', { ascending: false });
+
+  if (periodRange.startIso && periodRange.endIso) {
+    publicQuery = publicQuery
+      .gte('created_at', periodRange.startIso)
+      .lte('created_at', periodRange.endIso);
+  }
+
+  // 3. Totales Históricos acumulados (para verificar y garantizar que la información NUNCA se pierda)
+  const [{ data: rawSalonOrders }, { data: rawPublicOrders }, { data: allSalonOrders }, { data: allPublicOrders }] =
+    await Promise.all([
+      salonQuery,
+      publicQuery,
+      supabase
+        .from('orders')
+        .select('total_cents, status')
+        .eq('restaurant_id', staff.restaurantId),
+      supabase
+        .from('public_order_requests')
+        .select('total_cents, payment_status')
+        .eq('restaurant_id', staff.restaurantId),
+    ]);
+
+  const allPaidSalon = (allSalonOrders || []).filter((o) => o.status === 'pagada');
+  const allPaidPublic = (allPublicOrders || []).filter((o) => o.payment_status === 'pagado');
+  const allTimeSalesCents =
+    allPaidSalon.reduce((acc, o) => acc + (o.total_cents || 0), 0) +
+    allPaidPublic.reduce((acc, o) => acc + (o.total_cents || 0), 0);
+  const allTimeOrdersCount = (allSalonOrders?.length || 0) + (allPublicOrders?.length || 0);
 
   const salonOrders = rawSalonOrders || [];
   const publicOrders = rawPublicOrders || [];
 
-  // 3. Cálculos Consolidados
+  // 4. Cálculos Consolidados del período seleccionado
   const paidSalon = salonOrders.filter((o) => o.status === 'pagada');
   const paidPublic = publicOrders.filter((o) => o.payment_status === 'pagado');
 
@@ -71,7 +106,9 @@ export default async function AdminPage() {
   const operatingCostCents = Math.round(todaySalesCents * 0.35);
   const netMarginCents = todaySalesCents - operatingCostCents;
 
-  const pendingPickup = publicOrders.filter((o) => o.payment_status === 'pendiente' && o.status !== 'cancelado' && o.status !== 'rechazado');
+  const pendingPickup = publicOrders.filter(
+    (o) => o.payment_status === 'pendiente' && o.status !== 'cancelado' && o.status !== 'rechazado',
+  );
 
   // Canales
   const channelMap = new Map<string, { count: number; totalCents: number }>();
@@ -174,6 +211,10 @@ export default async function AdminPage() {
       <AdminDashboardOverview
         staff={staff}
         data={{
+          selectedPeriod: requestedPeriod,
+          periodLabel: periodRange.label,
+          allTimeSalesCents,
+          allTimeOrdersCount,
           todaySalesCents,
           operatingCostCents,
           netMarginCents,
