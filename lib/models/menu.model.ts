@@ -24,7 +24,7 @@ export class MenuModel {
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from('products')
-      .select('id, category_id, name, description, price_cents, active, station')
+      .select('id, category_id, name, description, price_cents, active, station, image_url')
       .eq('restaurant_id', restaurantId)
       .order('name', { ascending: true });
 

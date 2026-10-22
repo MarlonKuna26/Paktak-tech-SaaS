@@ -35,7 +35,7 @@ async function PublicOrderShell({ params }: { params: Promise<{ 'restaurant-slug
 
   const { data: productsData } = await supabase
     .from('products')
-    .select('id, category_id, name, description, price_cents, station, category:categories(name)')
+    .select('id, category_id, name, description, price_cents, station, image_url, category:categories(name)')
     .eq('restaurant_id', restaurant.id)
     .eq('active', true)
     .order('name');
@@ -47,6 +47,7 @@ async function PublicOrderShell({ params }: { params: Promise<{ 'restaurant-slug
     description: string | null;
     price_cents: number;
     station: 'cocina' | 'barra';
+    image_url?: string | null;
     category?: { name: string } | null;
   };
 
@@ -59,6 +60,7 @@ async function PublicOrderShell({ params }: { params: Promise<{ 'restaurant-slug
     name: p.name,
     description: p.description,
     price_cents: p.price_cents,
+    image_url: p.image_url || null,
     station: p.station,
   }));
 

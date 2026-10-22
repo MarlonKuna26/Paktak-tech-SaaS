@@ -31,11 +31,13 @@ export type CachedProduct = {
   id: string;
   restaurantId: string;
   categoryId: string | null;
+  categoryName?: string | null;
   name: string;
   description: string | null;
   priceCents: number;
   station: 'cocina' | 'barra';
   active: boolean;
+  imageUrl?: string | null;
 };
 
 export type CachedTable = {

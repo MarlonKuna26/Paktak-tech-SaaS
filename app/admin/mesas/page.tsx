@@ -22,7 +22,7 @@ export default async function TablesAdminPage(props: {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-16 font-sans">
+    <div className="w-full space-y-6 pb-16 font-sans">
       <div className="space-y-1">
         <span className="text-xs font-bold uppercase tracking-wider text-[#f3a806]">
           Punto de Venta & Operación del Cajero

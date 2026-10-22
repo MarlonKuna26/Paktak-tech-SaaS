@@ -13,4 +13,6 @@ export type MenuProduct = {
   price_cents: number;
   active: boolean;
   station: 'cocina' | 'barra';
+  image_url?: string | null;
 };
+

@@ -16,9 +16,12 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
+  Image as ImageIcon,
+  Sparkles,
 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import type { MenuCategory, MenuProduct } from '@/lib/menu/types';
+import { getProductImageUrl, FOOD_PHOTO_PRESETS } from '@/lib/orders/product-images';
 
 type ProductFormData = {
   name: string;
@@ -26,6 +29,7 @@ type ProductFormData = {
   price: string;
   categoryId: string;
   station: 'cocina' | 'barra';
+  imageUrl: string;
 };
 
 const emptyProductForm: ProductFormData = {
@@ -34,7 +38,132 @@ const emptyProductForm: ProductFormData = {
   price: '',
   categoryId: '',
   station: 'cocina',
+  imageUrl: '',
 };
+
+function DishPhotoPicker({
+  value,
+  onChange,
+  dishName,
+  categoryName,
+}: {
+  value: string;
+  onChange: (url: string) => void;
+  dishName: string;
+  categoryName?: string;
+}) {
+  const [showGallery, setShowGallery] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<string>('todas');
+  const effectiveUrl = getProductImageUrl(dishName || 'Plato', categoryName, value);
+
+  return (
+    <div className="space-y-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-800/40 p-3.5">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+          <ImageIcon className="w-4 h-4 text-[#f3a806]" />
+          <span>Foto del Plato</span>
+        </label>
+        <button
+          type="button"
+          onClick={() => setShowGallery(!showGallery)}
+          className="text-[11px] font-bold text-[#f3a806] hover:underline flex items-center gap-1 cursor-pointer"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>{showGallery ? 'Ocultar Galería' : 'Elegir Foto Chévere'}</span>
+        </button>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-100 shadow-2xs">
+          <img src={effectiveUrl} alt="Preview" className="h-full w-full object-cover" />
+        </div>
+        <div className="flex-1 space-y-1">
+          <input
+            type="url"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="Pega un enlace de foto o elige de la galería..."
+            className="h-9 w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+          <div className="flex items-center justify-between text-[10px] text-zinc-500">
+            <span>{value ? '✓ Foto personalizada asignada' : 'Foto sugerida automáticamente según el nombre'}</span>
+            {value && (
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                className="font-bold text-rose-500 hover:underline cursor-pointer"
+              >
+                Restablecer auto
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {showGallery && (
+        <div className="pt-2.5 border-t border-zinc-200 dark:border-zinc-700 space-y-2 animate-in fade-in zoom-in-95">
+          <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+            {[
+              { id: 'todas', label: 'Todas' },
+              { id: 'hamburguesas', label: 'Burgers' },
+              { id: 'carnes', label: 'Carnes' },
+              { id: 'mariscos', label: 'Mariscos' },
+              { id: 'pollos', label: 'Pollos' },
+              { id: 'pizzas_pastas', label: 'Pizzas & Pastas' },
+              { id: 'entradas', label: 'Entradas' },
+              { id: 'mexicana', label: 'Mexicana' },
+              { id: 'postres', label: 'Postres' },
+              { id: 'bebidas', label: 'Bebidas' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedFilter(cat.id)}
+                className={`h-6 px-2.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                  selectedFilter === cat.id
+                    ? 'bg-[#1A1A1A] text-white dark:bg-white dark:text-zinc-950'
+                    : 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-44 overflow-y-auto p-1 rounded-xl bg-black/5 dark:bg-black/30">
+            {FOOD_PHOTO_PRESETS.filter(
+              (p) => selectedFilter === 'todas' || p.category === selectedFilter,
+            ).map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => {
+                  onChange(preset.url);
+                  setShowGallery(false);
+                }}
+                className={`group relative aspect-4/3 overflow-hidden rounded-lg border transition-all cursor-pointer ${
+                  value === preset.url
+                    ? 'border-2 border-[#f3a806] ring-2 ring-[#f3a806]/40'
+                    : 'border-zinc-200 dark:border-zinc-700 hover:border-[#f3a806]'
+                }`}
+              >
+                <img
+                  src={preset.url}
+                  alt={preset.label}
+                  className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  loading="lazy"
+                />
+                <span className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-xs px-1 py-0.5 text-[9px] font-semibold text-white truncate text-center">
+                  {preset.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function MenuManager({ restaurantId }: { restaurantId: string }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
@@ -75,7 +204,7 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
             .order('sort_order', { ascending: true }),
           supabase
             .from('products')
-            .select('id, category_id, name, description, price_cents, active, station')
+            .select('id, category_id, name, description, price_cents, active, station, image_url')
             .eq('restaurant_id', restaurantId)
             .order('name', { ascending: true }),
         ]);
@@ -204,6 +333,7 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
         description: newDish.description.trim() || null,
         price_cents: priceCents,
         station: newDish.station,
+        image_url: newDish.imageUrl.trim() || null,
         active: true,
       });
 
@@ -232,6 +362,7 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
       price: (prod.price_cents / 100).toFixed(2),
       categoryId: prod.category_id || '',
       station: prod.station,
+      imageUrl: prod.image_url || '',
     });
   }
 
@@ -256,6 +387,7 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
           price_cents: priceCents,
           category_id: editDish.categoryId || null,
           station: editDish.station,
+          image_url: editDish.imageUrl.trim() || null,
         })
         .eq('id', editingProduct.id)
         .eq('restaurant_id', restaurantId);
@@ -592,26 +724,37 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
         ) : (
           filteredProducts.map((dish) => {
             const catName = dish.category_id ? categoryMap.get(dish.category_id) : 'Sin categoría';
+            const imgUrl = getProductImageUrl(dish.name, catName, dish.image_url);
 
             return (
               <div
                 key={dish.id}
-                className={`flex flex-col justify-between rounded-2xl border p-4.5 transition-all shadow-2xs bg-white dark:bg-zinc-900 ${
+                className={`group flex flex-col justify-between rounded-3xl border overflow-hidden transition-all duration-200 shadow-xs hover:shadow-md bg-white dark:bg-zinc-900 ${
                   dish.active
-                    ? 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700'
+                    ? 'border-zinc-200/80 dark:border-zinc-800 hover:border-amber-400/60 dark:hover:border-amber-500/50'
                     : 'border-zinc-200 dark:border-zinc-800 opacity-60 bg-zinc-50/50 dark:bg-zinc-900/40'
                 }`}
               >
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground truncate">
+                {/* Imagen del Plato con badges sobrepuestos */}
+                <div className="relative h-44 w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                  <img
+                    src={imgUrl}
+                    alt={dish.name}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/25" />
+
+                  {/* Badges superiores */}
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                    <span className="rounded-full bg-black/60 backdrop-blur-md px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-xs truncate max-w-[150px]">
                       {catName}
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black backdrop-blur-md shadow-xs ${
                         dish.station === 'barra'
-                          ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300'
-                          : 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
+                          ? 'bg-purple-900/80 text-purple-200 border border-purple-500/30'
+                          : 'bg-amber-900/80 text-amber-200 border border-amber-500/30'
                       }`}
                     >
                       {dish.station === 'barra' ? <Wine className="w-3 h-3" /> : <ChefHat className="w-3 h-3" />}
@@ -619,57 +762,77 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
                     </span>
                   </div>
 
-                  <div className="flex items-baseline justify-between gap-2 mt-1">
-                    <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100 leading-snug">
-                      {dish.name}
-                    </h4>
-                    <span className="font-black text-base text-[#f3a806] shrink-0">
+                  {/* Precio flotante sobre la foto */}
+                  <div className="absolute bottom-3 left-3 right-3 flex items-baseline justify-between">
+                    <span className="rounded-2xl bg-[#f3a806] px-3 py-1 font-black text-sm text-zinc-950 shadow-md">
                       ${(dish.price_cents / 100).toFixed(2)}
                     </span>
+                    {dish.image_url ? (
+                      <span className="rounded-full bg-emerald-500/90 text-white text-[10px] font-bold px-2 py-0.5 shadow-xs">
+                        Foto asignada
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-black/50 backdrop-blur-xs text-zinc-300 text-[10px] font-medium px-2 py-0.5">
+                        Foto sugerida
+                      </span>
+                    )}
                   </div>
-
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 min-h-[2rem]">
-                    {dish.description || 'Sin descripción.'}
-                  </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => void handleToggleProduct(dish)}
-                    className={`h-8 rounded-full px-3 text-[11px] font-bold flex items-center gap-1.5 transition-colors ${
-                      dish.active
-                        ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300'
-                        : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300'
-                    }`}
-                  >
-                    {dish.active ? (
-                      <>
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Disponible</span>
-                      </>
-                    ) : (
-                      <>
-                        <EyeOff className="w-3.5 h-3.5" />
-                        <span>Agotado</span>
-                      </>
-                    )}
-                  </button>
+                {/* Contenido */}
+                <div className="p-4 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h4 className="font-extrabold text-base text-zinc-900 dark:text-zinc-100 leading-snug">
+                      {dish.name}
+                    </h4>
+                    <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 min-h-[2.2rem]">
+                      {dish.description || 'Sin descripción detallada.'}
+                    </p>
+                  </div>
 
-                  <div className="flex items-center gap-1.5">
+                  {/* Acciones */}
+                  <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between gap-2">
                     <button
-                      onClick={() => openEditProduct(dish)}
-                      className="h-8 w-8 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-2xs"
-                      title="Editar plato"
+                      type="button"
+                      onClick={() => void handleToggleProduct(dish)}
+                      className={`h-8 rounded-full px-3 text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                        dish.active
+                          ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300'
+                          : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300'
+                      }`}
                     >
-                      <Edit2 className="w-3.5 h-3.5" />
+                      {dish.active ? (
+                        <>
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Disponible</span>
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="w-3.5 h-3.5" />
+                          <span>Agotado</span>
+                        </>
+                      )}
                     </button>
-                    <button
-                      onClick={() => void handleDeleteProduct(dish.id, dish.name)}
-                      className="h-8 w-8 rounded-full border border-rose-200 dark:border-rose-900/40 bg-white dark:bg-zinc-800 flex items-center justify-center text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors shadow-2xs"
-                      title="Eliminar plato"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => openEditProduct(dish)}
+                        className="h-8 rounded-full px-3 border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-[11px] font-bold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <Edit2 className="w-3 h-3 text-[#f3a806]" />
+                        <span>Editar</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteProduct(dish.id, dish.name)}
+                        className="h-8 w-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                        title="Eliminar plato"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -765,6 +928,14 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
                   className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-background p-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
+
+              {/* Selector de Foto Chévere */}
+              <DishPhotoPicker
+                value={newDish.imageUrl}
+                onChange={(url) => setNewDish({ ...newDish, imageUrl: url })}
+                dishName={newDish.name}
+                categoryName={categories.find((c) => c.id === newDish.categoryId)?.name}
+              />
 
               <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
                 <button
@@ -871,6 +1042,14 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
                   className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-background p-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
+
+              {/* Selector de Foto Chévere */}
+              <DishPhotoPicker
+                value={editDish.imageUrl}
+                onChange={(url) => setEditDish({ ...editDish, imageUrl: url })}
+                dishName={editDish.name}
+                categoryName={categories.find((c) => c.id === editDish.categoryId)?.name}
+              />
 
               <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
                 <button
