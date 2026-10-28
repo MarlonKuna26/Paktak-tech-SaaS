@@ -11,6 +11,7 @@ export type CurrentStaff = {
   restaurantSlug: string;
   restaurantTimezone?: string;
   role: StaffRole;
+  email?: string;
   plan?: string;
   status?: string;
   trialEndsAt?: string | null;
@@ -80,6 +81,7 @@ export const getCurrentStaff = cache(async (): Promise<CurrentStaff | null> => {
     restaurantSlug: restaurant.slug,
     restaurantTimezone: restaurant.timezone || 'America/Guayaquil',
     role: rawStaff.role as StaffRole,
+    email: user.email,
     plan: restaurant.plan || 'basic',
     status: restaurant.status || 'trial',
     trialEndsAt: restaurant.trial_ends_at,

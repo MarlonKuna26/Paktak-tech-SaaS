@@ -10,6 +10,7 @@ import {
   ArrowRight,
   ExternalLink,
   Check,
+  CheckCircle2,
   MessageCircle,
   Clock,
   Bell,
@@ -155,187 +156,139 @@ export default function HomePage() {
           </div>
 
           {/* =====================================================================
-              HERO VISUAL MOCKUP: DASHBOARD + SMARTPHONE OVERLAP
+              HERO VISUAL MOCKUP: GRAN IMAGEN SHOWCASE DEL SAAS GASTRONÓMICO
           ===================================================================== */}
-          <div className="mt-14 md:mt-18 relative max-w-5xl mx-auto">
-            {/* Main Dashboard Card */}
-            <div className="rounded-[28px] border border-[#E5DFD7] bg-white p-5 sm:p-7 md:p-8 shadow-[0_20px_50px_rgba(24,28,32,0.08)]">
-              {/* Dashboard Mock Header */}
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[#EAE5DE]">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#FAF7F2] border border-[#E5DFD7] flex items-center justify-center text-[#181C20] font-black">
-                    <Store className="h-4 w-4 text-[#EAA228]" />
+          <div className="mt-12 md:mt-16 relative max-w-5xl mx-auto">
+            {/* Ambient Warm Golden Glow behind mockup */}
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-3/4 h-64 bg-[#EAA228]/15 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Main Showcase Device / Window Frame */}
+            <div className="relative rounded-[28px] sm:rounded-[36px] border border-[#E5DFD7] bg-[#161A1E] shadow-[0_30px_90px_rgba(24,28,32,0.16)] overflow-hidden group">
+              {/* Window Header Bar */}
+              <div className="flex items-center justify-between px-5 py-3.5 bg-[#1E242B] border-b border-[#2D3540]">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-[#FF5F56] inline-block" />
+                    <span className="w-3 h-3 rounded-full bg-[#FFBD2E] inline-block" />
+                    <span className="w-3 h-3 rounded-full bg-[#27C93F] inline-block" />
                   </div>
-                  <div>
-                    <h3 className="font-extrabold text-sm sm:text-base text-[#181C20]">
-                      Torre de Control · Restaurante Central
-                    </h3>
-                    <p className="text-xs text-[#7A8391]">
-                      Turno Almuerzo · 14 Mesas en atención
+                  <span className="hidden sm:inline-block text-[11px] font-bold text-[#8C95A3] ml-3">
+                    paktak.tech · Torre de Control Gastronómica
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    14 Mesas en vivo · Cocina KDS activa
+                  </span>
+                  <span className="hidden md:inline-flex items-center gap-1 rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[11px] font-bold text-zinc-300">
+                    <Wifi className="h-3 w-3 text-[#EAA228]" /> 100% Offline-Ready
+                  </span>
+                </div>
+              </div>
+
+              {/* Gran Imagen Principal de Alto Impacto */}
+              <div className="relative w-full aspect-[16/9] overflow-hidden bg-[#161A1E]">
+                <img
+                  src="/images/hero_saas_showcase.jpg"
+                  alt="Paktak Tech - Software gastronómico en acción"
+                  className="w-full h-full object-cover select-none group-hover:scale-[1.015] transition-transform duration-700 ease-out"
+                  loading="eager"
+                />
+
+                {/* Floating Badge 1: Comanda en marcha (Top-Left) */}
+                <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10 max-w-[260px] sm:max-w-xs rounded-2xl bg-white/95 backdrop-blur-md p-3 sm:p-3.5 shadow-2xl border border-[#EAE5DE] flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-black text-[#181C20] truncate">
+                      Comanda #104 en cocina
+                    </p>
+                    <p className="text-[11px] text-[#666E7A] truncate">
+                      Mesa 04 · 3 Platos · Sync 0.8s
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EBF7EE] text-[#1E7E34] px-3 py-1 text-xs font-extrabold">
-                    <span className="h-2 w-2 rounded-full bg-[#28A745] animate-pulse"></span>
-                    Servicio Activo
-                  </span>
-                  <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-[#FAF7F2] border border-[#E5DFD7] text-[#555E6B] px-3 py-1 text-xs font-bold">
-                    <Wifi className="h-3 w-3 text-[#EAA228]" /> Offline-Ready
-                  </span>
-                </div>
-              </div>
-
-              {/* KPI Strip */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 my-6">
-                <div className="rounded-2xl bg-[#FAF7F2] p-4 border border-[#EAE5DE]">
-                  <span className="text-xs font-bold text-[#666E7A] block">
-                    Ventas del Turno
-                  </span>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-xl sm:text-2xl font-black text-[#181C20]">
-                      $1,428.50
-                    </span>
-                    <span className="text-[11px] font-extrabold text-[#28A745]">+18%</span>
+                {/* Floating Badge 2: Métricas del día (Bottom-Right) */}
+                <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-10 max-w-[280px] sm:max-w-xs rounded-2xl bg-[#181C20]/95 backdrop-blur-md p-3 sm:p-3.5 shadow-2xl border border-white/15 text-white flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EAA228]/20 text-[#EAA228]">
+                    <TrendingUp className="h-5 w-5" />
                   </div>
-                </div>
-
-                <div className="rounded-2xl bg-[#FAF7F2] p-4 border border-[#EAE5DE]">
-                  <span className="text-xs font-bold text-[#666E7A] block">
-                    Comandas en Marcha
-                  </span>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-xl sm:text-2xl font-black text-[#181C20]">
-                      8 mesas
-                    </span>
-                    <span className="text-[11px] font-bold text-[#EAA228]">Cocina activa</span>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-[#FAF7F2] p-4 border border-[#EAE5DE]">
-                  <span className="text-xs font-bold text-[#666E7A] block">
-                    Tiempo de Despacho
-                  </span>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-xl sm:text-2xl font-black text-[#181C20]">
-                      11m 40s
-                    </span>
-                    <span className="text-[11px] font-bold text-[#28A745]">Óptimo</span>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-[#FAF7F2] p-4 border border-[#EAE5DE]">
-                  <span className="text-xs font-bold text-[#666E7A] block">
-                    Efectivo en Caja
-                  </span>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-xl sm:text-2xl font-black text-[#181C20]">
-                      $412.00
-                    </span>
-                    <span className="text-[11px] font-bold text-[#666E7A]">Cuadrado</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Central Chart & Order Stream */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pt-2">
-                {/* Hourly Sales Chart (Golden Yellow Bars) */}
-                <div className="md:col-span-7 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-[#181C20] uppercase tracking-wider">
-                      Ritmo de Ventas por Hora
-                    </span>
-                    <span className="text-xs font-bold text-[#EAA228]">Pico 14:00 (Almuerzo)</span>
-                  </div>
-
-                  {/* Visual Bar Chart */}
-                  <div className="h-44 rounded-2xl bg-[#FAF7F2] border border-[#EAE5DE] p-4 flex items-end justify-between gap-2">
-                    {[
-                      { hour: '12h', height: '40%', val: '$180' },
-                      { hour: '13h', height: '70%', val: '$320' },
-                      { hour: '14h', height: '95%', val: '$440', active: true },
-                      { hour: '15h', height: '55%', val: '$240' },
-                      { hour: '18h', height: '35%', val: '$150' },
-                      { hour: '19h', height: '65%', val: '$290' },
-                      { hour: '20h', height: '85%', val: '$380' },
-                      { hour: '21h', height: '50%', val: '$210' },
-                    ].map((bar, idx) => (
-                      <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
-                        <span className="text-[10px] font-extrabold text-[#181C20] opacity-0 group-hover:opacity-100 transition-opacity">
-                          {bar.val}
-                        </span>
-                        <div
-                          style={{ height: bar.height }}
-                          className={`w-full max-w-[28px] rounded-t-lg transition-all ${
-                            bar.active
-                              ? 'bg-[#EAA228] shadow-md shadow-[#EAA228]/30'
-                              : 'bg-[#E5DFD7] hover:bg-[#EAA228]/60'
-                          }`}
-                        ></div>
-                        <span className="text-[10px] font-bold text-[#666E7A]">{bar.hour}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Live order stream ticker */}
-                  <div className="flex items-center justify-between text-xs p-3 rounded-xl bg-[#FAF7F2] border border-[#EAE5DE]">
-                    <span className="flex items-center gap-2 font-bold text-[#181C20]">
-                      <span className="h-2 w-2 rounded-full bg-[#EAA228] animate-ping"></span>
-                      Mesa 04 · Comanda lista en cocina
-                    </span>
-                    <span className="font-extrabold text-[#EAA228]">Retirar y servir →</span>
-                  </div>
-                </div>
-
-                {/* Overlapping Phone Mockup / Waiter Card */}
-                <div className="md:col-span-5 relative">
-                  <div className="rounded-2xl border-2 border-[#181C20] bg-white p-4 shadow-xl space-y-3">
-                    <div className="flex items-center justify-between pb-2 border-b border-[#EAE5DE]">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#28A745]"></span>
-                        <span className="font-extrabold text-xs text-[#181C20]">
-                          App Mesero · Mesa 04
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FAF7F2] border border-[#E5DFD7] text-[#666E7A]">
-                        Offline Safe
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs sm:text-sm font-black text-white">
+                        $2,840.50
+                      </span>
+                      <span className="text-[10px] font-extrabold text-[#28A745] bg-[#28A745]/20 px-1.5 py-0.5 rounded-sm">
+                        +22%
                       </span>
                     </div>
-
-                    {/* Dish Preview with Generated Image */}
-                    <div className="relative h-32 rounded-xl overflow-hidden border border-[#EAE5DE] bg-[#FAF7F2]">
-                      <img
-                        src="/images/gourmet_dish.jpg"
-                        alt="Hamburguesa Artesanal Doble"
-                        className="w-full h-full object-cover"
-                        loading="eager"
-                      />
-                      <div className="absolute top-2 right-2 rounded-full bg-[#181C20]/80 backdrop-blur-sm text-white px-2.5 py-0.5 text-xs font-black">
-                        $12.50
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <h4 className="font-extrabold text-sm text-[#181C20] leading-snug">
-                        Hamburguesa Artesanal Doble
-                      </h4>
-                      <p className="text-[11px] text-[#666E7A]">
-                        Nota mesero: <span className="font-semibold text-[#181C20]">Sin cebolla, papas extra crujientes.</span>
-                      </p>
-                    </div>
-
-                    <div className="pt-2">
-                      <button
-                        type="button"
-                        className="w-full h-10 rounded-xl bg-[#EAA228] text-[#181C20] font-black text-xs hover:bg-[#D99318] transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        <Zap className="h-3.5 w-3.5 fill-current" />
-                        <span>Comanda enviada a Cocina (12s)</span>
-                      </button>
-                    </div>
+                    <p className="text-[11px] text-zinc-300 truncate">
+                      Ventas turno · Arqueo cuadrado
+                    </p>
                   </div>
                 </div>
+
+                {/* Floating Badge 3: KDS Cocina (Bottom-Left - desktop) */}
+                <div className="hidden md:flex absolute bottom-6 left-6 z-10 rounded-2xl bg-white/95 backdrop-blur-md p-3 shadow-2xl border border-[#EAE5DE] items-center gap-2.5">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EAA228]/20 text-[#181C20] font-black text-xs">
+                    ⚡
+                  </span>
+                  <div>
+                    <p className="text-[11px] font-black text-[#181C20]">
+                      Despacho Promedio: 11m 40s
+                    </p>
+                    <p className="text-[10px] text-[#666E7A]">
+                      Optimizado sin comandas perdidas
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4 Feature Highlights Strip beneath Image */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-6">
+              <div className="rounded-2xl border border-[#E5DFD7] bg-white p-4 shadow-xs hover:border-[#EAA228] transition-colors">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-[#EAA228]">01</span>
+                  <span className="text-xs font-extrabold text-[#181C20]">Salón & Mesas</span>
+                </div>
+                <p className="text-[11px] text-[#666E7A] mt-1 leading-snug">
+                  Plano interactivo con rotación ágil y cobro en mesa.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-[#E5DFD7] bg-white p-4 shadow-xs hover:border-[#EAA228] transition-colors">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-[#EAA228]">02</span>
+                  <span className="text-xs font-extrabold text-[#181C20]">KDS Cocina</span>
+                </div>
+                <p className="text-[11px] text-[#666E7A] mt-1 leading-snug">
+                  Pantalla táctil que elimina papel y demoras de cocineros.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-[#E5DFD7] bg-white p-4 shadow-xs hover:border-[#EAA228] transition-colors">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-[#EAA228]">03</span>
+                  <span className="text-xs font-extrabold text-[#181C20]">Control de Caja</span>
+                </div>
+                <p className="text-[11px] text-[#666E7A] mt-1 leading-snug">
+                  Arqueo ciego diario y corte X/Z sin margen de fuga.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-[#E5DFD7] bg-white p-4 shadow-xs hover:border-[#EAA228] transition-colors">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-[#EAA228]">04</span>
+                  <span className="text-xs font-extrabold text-[#181C20]">Menú Digital QR</span>
+                </div>
+                <p className="text-[11px] text-[#666E7A] mt-1 leading-snug">
+                  Carta interactiva directa para clientes en mesa y delivery.
+                </p>
               </div>
             </div>
           </div>

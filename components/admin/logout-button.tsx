@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { LogOut } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 export function LogoutButton() {
@@ -17,9 +18,12 @@ export function LogoutButton() {
     <button
       type="button"
       onClick={handleLogout}
-      className="w-full rounded-md px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+      className="group flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#9DA7B3] hover:bg-rose-500/10 hover:text-rose-400 transition-all cursor-pointer"
+      title="Cerrar sesión en Paktak Tech"
     >
-      Cerrar sesión
+      <LogOut className="w-4 h-4 shrink-0 transition-transform group-hover:-translate-x-0.5" />
+      <span>Cerrar sesión</span>
     </button>
   );
 }
+

@@ -70,172 +70,225 @@ export function CheckoutModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-white" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
-      <header className="sticky top-0 z-10 h-16 border-b border-line bg-white sm:h-[72px]">
-        <div className="mx-auto flex h-full max-w-[640px] items-center gap-2 px-4 sm:px-8">
-          <button type="button" onClick={onClose} className="btn-icon -ml-3" aria-label="Volver al pedido">
-            <ArrowLeft className="h-6 w-6" strokeWidth={1.75} />
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#FAF7F2] font-sans text-[#181C20]" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+      <header className="sticky top-0 z-10 h-16 border-b border-[#EAE5DE] bg-[#FAF7F2]/90 backdrop-blur-md sm:h-[72px]">
+        <div className="mx-auto flex h-full max-w-[640px] items-center gap-3 px-4 sm:px-8">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-9 w-9 rounded-full border border-[#EAE5DE] bg-white flex items-center justify-center text-[#666E7A] hover:text-[#181C20] transition-colors cursor-pointer shadow-2xs"
+            aria-label="Volver al pedido"
+          >
+            <ArrowLeft className="h-4 w-4" strokeWidth={2.5} />
           </button>
-          <span className="text-lg font-extrabold">{restaurantName}</span>
+          <div>
+            <span className="text-base font-black text-[#181C20] block leading-tight">{restaurantName}</span>
+            <span className="text-[11px] font-bold text-[#8C95A3]">Confirmación de pedido</span>
+          </div>
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="mx-auto max-w-[640px] space-y-12 px-4 pb-16 pt-8 sm:px-8 sm:pt-12">
-        <div className="space-y-2">
-          <h1 id="checkout-title" className="h-page">Confirma tu pedido</h1>
-          <p className="text-lg text-muted-ink">
-            {itemCount} {itemCount === 1 ? 'producto' : 'productos'} · pagas al retirar
-          </p>
-        </div>
+      <div className="mx-auto max-w-[640px] px-4 py-8 sm:py-10 sm:px-6">
+        <form onSubmit={handleSubmit} className="rounded-[32px] border border-[#EAE5DE] bg-white p-6 sm:p-9 shadow-md space-y-8">
+          <div className="space-y-1 border-b border-[#EAE5DE] pb-5">
+            <span className="text-[11px] font-black uppercase tracking-wider text-[#B87A14]">
+              Último paso
+            </span>
+            <h1 id="checkout-title" className="text-2xl sm:text-3xl font-black text-[#181C20] tracking-tight">
+              Confirma tu pedido
+            </h1>
+            <p className="text-xs sm:text-sm text-[#666E7A]">
+              {itemCount} {itemCount === 1 ? 'producto seleccionado' : 'productos seleccionados'} · pagas directamente en el local
+            </p>
+          </div>
 
-        {/* Tus datos */}
-        <section className="space-y-4">
-          <h2 className="h-section">Tus datos</h2>
-          <div className="space-y-2">
-            <label htmlFor="checkout-name" className="block text-base font-bold">Nombre</label>
-            <input
-              id="checkout-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoComplete="name"
-              required
-              className="field"
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="checkout-phone" className="block text-base font-bold">Teléfono</label>
-            <input
-              id="checkout-phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              autoComplete="tel"
-              inputMode="tel"
-              required
-              className="field"
-            />
-          </div>
-        </section>
-
-        {/* Cuándo */}
-        <section className="space-y-4">
-          <h2 className="h-section">¿Para cuándo?</h2>
-          <div role="radiogroup" aria-label="Hora de retiro" className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              role="radio"
-              aria-checked={orderSchedule === 'asap'}
-              onClick={() => setOrderSchedule('asap')}
-              className={`pill ${orderSchedule === 'asap' ? 'pill-active' : ''}`}
-            >
-              Lo antes posible
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={orderSchedule === 'scheduled'}
-              onClick={() => setOrderSchedule('scheduled')}
-              className={`pill ${orderSchedule === 'scheduled' ? 'pill-active' : ''}`}
-            >
-              Programar
-            </button>
-          </div>
-          {orderSchedule === 'scheduled' && (
-            <div className="space-y-2">
-              <label htmlFor="checkout-time" className="block text-base font-bold">Hora de retiro</label>
-              <input
-                id="checkout-time"
-                type="time"
-                value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-                className="field"
-              />
+          {/* Tus datos */}
+          <section className="space-y-4">
+            <h2 className="text-xs font-black uppercase tracking-wider text-[#181C20]">
+              1. Tus datos de contacto
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label htmlFor="checkout-name" className="block text-xs font-bold text-[#181C20]">
+                  Tu nombre completo
+                </label>
+                <input
+                  id="checkout-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="name"
+                  required
+                  placeholder="Ej. Juan Pérez"
+                  className="w-full h-12 px-4 rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/50 text-sm font-semibold text-[#181C20] placeholder:text-[#8C95A3] focus:bg-white focus:ring-2 focus:ring-[#EAA228] focus:border-transparent focus:outline-none transition-all"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label htmlFor="checkout-phone" className="block text-xs font-bold text-[#181C20]">
+                  Teléfono / WhatsApp
+                </label>
+                <input
+                  id="checkout-phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  autoComplete="tel"
+                  inputMode="tel"
+                  required
+                  placeholder="+593 99 999 9999"
+                  className="w-full h-12 px-4 rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/50 text-sm font-semibold text-[#181C20] placeholder:text-[#8C95A3] focus:bg-white focus:ring-2 focus:ring-[#EAA228] focus:border-transparent focus:outline-none transition-all"
+                />
+              </div>
             </div>
-          )}
-        </section>
+          </section>
 
-        {/* Pago */}
-        <section className="space-y-4">
-          <div className="space-y-1">
-            <h2 className="h-section">¿Cómo vas a pagar?</h2>
-            <p className="text-secondary">No cobramos nada ahora. Pagas cuando retiras.</p>
-          </div>
-          <div role="radiogroup" aria-label="Método de pago" className="flex flex-wrap gap-2">
-            {paymentOptions.map((opt) => (
+          {/* Cuándo */}
+          <section className="space-y-3.5 pt-2 border-t border-[#EAE5DE]">
+            <h2 className="text-xs font-black uppercase tracking-wider text-[#181C20]">
+              2. ¿Para cuándo lo deseas?
+            </h2>
+            <div role="radiogroup" aria-label="Hora de retiro" className="flex flex-wrap gap-2">
               <button
-                key={opt.value}
                 type="button"
                 role="radio"
-                aria-checked={paymentMethod === opt.value}
-                onClick={() => setPaymentMethod(opt.value)}
-                className={`pill ${paymentMethod === opt.value ? 'pill-active' : ''}`}
+                aria-checked={orderSchedule === 'asap'}
+                onClick={() => setOrderSchedule('asap')}
+                className={`h-10 px-5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  orderSchedule === 'asap'
+                    ? 'bg-[#181C20] text-white shadow-xs'
+                    : 'bg-[#FAF7F2] border border-[#EAE5DE] text-[#666E7A] hover:text-[#181C20]'
+                }`}
               >
-                {opt.label}
+                ⚡ Lo antes posible (~25 min)
               </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Factura */}
-        <section className="space-y-4">
-          <h2 className="h-section">Factura</h2>
-          <div role="radiogroup" aria-label="Tipo de factura" className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              role="radio"
-              aria-checked={billingType === 'final'}
-              onClick={() => setBillingType('final')}
-              className={`pill ${billingType === 'final' ? 'pill-active' : ''}`}
-            >
-              Consumidor final
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={billingType === 'datos'}
-              onClick={() => setBillingType('datos')}
-              className={`pill ${billingType === 'datos' ? 'pill-active' : ''}`}
-            >
-              Con mis datos
-            </button>
-          </div>
-          {billingType === 'datos' && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="billing-ruc" className="block text-base font-bold">RUC o cédula</label>
-                <input id="billing-ruc" type="text" inputMode="numeric" value={billingRuc} onChange={(e) => setBillingRuc(e.target.value)} className="field" />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="billing-name" className="block text-base font-bold">Razón social</label>
-                <input id="billing-name" type="text" value={billingName} onChange={(e) => setBillingName(e.target.value)} className="field" />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="billing-address" className="block text-base font-bold">Dirección</label>
-                <input id="billing-address" type="text" value={billingAddress} onChange={(e) => setBillingAddress(e.target.value)} className="field" />
-              </div>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={orderSchedule === 'scheduled'}
+                onClick={() => setOrderSchedule('scheduled')}
+                className={`h-10 px-5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  orderSchedule === 'scheduled'
+                    ? 'bg-[#181C20] text-white shadow-xs'
+                    : 'bg-[#FAF7F2] border border-[#EAE5DE] text-[#666E7A] hover:text-[#181C20]'
+                }`}
+              >
+                🕒 Programar hora
+              </button>
             </div>
-          )}
-        </section>
+            {orderSchedule === 'scheduled' && (
+              <div className="space-y-1.5 pt-1">
+                <label htmlFor="checkout-time" className="block text-xs font-bold text-[#181C20]">
+                  Indica la hora estimada de retiro
+                </label>
+                <input
+                  id="checkout-time"
+                  type="time"
+                  value={scheduledTime}
+                  onChange={(e) => setScheduledTime(e.target.value)}
+                  className="w-full sm:w-48 h-11 px-4 rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/50 text-sm font-semibold text-[#181C20] focus:bg-white focus:ring-2 focus:ring-[#EAA228] focus:outline-none"
+                />
+              </div>
+            )}
+          </section>
 
-        {/* Total + acción */}
-        <section className="space-y-4 border-t border-line pt-8">
-          <div className="flex items-baseline justify-between">
-            <span className="text-lg text-muted-ink">Total a pagar al retirar</span>
-            <span className="text-[32px] font-extrabold leading-none">${total}</span>
-          </div>
+          {/* Pago */}
+          <section className="space-y-3.5 pt-2 border-t border-[#EAE5DE]">
+            <div>
+              <h2 className="text-xs font-black uppercase tracking-wider text-[#181C20]">
+                3. Método de pago al recibir
+              </h2>
+              <p className="text-xs text-[#666E7A] mt-0.5">No debitamos nada ahora. Cancelas en caja o al repartidor.</p>
+            </div>
+            <div role="radiogroup" aria-label="Método de pago" className="grid grid-cols-3 gap-2.5">
+              {paymentOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={paymentMethod === opt.value}
+                  onClick={() => setPaymentMethod(opt.value)}
+                  className={`h-11 px-3 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
+                    paymentMethod === opt.value
+                      ? 'bg-[#EAA228] text-[#181C20] font-black shadow-xs'
+                      : 'bg-[#FAF7F2] border border-[#EAE5DE] text-[#666E7A] hover:text-[#181C20]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </section>
 
-          {error && <p role="alert" className="error-text">{error}</p>}
+          {/* Factura */}
+          <section className="space-y-3.5 pt-2 border-t border-[#EAE5DE]">
+            <h2 className="text-xs font-black uppercase tracking-wider text-[#181C20]">
+              4. Facturación
+            </h2>
+            <div role="radiogroup" aria-label="Tipo de factura" className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={billingType === 'final'}
+                onClick={() => setBillingType('final')}
+                className={`h-9 px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  billingType === 'final'
+                    ? 'bg-[#181C20] text-white shadow-xs'
+                    : 'bg-[#FAF7F2] border border-[#EAE5DE] text-[#666E7A] hover:text-[#181C20]'
+                }`}
+              >
+                Consumidor Final
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={billingType === 'datos'}
+                onClick={() => setBillingType('datos')}
+                className={`h-9 px-4 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  billingType === 'datos'
+                    ? 'bg-[#181C20] text-white shadow-xs'
+                    : 'bg-[#FAF7F2] border border-[#EAE5DE] text-[#666E7A] hover:text-[#181C20]'
+                }`}
+              >
+                Con RUC / Cédula
+              </button>
+            </div>
+            {billingType === 'datos' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div className="space-y-1">
+                  <label htmlFor="billing-ruc" className="block text-[11px] font-bold text-[#181C20]">RUC o Cédula</label>
+                  <input id="billing-ruc" type="text" inputMode="numeric" value={billingRuc} onChange={(e) => setBillingRuc(e.target.value)} className="w-full h-10 px-3 rounded-xl border border-[#D9D3C7] bg-white text-xs font-semibold text-[#181C20] focus:ring-2 focus:ring-[#EAA228]" />
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="billing-name" className="block text-[11px] font-bold text-[#181C20]">Razón Social / Nombre</label>
+                  <input id="billing-name" type="text" value={billingName} onChange={(e) => setBillingName(e.target.value)} className="w-full h-10 px-3 rounded-xl border border-[#D9D3C7] bg-white text-xs font-semibold text-[#181C20] focus:ring-2 focus:ring-[#EAA228]" />
+                </div>
+                <div className="sm:col-span-2 space-y-1">
+                  <label htmlFor="billing-address" className="block text-[11px] font-bold text-[#181C20]">Dirección</label>
+                  <input id="billing-address" type="text" value={billingAddress} onChange={(e) => setBillingAddress(e.target.value)} className="w-full h-10 px-3 rounded-xl border border-[#D9D3C7] bg-white text-xs font-semibold text-[#181C20] focus:ring-2 focus:ring-[#EAA228]" />
+                </div>
+              </div>
+            )}
+          </section>
 
-          <button
-            type="submit"
-            disabled={isSubmitting || cart.length === 0}
-            className="btn-primary w-full"
-          >
-            {isSubmitting ? 'Enviando…' : 'Enviar pedido'}
-          </button>
-        </section>
-      </form>
+          {/* Total + acción */}
+          <section className="space-y-4 border-t border-[#EAE5DE] pt-6">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm font-bold text-[#666E7A]">Total de la orden</span>
+              <span className="text-3xl sm:text-4xl font-black text-[#181C20] leading-none tracking-tight">${total}</span>
+            </div>
+
+            {error && <p role="alert" className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs font-bold text-red-600 animate-in fade-in">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={isSubmitting || cart.length === 0}
+              className="w-full h-13 rounded-full bg-[#EAA228] hover:bg-[#D99318] text-[#181C20] font-black text-sm flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+            >
+              {isSubmitting ? 'Enviando comanda...' : 'Confirmar y Enviar Pedido →'}
+            </button>
+          </section>
+        </form>
+      </div>
     </div>
   );
 }

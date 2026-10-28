@@ -16,12 +16,12 @@ export async function AdminShell({
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] font-sans text-[#181C20] md:flex selection:bg-[#EAA228] selection:text-[#181C20]">
+    <div className="h-screen w-full flex flex-col md:flex-row overflow-hidden bg-[#FAF7F2] font-sans text-[#181C20] selection:bg-[#EAA228] selection:text-[#181C20]">
       <AdminSidebar staff={staff} />
-      <div className="min-w-0 flex-1 flex flex-col">
+      <div className="min-w-0 flex-1 flex flex-col h-full overflow-hidden">
         {/* Banner de Suscripción / Período de Prueba */}
         {staff.isTrialExpired ? (
-          <div className="bg-rose-600 text-white px-4 sm:px-6 py-2.5 text-xs font-bold flex items-center justify-between shadow-xs">
+          <div className="shrink-0 bg-rose-600 text-white px-4 sm:px-6 py-2.5 text-xs font-bold flex items-center justify-between shadow-xs z-10">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 text-white" />
               <span>
@@ -38,7 +38,7 @@ export async function AdminShell({
             </a>
           </div>
         ) : staff.status === 'trial' ? (
-          <div className="bg-[#FEF9EE] border-b border-[#F6E3B8] px-4 sm:px-6 py-2.5 text-xs flex items-center justify-between text-[#7A642B]">
+          <div className="shrink-0 bg-[#FEF9EE] border-b border-[#F6E3B8] px-4 sm:px-6 py-2.5 text-xs flex items-center justify-between text-[#7A642B] z-10">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 shrink-0 text-[#EAA228]" />
               <span>
@@ -54,7 +54,9 @@ export async function AdminShell({
           </div>
         ) : null}
 
-        <main className="min-w-0 flex-1 p-4 sm:p-6 md:p-8">{children}</main>
+        <main className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );

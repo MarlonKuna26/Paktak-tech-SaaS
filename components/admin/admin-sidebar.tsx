@@ -52,9 +52,9 @@ export function AdminSidebar({ staff }: { staff: CurrentStaff }) {
   const items = navigation.filter((item) => item.roles.includes(staff.role));
 
   return (
-    <aside className="flex w-full flex-col border-b md:border-b-0 md:border-r border-[#262C34] bg-[#161A1E] text-white p-4 sm:p-5 md:min-h-screen md:w-64 shrink-0 shadow-sm">
-      {/* Brand & Restaurant Header */}
-      <div className="mb-6 pb-5 border-b border-[#262C34]">
+    <aside className="flex w-full md:w-64 md:h-screen md:sticky md:top-0 shrink-0 flex-col justify-between border-b md:border-b-0 md:border-r border-[#262C34] bg-[#161A1E] text-white p-4 sm:p-5 shadow-sm overflow-hidden z-20">
+      {/* Brand & Restaurant Header (Fixed top) */}
+      <div className="shrink-0 mb-4 pb-4 border-b border-[#262C34]">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EAA228] text-[#181C20] font-black text-sm shadow-sm">
             {staff.restaurantName.slice(0, 2).toUpperCase()}
@@ -73,7 +73,7 @@ export function AdminSidebar({ staff }: { staff: CurrentStaff }) {
         </div>
 
         {/* Quick Link to Public Store */}
-        <div className="mt-3.5">
+        <div className="mt-3">
           <Link
             href={`/${staff.restaurantSlug}/pedir`}
             target="_blank"
@@ -88,8 +88,8 @@ export function AdminSidebar({ staff }: { staff: CurrentStaff }) {
         </div>
       </div>
 
-      {/* Navigation List */}
-      <nav className="flex gap-1.5 overflow-x-auto md:flex-col md:space-y-1 pb-2 md:pb-0 scrollbar-none">
+      {/* Navigation List (Scrollable internally if screen is short, but fits nicely) */}
+      <nav className="flex-1 flex gap-1.5 overflow-x-auto md:flex-col md:overflow-y-auto md:space-y-1 py-1 no-scrollbar md:pr-1">
         {items.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -99,7 +99,7 @@ export function AdminSidebar({ staff }: { staff: CurrentStaff }) {
               key={item.href}
               href={item.href}
               prefetch={true}
-              className={`flex items-center gap-3 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all ${
+              className={`flex items-center gap-3 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all shrink-0 ${
                 isActive
                   ? 'bg-[#EAA228] text-[#181C20] shadow-sm font-black'
                   : 'text-[#9DA7B3] hover:bg-[#20262E] hover:text-white'
@@ -112,9 +112,25 @@ export function AdminSidebar({ staff }: { staff: CurrentStaff }) {
         })}
       </nav>
 
-      {/* Logout and Footer */}
-      <div className="mt-6 md:mt-auto pt-4 border-t border-[#262C34] space-y-3">
+      {/* Staff Account & Logout Footer (Always anchored at bottom of sidebar) */}
+      <div className="shrink-0 mt-3 md:mt-auto pt-3.5 border-t border-[#262C34] space-y-2">
+        {/* User Card */}
+        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-[#1E242B]/90 border border-[#2D3540]/70">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#EAA228]/20 text-[#EAA228] font-black text-xs">
+            {staff.email ? staff.email.slice(0, 2).toUpperCase() : staff.restaurantName.slice(0, 1).toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-bold text-white">
+              {staff.email || roleLabelMap[staff.role] || staff.role}
+            </p>
+            <p className="truncate text-[10px] text-[#8C95A3] font-medium">
+              {roleLabelMap[staff.role] || staff.role}
+            </p>
+          </div>
+        </div>
+
         <LogoutButton />
+
         <p className="text-[10px] text-center text-[#6B7584]">
           Paktak Tech SaaS · v1.2
         </p>
