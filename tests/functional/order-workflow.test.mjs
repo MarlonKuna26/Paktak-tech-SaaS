@@ -91,7 +91,7 @@ describe('Functional Test: Customer Digital Ordering End-to-End Workflow', () =>
       tracking: {
         id: 'ord-88392-uuid',
         tracking_code: 'PAK-883',
-        tracking_token: 'tok_live_77218392',
+        tracking_token: 'test_token_77218392',
       },
     };
 
@@ -99,6 +99,6 @@ describe('Functional Test: Customer Digital Ordering End-to-End Workflow', () =>
     assert.ok(serverResponse.tracking.tracking_token);
 
     const redirectUrl = `/pedido/${serverResponse.tracking.tracking_token}`;
-    assert.strictEqual(redirectUrl, '/pedido/tok_live_77218392');
+    assert.strictEqual(redirectUrl, '/pedido/test_token_77218392');
   });
 });
