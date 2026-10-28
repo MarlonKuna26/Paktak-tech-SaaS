@@ -43,14 +43,15 @@ export class StaffModel {
 
     if (staffError) throw new Error(staffError.message);
 
-    const { data: usersData, error: usersError } = await adminClient.auth.admin.listUsers({
-      perPage: 1000,
-    });
-
     const userMap = new Map();
-    if (!usersError && usersData?.users) {
-      for (const u of usersData.users) {
-        userMap.set(u.id, u);
+    if (staffMembers && staffMembers.length > 0) {
+      const userFetches = await Promise.all(
+        staffMembers.map((sm) => adminClient.auth.admin.getUserById(sm.user_id))
+      );
+      for (const res of userFetches) {
+        if (res.data?.user) {
+          userMap.set(res.data.user.id, res.data.user);
+        }
       }
     }
 
@@ -77,19 +78,24 @@ export class StaffModel {
     const adminClient = createSupabaseAdminClient();
     const { fullName, email, password, role } = input;
 
-    const { data: listData } = await adminClient.auth.admin.listUsers();
-    let authUser = listData?.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+    let authUser: { id: string; email?: string } | null = null;
 
-    if (!authUser) {
-      const { data: createdUser, error: createAuthError } = await adminClient.auth.admin.createUser({
-        email: email.toLowerCase(),
-        password,
-        email_confirm: true,
-        user_metadata: { full_name: fullName },
-      });
+    const { data: createdUser, error: createAuthError } = await adminClient.auth.admin.createUser({
+      email: email.toLowerCase(),
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: fullName },
+    });
 
-      if (createAuthError) throw new Error(createAuthError.message);
+    if (!createAuthError && createdUser?.user) {
       authUser = createdUser.user;
+    } else {
+      // Si el correo ya existe en auth, lo buscamos para vincularlo a este restaurante
+      const { data: listData } = await adminClient.auth.admin.listUsers();
+      authUser = listData?.users.find((u) => u.email?.toLowerCase() === email.toLowerCase()) || null;
+      if (!authUser) {
+        throw new Error(createAuthError?.message || 'No se pudo generar el usuario en Auth.');
+      }
     }
 
     if (!authUser) throw new Error('No se pudo generar el usuario en Auth.');

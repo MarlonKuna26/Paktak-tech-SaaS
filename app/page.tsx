@@ -24,6 +24,7 @@ import {
 import { CashControlSection } from '@/components/landing/cash-control-section';
 import { FaqSection } from '@/components/landing/faq-section';
 import { ContactSection } from '@/components/landing/contact-section';
+import { ActiveOrderFloatingBanner } from '@/components/orders/active-order-floating-banner';
 
 export const metadata = {
   title: 'Paktak Tech | Tu cocina tiene ritmo. Tu negocio, también.',
@@ -34,6 +35,7 @@ export const metadata = {
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#FAF7F2] font-sans text-[#181C20] selection:bg-[#EAA228] selection:text-[#181C20]">
+      <ActiveOrderFloatingBanner />
       {/* =========================================================================
           1. HEADER / NAVBAR STICKY
       ========================================================================= */}

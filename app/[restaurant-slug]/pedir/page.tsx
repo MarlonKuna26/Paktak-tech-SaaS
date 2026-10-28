@@ -27,18 +27,19 @@ async function PublicOrderShell({ params }: { params: Promise<{ 'restaurant-slug
 
   if (!restaurant) notFound();
 
-  const { data: categoriesData } = await supabase
-    .from('categories')
-    .select('id, name, sort_order')
-    .eq('restaurant_id', restaurant.id)
-    .order('sort_order', { ascending: true });
-
-  const { data: productsData } = await supabase
-    .from('products')
-    .select('id, category_id, name, description, price_cents, station, image_url, category:categories(name)')
-    .eq('restaurant_id', restaurant.id)
-    .eq('active', true)
-    .order('name');
+  const [{ data: categoriesData }, { data: productsData }] = await Promise.all([
+    supabase
+      .from('categories')
+      .select('id, name, sort_order')
+      .eq('restaurant_id', restaurant.id)
+      .order('sort_order', { ascending: true }),
+    supabase
+      .from('products')
+      .select('id, category_id, name, description, price_cents, station, image_url, category:categories(name)')
+      .eq('restaurant_id', restaurant.id)
+      .eq('active', true)
+      .order('name'),
+  ]);
 
   type RawProduct = {
     id: string;

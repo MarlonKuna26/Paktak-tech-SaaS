@@ -27,22 +27,32 @@ export class TableModel {
   static async listByRestaurant(restaurantId: string) {
     const supabase = await createSupabaseServerClient();
 
-    // 1. Obtener mesas
-    const { data: tables, error: tablesError } = await supabase
-      .from('tables')
-      .select('id, restaurant_id, table_number, capacity, status, zone')
-      .eq('restaurant_id', restaurantId)
-      .order('table_number', { ascending: true });
+    // 1. Obtener mesas, reservas y órdenes en paralelo
+    const [
+      { data: tables, error: tablesError },
+      { data: reservations },
+      { data: activeOrders },
+    ] = await Promise.all([
+      supabase
+        .from('tables')
+        .select('id, restaurant_id, table_number, capacity, status, zone')
+        .eq('restaurant_id', restaurantId)
+        .order('table_number', { ascending: true }),
+      supabase
+        .from('reservations')
+        .select('id, table_id, customer_name, customer_phone, date_time, guests, notes, status')
+        .eq('restaurant_id', restaurantId)
+        .not('table_id', 'is', null)
+        .in('status', ['pendiente', 'confirmada']),
+      supabase
+        .from('orders')
+        .select('id, table_id, order_number, status, total_cents, order_items(id, status)')
+        .eq('restaurant_id', restaurantId)
+        .in('status', ['abierta', 'en_espera', 'pagada'])
+        .order('opened_at', { ascending: false }),
+    ]);
 
     if (tablesError) throw new Error(tablesError.message);
-
-    // 2. Obtener reservas asignadas
-    const { data: reservations } = await supabase
-      .from('reservations')
-      .select('id, table_id, customer_name, customer_phone, date_time, guests, notes, status')
-      .eq('restaurant_id', restaurantId)
-      .not('table_id', 'is', null)
-      .in('status', ['pendiente', 'confirmada']);
 
     const reservationMap = new Map();
     for (const res of reservations ?? []) {
@@ -50,14 +60,6 @@ export class TableModel {
         reservationMap.set(res.table_id, res);
       }
     }
-
-    // 3. Obtener órdenes activas (incluye órdenes pre-pagadas para mesas que aún están en salón)
-    const { data: activeOrders } = await supabase
-      .from('orders')
-      .select('id, table_id, order_number, status, total_cents, order_items(id, status)')
-      .eq('restaurant_id', restaurantId)
-      .in('status', ['abierta', 'en_espera', 'pagada'])
-      .order('opened_at', { ascending: false });
 
     const orderMap = new Map();
     for (const ord of activeOrders ?? []) {

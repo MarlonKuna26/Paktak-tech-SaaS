@@ -22,6 +22,9 @@ import {
 type TrackedOrder = {
   id: string;
   tracking_code: string;
+  tracking_token?: string;
+  restaurant_slug?: string;
+  restaurant_name?: string;
   status: 'pendiente' | 'confirmado' | 'preparando' | 'listo' | 'completado' | 'rechazado' | 'cancelado';
   service_type?: 'paleta_madera' | 'mesa_fija' | 'para_llevar';
   table_or_token_number?: string | null;
@@ -97,6 +100,8 @@ export function OrderTracker({
   const [code, setCode] = useState(initialCode);
   const [phone, setPhone] = useState(initialPhone);
   const [order, setOrder] = useState<TrackedOrder | null>(null);
+  const [restaurantSlug, setRestaurantSlug] = useState<string>('');
+  const [restaurantName, setRestaurantName] = useState<string>('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -145,13 +150,19 @@ export function OrderTracker({
 
         saveCustomerInfo(body.order.customer_name, cleanPhone);
         const existingActive = getActiveOrder();
+        const rSlug = body.order.restaurant_slug || existingActive?.restaurantSlug || '';
+        const rName = body.order.restaurant_name || existingActive?.restaurantName || '';
+        if (rSlug) setRestaurantSlug(rSlug);
+        if (rName) setRestaurantName(rName);
+
         saveActiveOrder({
           id: body.order.id,
           trackingCode: body.order.tracking_code,
-          trackingToken: existingActive?.trackingToken || cleanCode,
+          trackingToken: body.order.tracking_token || existingActive?.trackingToken || cleanCode,
           phone: cleanPhone,
           customerName: body.order.customer_name,
-          restaurantSlug: existingActive?.restaurantSlug || '',
+          restaurantSlug: rSlug,
+          restaurantName: rName,
           totalCents: body.order.total_cents,
           status: body.order.status,
           createdAt: body.order.created_at,
@@ -176,6 +187,9 @@ export function OrderTracker({
 
       const active = getActiveOrder();
       const customer = getSavedCustomerInfo();
+
+      if (active?.restaurantSlug) setRestaurantSlug(active.restaurantSlug);
+      if (active?.restaurantName) setRestaurantName(active.restaurantName);
 
       if (!effectiveCode && active?.trackingCode) {
         effectiveCode = active.trackingCode;
@@ -461,13 +475,23 @@ export function OrderTracker({
               <span>{copied ? 'Enlace copiado' : 'Copiar enlace de seguimiento'}</span>
             </button>
 
-            <Link
-              href="/"
-              className="h-12 rounded-xl border border-[#EAE5DE] bg-[#FAF7F2] px-6 text-xs font-black text-[#181C20] uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#EAE5DE] transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Volver a la tienda</span>
-            </Link>
+            {restaurantSlug ? (
+              <Link
+                href={`/${restaurantSlug}/pedir`}
+                className="h-12 rounded-xl border border-[#EAE5DE] bg-[#FAF7F2] px-6 text-xs font-black text-[#181C20] uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#EAE5DE] transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Volver a la carta {restaurantName ? `(${restaurantName})` : ''}</span>
+              </Link>
+            ) : (
+              <Link
+                href="/"
+                className="h-12 rounded-xl border border-[#EAE5DE] bg-[#FAF7F2] px-6 text-xs font-black text-[#181C20] uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#EAE5DE] transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Volver al inicio</span>
+              </Link>
+            )}
           </div>
         </div>
       )}
