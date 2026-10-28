@@ -62,26 +62,27 @@ const statusConfig: Record<
 > = {
   libre: {
     label: 'Libre',
-    bgClass: 'bg-white dark:bg-zinc-900',
-    borderClass: 'border-zinc-200/90 dark:border-zinc-800',
-    badgeClass: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border border-zinc-200/80',
-    dotClass: 'bg-zinc-400',
+    bgClass: 'bg-white',
+    borderClass: 'border-[#EAE5DE]',
+    badgeClass: 'bg-[#FAF7F2] text-[#666E7A] border border-[#EAE5DE]',
+    dotClass: 'bg-emerald-500',
   },
   ocupada: {
     label: 'Ocupada',
-    bgClass: 'bg-white dark:bg-zinc-900',
-    borderClass: 'border-zinc-200/90 dark:border-zinc-800',
-    badgeClass: 'bg-amber-500/15 text-amber-950 dark:text-amber-200 border border-[#f3a806]/40',
-    dotClass: 'bg-[#f3a806]',
+    bgClass: 'bg-[#FEF9EE]',
+    borderClass: 'border-[#EAA228]/50',
+    badgeClass: 'bg-[#EAA228]/15 text-[#8F5E00] border border-[#EAA228]/40',
+    dotClass: 'bg-[#EAA228]',
   },
   reservada: {
     label: 'Reservada',
-    bgClass: 'bg-white dark:bg-zinc-900',
-    borderClass: 'border-zinc-200/90 dark:border-zinc-800',
-    badgeClass: 'bg-zinc-950 text-[#f3a806] dark:bg-zinc-800 dark:text-amber-300 border border-zinc-700',
-    dotClass: 'bg-[#f3a806]',
+    bgClass: 'bg-white',
+    borderClass: 'border-[#EAE5DE]',
+    badgeClass: 'bg-[#161A1E] text-[#EAA228] border border-[#161A1E]',
+    dotClass: 'bg-[#EAA228]',
   },
 };
+
 
 export function TableManager({
   restaurantId,
@@ -652,22 +653,22 @@ export function TableManager({
       )}
 
       {/* Switch de Vista del Cajero: Mesas, Comandero y Caja/Cobros */}
-      <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2.5 sm:p-3 shadow-xs">
+      <div className="rounded-2xl border border-[#EAE5DE] bg-white p-2.5 sm:p-3 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/80 overflow-x-auto">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#FAF7F2] border border-[#EAE5DE] overflow-x-auto">
             <button
               type="button"
               onClick={() => setActiveTab('tables')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'tables'
-                  ? 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-xs'
-                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+                  ? 'bg-[#EAA228] text-[#181C20] shadow-xs'
+                  : 'text-[#666E7A] hover:text-[#181C20]'
               }`}
             >
-              <LayoutGrid className="w-4 h-4 text-[#f3a806]" />
+              <LayoutGrid className="w-4 h-4 text-[#181C20]" />
               <span>1. Plano de Mesas & Salón</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                activeTab === 'tables' ? 'bg-[#f3a806]/20 text-zinc-950 dark:text-amber-300' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300'
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                activeTab === 'tables' ? 'bg-white/40 text-[#181C20]' : 'bg-[#EAE5DE] text-[#666E7A]'
               }`}>
                 {occupiedTables}/{totalTables}
               </span>
@@ -678,35 +679,35 @@ export function TableManager({
                 setComanderoTableId(undefined);
                 setActiveTab('comandero');
               }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'comandero'
-                  ? 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-xs'
-                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+                  ? 'bg-[#EAA228] text-[#181C20] shadow-xs'
+                  : 'text-[#666E7A] hover:text-[#181C20]'
               }`}
             >
-              <ConciergeBell className="w-4 h-4 text-[#f3a806]" />
+              <ConciergeBell className="w-4 h-4 text-[#181C20]" />
               <span>2. Tomar Orden</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('pedidos')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'pedidos'
-                  ? 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-zinc-100 shadow-xs'
-                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+                  ? 'bg-[#EAA228] text-[#181C20] shadow-xs'
+                  : 'text-[#666E7A] hover:text-[#181C20]'
               }`}
             >
-              <ClipboardList className="w-4 h-4 text-[#f3a806]" />
+              <ClipboardList className="w-4 h-4 text-[#181C20]" />
               <span>3. Caja, Pedidos & Cobros</span>
             </button>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-muted-foreground px-2">
+          <div className="flex items-center gap-2 text-xs text-[#666E7A] px-2">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
-            <span className="text-[11px] font-medium">
+            <span className="text-[11px] font-bold">
               {activeTab === 'tables' && 'Plano de ocupación en vivo y cobro de cuentas'}
               {activeTab === 'comandero' && 'Toma rápida de órdenes en mesa y mostrador'}
               {activeTab === 'pedidos' && 'Cola de cobro, arqueo diario en vivo e impresión'}
@@ -748,118 +749,118 @@ export function TableManager({
         <>
           {/* Tarjetas de Métricas KPI del Salón */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
-          <p className="text-xs font-medium text-muted-foreground">Total Mesas</p>
-          <p className="mt-1 text-2xl font-bold">{totalTables}</p>
-          <p className="mt-1 text-[11px] text-muted-foreground">{occupancyPercentage}% ocupación</p>
-        </div>
+            <div className="rounded-2xl border border-[#EAE5DE] bg-white p-4 shadow-sm">
+              <p className="text-[11px] font-black uppercase tracking-wider text-[#666E7A]">Total Mesas</p>
+              <p className="mt-1 text-2xl font-black text-[#181C20]">{totalTables}</p>
+              <p className="mt-0.5 text-xs text-[#8C95A3]">{occupancyPercentage}% ocupación actual</p>
+            </div>
 
-        <div className="rounded-xl border bg-emerald-500/10 border-emerald-500/20 p-4 shadow-sm">
-          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">Libres</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-800 dark:text-emerald-300">{freeTables}</p>
-          <p className="mt-1 text-[11px] text-emerald-600/80">Listas para sentar</p>
-        </div>
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 shadow-sm">
+              <p className="text-[11px] font-black uppercase tracking-wider text-emerald-800">Libres</p>
+              <p className="mt-1 text-2xl font-black text-emerald-700">{freeTables}</p>
+              <p className="mt-0.5 text-xs text-emerald-600">Listas para sentar</p>
+            </div>
 
-        <div className="rounded-xl border bg-rose-500/10 border-rose-500/20 p-4 shadow-sm">
-          <p className="text-xs font-semibold text-rose-700 dark:text-rose-400">Ocupadas</p>
-          <p className="mt-1 text-2xl font-bold text-rose-800 dark:text-rose-300">{occupiedTables}</p>
-          <p className="mt-1 text-[11px] text-rose-600/80">Clientes comiendo</p>
-        </div>
+            <div className="rounded-2xl border border-[#EAA228]/50 bg-[#FEF9EE] p-4 shadow-sm">
+              <p className="text-[11px] font-black uppercase tracking-wider text-[#8F5E00]">Ocupadas</p>
+              <p className="mt-1 text-2xl font-black text-[#EAA228]">{occupiedTables}</p>
+              <p className="mt-0.5 text-xs text-[#8F5E00]/80">Clientes comiendo</p>
+            </div>
 
-        <div className="rounded-xl border bg-amber-500/10 border-amber-500/20 p-4 shadow-sm">
-          <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Reservadas</p>
-          <p className="mt-1 text-2xl font-bold text-amber-800 dark:text-amber-300">{reservedTables}</p>
-          <p className="mt-1 text-[11px] text-amber-600/80">En espera de cliente</p>
-        </div>
+            <div className="rounded-2xl border border-[#EAE5DE] bg-white p-4 shadow-sm">
+              <p className="text-[11px] font-black uppercase tracking-wider text-[#181C20]">Reservadas</p>
+              <p className="mt-1 text-2xl font-black text-[#181C20]">{reservedTables}</p>
+              <p className="mt-0.5 text-xs text-[#8C95A3]">En espera de cliente</p>
+            </div>
 
-        <div className="col-span-2 sm:col-span-1 rounded-xl border bg-card p-4 shadow-sm">
-          <p className="text-xs font-medium text-muted-foreground">Capacidad Total</p>
-          <p className="mt-1 text-2xl font-bold">{totalCapacity}</p>
-          <p className="mt-1 text-[11px] text-muted-foreground">asientos en el local</p>
-        </div>
-      </div>
-
-      {/* Avisos */}
-      {error && (
-        <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-          {error}
-        </div>
-      )}
-      {successMsg && (
-        <div role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
-          {successMsg}
-        </div>
-      )}
-
-      {/* Barra de Filtros y Acciones */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Filtro por Estado */}
-          <div className="inline-flex rounded-lg border bg-card p-1 text-xs">
-            {(['todas', 'libre', 'ocupada', 'reservada'] as const).map((st) => (
-              <button
-                key={st}
-                type="button"
-                onClick={() => setStatusFilter(st)}
-                className={`rounded-md px-3 py-1 font-medium capitalize transition-colors ${
-                  statusFilter === st
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {st === 'todas' ? 'Todas' : statusConfig[st].label}
-              </button>
-            ))}
+            <div className="col-span-2 sm:col-span-1 rounded-2xl border border-[#EAE5DE] bg-white p-4 shadow-sm">
+              <p className="text-[11px] font-black uppercase tracking-wider text-[#666E7A]">Capacidad Total</p>
+              <p className="mt-1 text-2xl font-black text-[#181C20]">{totalCapacity}</p>
+              <p className="mt-0.5 text-xs text-[#8C95A3]">asientos en el local</p>
+            </div>
           </div>
 
-          {/* Filtro por Zona */}
-          {zones.length > 0 && (
-            <select
-              value={selectedZone}
-              onChange={(e) => setSelectedZone(e.target.value)}
-              className="h-8 rounded-lg border bg-card px-2.5 text-xs text-foreground focus:outline-none"
-            >
-              <option value="todas">Todas las zonas</option>
-              {zones.map((z) => (
-                <option key={z} value={z}>
-                  {z}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border bg-muted/30 px-2.5 py-1 text-[11px] text-muted-foreground">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-            </span>
-            Realtime activo
-          </span>
-
-          {canCreateTable && (
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setShowBatchModal(true)}
-                className="inline-flex h-9 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 shadow-2xs transition-colors"
-              >
-                <Layers className="w-3.5 h-3.5 mr-1" />
-                <span>Generar Lote</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowAddModal(true)}
-                className="inline-flex h-9 items-center justify-center rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5 mr-1" />
-                <span>Nueva Mesa</span>
-              </button>
+          {/* Avisos */}
+          {error && (
+            <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs font-bold text-red-700">
+              {error}
             </div>
           )}
-        </div>
-      </div>
+          {successMsg && (
+            <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-bold text-emerald-800">
+              {successMsg}
+            </div>
+          )}
+
+          {/* Barra de Filtros y Acciones */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Filtro por Estado */}
+              <div className="inline-flex rounded-xl border border-[#EAE5DE] bg-[#FAF7F2] p-1 text-xs">
+                {(['todas', 'libre', 'ocupada', 'reservada'] as const).map((st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => setStatusFilter(st)}
+                    className={`rounded-lg px-3 py-1 font-black capitalize transition-all cursor-pointer ${
+                      statusFilter === st
+                        ? 'bg-[#EAA228] text-[#181C20] shadow-xs'
+                        : 'text-[#666E7A] hover:text-[#181C20]'
+                    }`}
+                  >
+                    {st === 'todas' ? 'Todas' : statusConfig[st].label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Filtro por Zona */}
+              {zones.length > 0 && (
+                <select
+                  value={selectedZone}
+                  onChange={(e) => setSelectedZone(e.target.value)}
+                  className="h-9 rounded-xl border border-[#EAE5DE] bg-white px-3 text-xs font-bold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:border-transparent outline-none cursor-pointer"
+                >
+                  <option value="todas">Todas las zonas</option>
+                  {zones.map((z) => (
+                    <option key={z} value={z}>
+                      {z}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#EAE5DE] bg-white px-3 py-1 text-[11px] font-bold text-[#666E7A]">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                Realtime activo
+              </span>
+
+              {canCreateTable && (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowBatchModal(true)}
+                    className="inline-flex h-9 items-center justify-center rounded-xl border border-[#EAE5DE] bg-white px-3.5 text-xs font-black text-[#181C20] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+                  >
+                    <Layers className="w-3.5 h-3.5 mr-1 text-[#EAA228]" />
+                    <span>Generar Lote</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(true)}
+                    className="inline-flex h-9 items-center justify-center rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-4 text-xs font-black text-[#181C20] shadow-sm transition-all hover:shadow cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" />
+                    <span>Nueva Mesa</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
 
 
 
@@ -1057,7 +1058,7 @@ export function TableManager({
                         <button
                           type="button"
                           onClick={() => openComanderoForTable(table.id)}
-                          className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="h-9 rounded-full bg-[#EAA228] hover:bg-[#D99318] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <Utensils className="h-3.5 w-3.5 text-zinc-950" />
                           <span>Tomar Orden</span>
@@ -1101,7 +1102,7 @@ export function TableManager({
                               <button
                                 type="button"
                                 onClick={() => void updateTableStatus(table.id, 'libre')}
-                                className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                                className="h-9 rounded-full bg-[#EAA228] hover:bg-[#D99318] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                               >
                                 <span>Liberar Mesa</span>
                               </button>
@@ -1121,7 +1122,7 @@ export function TableManager({
                               type="button"
                               onClick={() => void openTableCheckout(table)}
                               disabled={isFetchingCheckout}
-                              className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                              className="h-9 rounded-full bg-[#EAA228] hover:bg-[#D99318] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                             >
                               <CreditCard className="w-3.5 h-3.5" />
                               <span>Cobrar</span>
@@ -1155,7 +1156,7 @@ export function TableManager({
                         <button
                           type="button"
                           onClick={() => void updateTableStatus(table.id, 'ocupada')}
-                          className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors"
+                          className="h-9 rounded-full bg-[#EAA228] hover:bg-[#D99318] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors"
                         >
                           Llegó Cliente
                         </button>
@@ -1224,7 +1225,7 @@ export function TableManager({
                   value={newTableNumber}
                   onChange={(e) => setNewTableNumber(e.target.value)}
                   placeholder="Ej. 2"
-                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#EAA228] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -1241,7 +1242,7 @@ export function TableManager({
                   value={newCapacity}
                   onChange={(e) => setNewCapacity(e.target.value)}
                   placeholder="Ej. 4"
-                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#EAA228] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -1255,7 +1256,7 @@ export function TableManager({
                   value={newZone}
                   onChange={(e) => setNewZone(e.target.value)}
                   placeholder="Ej. Terraza, VIP, Salón 1"
-                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#EAA228] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -1270,7 +1271,7 @@ export function TableManager({
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="h-10 flex-1 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-xs font-black text-zinc-950 shadow-xs transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                  className="h-10 flex-1 rounded-full bg-[#EAA228] hover:bg-[#D99318] text-xs font-black text-zinc-950 shadow-xs transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                 >
                   {isCreating ? 'Guardando...' : 'Crear Mesa'}
                 </button>
@@ -1313,7 +1314,7 @@ export function TableManager({
                   required
                   value={editCapacity}
                   onChange={(e) => setEditCapacity(e.target.value)}
-                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#EAA228] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -1326,7 +1327,7 @@ export function TableManager({
                   value={editZone}
                   onChange={(e) => setEditZone(e.target.value)}
                   placeholder="Ej. Salón Principal, Terraza, VIP"
-                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#EAA228] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -1341,7 +1342,7 @@ export function TableManager({
                 <button
                   type="submit"
                   disabled={isUpdatingTable}
-                  className="h-10 flex-1 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-xs font-black text-zinc-950 shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+                  className="h-10 flex-1 rounded-full bg-[#EAA228] hover:bg-[#D99318] text-xs font-black text-zinc-950 shadow-xs transition-all active:scale-[0.98] cursor-pointer"
                 >
                   {isUpdatingTable ? 'Guardando...' : 'Guardar Cambios'}
                 </button>
@@ -1386,7 +1387,7 @@ export function TableManager({
                     value={batchStart}
                     onChange={(e) => setBatchStart(e.target.value)}
                     placeholder="1"
-                    className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
+                    className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#EAA228] focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -1402,7 +1403,7 @@ export function TableManager({
                     value={batchCount}
                     onChange={(e) => setBatchCount(e.target.value)}
                     placeholder="10"
-                    className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
+                    className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#EAA228] focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -1419,7 +1420,7 @@ export function TableManager({
                   value={batchCapacity}
                   onChange={(e) => setBatchCapacity(e.target.value)}
                   placeholder="4"
-                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#EAA228] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -1432,7 +1433,7 @@ export function TableManager({
                   value={batchZone}
                   onChange={(e) => setBatchZone(e.target.value)}
                   placeholder="Ej. Salón Principal"
-                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
+                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#EAA228] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -1447,7 +1448,7 @@ export function TableManager({
                 <button
                   type="submit"
                   disabled={isCreatingBatch}
-                  className="h-10 flex-1 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-xs font-black text-zinc-950 shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+                  className="h-10 flex-1 rounded-full bg-[#EAA228] hover:bg-[#D99318] text-xs font-black text-zinc-950 shadow-xs transition-all active:scale-[0.98] cursor-pointer"
                 >
                   {isCreatingBatch ? 'Generando...' : 'Crear Lote'}
                 </button>
@@ -1491,7 +1492,7 @@ export function TableManager({
                       <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
                         {res.guests} personas · Tel: {res.customer_phone}
                       </p>
-                      <p className="text-[11px] font-mono font-bold text-[#f3a806]">
+                      <p className="text-[11px] font-mono font-bold text-[#EAA228]">
                         Hora: {new Date(res.date_time).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                       {res.notes && <p className="text-[10px] italic text-zinc-400">Nota: {res.notes}</p>}
@@ -1504,7 +1505,7 @@ export function TableManager({
                       className={`h-8 rounded-full px-3.5 text-xs font-black shadow-2xs transition-all cursor-pointer ${
                         exceedsCapacity
                           ? 'bg-zinc-100 text-zinc-400 opacity-50 cursor-not-allowed'
-                          : 'bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 active:scale-[0.98]'
+                          : 'bg-[#EAA228] hover:bg-[#D99318] text-zinc-950 active:scale-[0.98]'
                       }`}
                       title={exceedsCapacity ? 'Excede la capacidad de la mesa' : 'Asignar'}
                     >

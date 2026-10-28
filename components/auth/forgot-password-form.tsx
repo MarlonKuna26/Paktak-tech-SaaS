@@ -17,43 +17,63 @@ export function ForgotPasswordForm() {
     setMessage('');
 
     const supabase = createSupabaseBrowserClient();
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/auth/callback?next=/auth/update-password`,
     });
 
     if (resetError) {
       setError('No pudimos enviar el enlace. Revisa el correo e inténtalo de nuevo.');
     } else {
-      setMessage('Si el correo está registrado, recibirás un enlace de recuperación.');
+      setMessage('Si el correo está registrado, recibirás un enlace de recuperación en tu bandeja de entrada.');
     }
     setIsSubmitting(false);
   }
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
-      <label className="block space-y-2 text-sm font-medium">
-        Correo electrónico
+      <div className="space-y-1.5">
+        <label className="block text-xs font-extrabold text-[#181C20]">
+          Correo electrónico
+        </label>
         <input
           required
           type="email"
           autoComplete="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="h-11 w-full rounded-md border bg-background px-3 font-normal outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+          placeholder="admin@demo.com"
+          className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-white px-3.5 text-sm font-semibold text-[#181C20] outline-none focus:ring-2 focus:ring-[#EAA228] focus:border-transparent transition-all"
         />
-      </label>
-      {error && <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
-      {message && <p role="status" className="rounded-md bg-primary/10 p-3 text-sm text-primary">{message}</p>}
+      </div>
+
+      {error && (
+        <div role="alert" className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs font-bold text-red-600">
+          {error}
+        </div>
+      )}
+
+      {message && (
+        <div role="status" className="rounded-xl bg-[#EBF7EE] border border-[#28A745]/30 p-3.5 text-xs font-bold text-[#1E7E34]">
+          {message}
+        </div>
+      )}
+
       <button
         type="submit"
         disabled={isSubmitting}
-        className="h-11 w-full rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        className="h-12 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-[#181C20] font-black text-xs shadow-sm hover:shadow transition-all disabled:opacity-50 cursor-pointer"
       >
-        {isSubmitting ? 'Enviando...' : 'Enviar enlace'}
+        {isSubmitting ? 'Enviando enlace...' : 'Enviar enlace de recuperación'}
       </button>
-      <Link href="/auth/login" className="block text-center text-sm text-muted-foreground underline-offset-4 hover:underline">
-        Volver a iniciar sesión
-      </Link>
+
+      <div className="pt-2 text-center">
+        <Link
+          href="/auth/login"
+          className="text-xs font-bold text-[#666E7A] hover:text-[#181C20] transition-colors"
+        >
+          ← Volver a iniciar sesión
+        </Link>
+      </div>
     </form>
   );
 }

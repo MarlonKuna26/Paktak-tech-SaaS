@@ -58,16 +58,16 @@ export function ThermalReceiptModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="w-full max-w-lg rounded-3xl border border-zinc-200/90 bg-white p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200 font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="w-full max-w-lg rounded-[28px] border border-[#EAE5DE] bg-white p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200 font-sans">
         {/* Cabecera y Controles */}
-        <div className="flex items-center justify-between border-b border-zinc-100 pb-4 no-print">
+        <div className="flex items-center justify-between border-b border-[#EAE5DE] pb-4 no-print">
           <div>
-            <h3 className="font-extrabold text-base text-zinc-900 flex items-center gap-2">
-              <Printer className="h-4 w-4 text-[#f3a806]" />
+            <h3 className="font-extrabold text-base text-[#181C20] flex items-center gap-2">
+              <Printer className="h-4 w-4 text-[#EAA228]" />
               <span>Ticket térmico / Orden</span>
             </h3>
-            <p className="text-xs text-zinc-500">Compatible con impresoras de 58mm y 80mm</p>
+            <p className="text-xs text-[#666E7A]">Compatible con impresoras de 58mm y 80mm</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -76,8 +76,8 @@ export function ThermalReceiptModal({
               onClick={() => setKitchenVisualMode(!kitchenVisualMode)}
               className={`h-9 px-3.5 rounded-full text-xs font-bold transition-colors cursor-pointer ${
                 kitchenVisualMode
-                  ? 'bg-zinc-950 text-[#f3a806]'
-                  : 'border border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50'
+                  ? 'bg-[#161A1E] text-[#EAA228]'
+                  : 'border border-[#EAE5DE] bg-[#FAF7F2] text-[#181C20] hover:bg-[#F2ECE4]'
               }`}
             >
               {kitchenVisualMode ? 'Pantalla cocina' : 'Formato papel'}
@@ -85,7 +85,7 @@ export function ThermalReceiptModal({
             <button
               type="button"
               onClick={onClose}
-              className="h-9 w-9 rounded-full border border-zinc-200 flex items-center justify-center text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors cursor-pointer"
+              className="h-9 w-9 rounded-full border border-[#EAE5DE] flex items-center justify-center text-[#666E7A] hover:text-[#181C20] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
               aria-label="Cerrar modal"
             >
               <X className="h-4 w-4" />
@@ -95,16 +95,16 @@ export function ThermalReceiptModal({
 
         {/* Selector de Ancho de Papel */}
         {!kitchenVisualMode && (
-          <div className="flex items-center justify-between text-xs border border-[#E8E8E8] rounded-2xl p-3 bg-[#F7F7F7] no-print">
-            <span className="font-semibold text-[#6B6B6B]">Ancho de papel térmico:</span>
+          <div className="flex items-center justify-between text-xs border border-[#EAE5DE] rounded-2xl p-3 bg-[#FAF7F2] no-print">
+            <span className="font-bold text-[#666E7A]">Ancho de papel térmico:</span>
             <div className="flex gap-1.5">
               <button
                 type="button"
                 onClick={() => setPaperWidth('58mm')}
-                className={`h-8 px-3 rounded-full text-xs font-bold transition-colors ${
+                className={`h-8 px-3.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   paperWidth === '58mm'
-                    ? 'bg-[#1A1A1A] text-white'
-                    : 'bg-white border border-[#E8E8E8] text-[#1A1A1A]'
+                    ? 'bg-[#181C20] text-white shadow-xs'
+                    : 'bg-white border border-[#EAE5DE] text-[#666E7A] hover:text-[#181C20]'
                 }`}
               >
                 58 mm (Portátil)
@@ -112,10 +112,10 @@ export function ThermalReceiptModal({
               <button
                 type="button"
                 onClick={() => setPaperWidth('80mm')}
-                className={`h-8 px-3 rounded-full text-xs font-bold transition-colors ${
+                className={`h-8 px-3.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   paperWidth === '80mm'
-                    ? 'bg-[#1A1A1A] text-white'
-                    : 'bg-white border border-[#E8E8E8] text-[#1A1A1A]'
+                    ? 'bg-[#181C20] text-white shadow-xs'
+                    : 'bg-white border border-[#EAE5DE] text-[#666E7A] hover:text-[#181C20]'
                 }`}
               >
                 80 mm (Caja/Cocina)
@@ -128,30 +128,30 @@ export function ThermalReceiptModal({
         <div className="flex-1 overflow-y-auto p-2 flex justify-center">
           {kitchenVisualMode ? (
             /* Pantalla Gigante para que el cocinero lo lea desde lejos */
-            <div className="w-full rounded-[24px] bg-[#111111] p-6 text-white space-y-4 border border-[#2E2E2E]">
-              <div className="border-b border-[#2E2E2E] pb-3 flex items-center justify-between">
+            <div className="w-full rounded-[24px] bg-[#161A1E] p-6 text-white space-y-4 border border-[#2D3540]">
+              <div className="border-b border-[#2D3540] pb-3 flex items-center justify-between">
                 <div>
-                  <span className="text-xs uppercase tracking-widest text-[#A1A1AA]">Orden Cocina</span>
-                  <h2 className="text-3xl font-extrabold text-white">
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-[#EAA228]">Orden Cocina</span>
+                  <h2 className="text-3xl font-black text-white">
                     {data.tableOrToken ? `${data.tableOrToken}` : `Orden #${data.orderNumber}`}
                   </h2>
                 </div>
-                <span className="text-base font-mono text-[#A1A1AA]">
+                <span className="text-sm font-mono text-[#8C95A3]">
                   {new Date(data.dateTime).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
 
               <div className="space-y-3">
                 {data.items.map((it, idx) => (
-                  <div key={idx} className="border-b border-[#222222] pb-3">
+                  <div key={idx} className="border-b border-[#2D3540]/60 pb-3">
                     <div className="flex items-baseline justify-between text-xl font-black text-white">
                       <span>
-                        <span className="text-[#FFC21A] text-2xl mr-2">{it.quantity}×</span>
+                        <span className="text-[#EAA228] text-2xl mr-2">{it.quantity}×</span>
                         {it.name}
                       </span>
                     </div>
                     {it.notes && (
-                      <p className="mt-1 text-sm font-semibold text-[#FFC21A] bg-[#222222] p-2 rounded-xl">
+                      <p className="mt-1 text-sm font-bold text-[#EAA228] bg-[#1E242B] border border-[#2D3540] p-2.5 rounded-xl">
                         Nota: {it.notes}
                       </p>
                     )}
@@ -160,7 +160,7 @@ export function ThermalReceiptModal({
               </div>
 
               {data.paymentStatus === 'pagado' && (
-                <div className="text-center font-bold text-[#BBF7D0] border border-[#15803D]/30 bg-[#15803D]/10 p-2.5 rounded-xl text-sm">
+                <div className="text-center font-bold text-emerald-300 border border-emerald-500/30 bg-emerald-950/40 p-2.5 rounded-xl text-sm">
                   Pedido pagado ({data.paymentMethod || 'Caja'})
                 </div>
               )}
@@ -168,7 +168,7 @@ export function ThermalReceiptModal({
           ) : (
             /* Formato Papel Térmico Físico */
             <div
-              className={`bg-white text-black p-4 font-mono text-xs shadow-sm border border-[#E8E8E8] rounded-xl transition-all ${
+              className={`bg-white text-black p-4 font-mono text-xs shadow-xs border border-[#EAE5DE] rounded-2xl transition-all ${
                 paperWidth === '58mm' ? 'w-[260px]' : 'w-[340px]'
               }`}
               id="thermal-receipt"
@@ -228,11 +228,11 @@ export function ThermalReceiptModal({
         </div>
 
         {/* Botones de Acción */}
-        <div className="flex flex-wrap gap-2.5 pt-3 border-t border-zinc-100 no-print">
+        <div className="flex flex-wrap gap-2.5 pt-3 border-t border-[#EAE5DE] no-print">
           <button
             type="button"
             onClick={handlePrint}
-            className="flex-1 h-12 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 font-black text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+            className="flex-1 h-12 rounded-full bg-[#EAA228] hover:bg-[#D99318] text-[#181C20] font-black text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
           >
             <Printer className="h-4 w-4" />
             <span>Imprimir ticket ({paperWidth})</span>
@@ -241,16 +241,16 @@ export function ThermalReceiptModal({
           <button
             type="button"
             onClick={handleSendToChefWhatsApp}
-            className="h-12 px-5 rounded-full border border-zinc-200 bg-white text-zinc-800 font-bold text-sm flex items-center justify-center gap-2 hover:bg-zinc-50 transition-colors shadow-2xs cursor-pointer"
+            className="h-12 px-5 rounded-full border border-[#EAE5DE] bg-[#FAF7F2] text-[#181C20] font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#F2ECE4] transition-colors shadow-2xs cursor-pointer"
           >
-            <Send className="h-4 w-4 text-[#f3a806]" />
+            <Send className="h-4 w-4 text-[#EAA228]" />
             <span>WhatsApp Cocina</span>
           </button>
 
           <button
             type="button"
             onClick={onClose}
-            className="h-12 px-5 rounded-full border border-zinc-200 bg-white text-zinc-800 font-bold text-sm hover:bg-zinc-50 transition-colors shadow-2xs cursor-pointer"
+            className="h-12 px-5 rounded-full border border-[#EAE5DE] bg-white text-[#666E7A] font-bold text-sm hover:text-[#181C20] hover:bg-[#FAF7F2] transition-colors shadow-2xs cursor-pointer"
           >
             Cerrar
           </button>

@@ -286,9 +286,9 @@ export function PublicOrderForm({
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans text-ink">
+    <div className="min-h-screen bg-[#FAF7F2] font-sans text-ink selection:bg-brand selection:text-ink">
       {/* Header: logo a la izquierda, carrito a la derecha */}
-      <header className="sticky top-0 z-40 h-16 border-b border-line bg-white sm:h-[72px]">
+      <header className="sticky top-0 z-40 h-16 border-b border-line bg-[#FAF7F2]/90 backdrop-blur-md sm:h-[72px]">
         <div className="page flex h-full items-center justify-between">
           <div className="flex min-w-0 items-center gap-3">
             {restaurantLogo ? (
@@ -364,7 +364,7 @@ export function PublicOrderForm({
         {categoryTabs.length > 1 && (
           <nav
             aria-label="Categorías del menú"
-            className="sticky top-16 z-30 -mx-4 bg-white px-4 py-3 sm:top-[72px] sm:-mx-8 sm:px-8"
+            className="sticky top-16 z-30 -mx-4 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-line px-4 py-3 sm:top-[72px] sm:-mx-8 sm:px-8"
           >
             <div className="no-scrollbar flex gap-2 overflow-x-auto">
               {categoryTabs.map((cat) => (
@@ -505,12 +505,12 @@ export function PublicOrderForm({
 
       {/* Acción principal: ver pedido */}
       {cart.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white py-4">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-[#FAF7F2]/90 backdrop-blur-md py-4">
           <div className="page">
             <button
               type="button"
               onClick={() => setIsCartDrawerOpen(true)}
-              className="btn-primary w-full justify-between sm:ml-auto sm:flex sm:w-[400px]"
+              className="btn-primary w-full justify-between sm:ml-auto sm:flex sm:w-[400px] shadow-lg"
             >
               <span>Ver pedido · {totalCartCount}</span>
               <span className="font-extrabold">${totalCartFormatted}</span>

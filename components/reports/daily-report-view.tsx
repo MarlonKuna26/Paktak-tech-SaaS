@@ -169,9 +169,9 @@ export function DailyReportView({ restaurantName }: { restaurantName: string }) 
   return (
     <div className="space-y-6">
       {/* Controles Superiores: Filtros Limpios y Píldoras */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs print:hidden">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between rounded-2xl border border-[#EAE5DE] bg-white p-5 shadow-sm print:hidden">
         <div className="flex flex-wrap items-center gap-3">
-          <label htmlFor="report-date-picker" className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+          <label htmlFor="report-date-picker" className="text-xs font-black uppercase tracking-wider text-[#666E7A]">
             Fecha de Cierre:
           </label>
           <input
@@ -179,29 +179,29 @@ export function DailyReportView({ restaurantName }: { restaurantName: string }) 
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="h-10 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 text-xs font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-[#f3a806]"
+            className="h-10 rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/40 px-3.5 text-xs font-bold text-[#181C20] focus:bg-white focus:ring-2 focus:ring-[#EAA228] focus:border-transparent outline-none cursor-pointer"
           />
           <button
             type="button"
             onClick={() => setSelectedDate(getLocalTodayString())}
-            className="h-10 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-2xs"
+            className="h-10 rounded-xl border border-[#EAE5DE] bg-white px-4 text-xs font-black text-[#181C20] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
           >
             Hoy
           </button>
 
           {/* Ajuste de Costo Operativo Gastronómico */}
-          <div className="flex items-center gap-2 pl-2 border-l border-zinc-100 dark:border-zinc-800">
-            <Percent className="w-3.5 h-3.5 text-zinc-400" />
-            <span className="text-xs text-zinc-500 font-medium">Costo Insumos:</span>
+          <div className="flex items-center gap-2 pl-2 border-l border-[#EAE5DE]">
+            <Percent className="w-3.5 h-3.5 text-[#EAA228]" />
+            <span className="text-xs text-[#666E7A] font-bold">Costo Insumos:</span>
             <input
               type="number"
               min="0"
               max="90"
               value={costPercentage}
               onChange={(e) => setCostPercentage(Number(e.target.value) || 0)}
-              className="h-8 w-14 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-2 text-center text-xs font-bold"
+              className="h-8 w-14 rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/40 px-2 text-center text-xs font-black text-[#181C20] focus:bg-white focus:ring-2 focus:ring-[#EAA228] outline-none"
             />
-            <span className="text-xs text-zinc-400">%</span>
+            <span className="text-xs font-bold text-[#666E7A]">%</span>
           </div>
         </div>
 
@@ -209,26 +209,26 @@ export function DailyReportView({ restaurantName }: { restaurantName: string }) 
           <button
             type="button"
             onClick={() => void refreshReport()}
-            className="h-10 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs"
+            className="h-10 rounded-xl border border-[#EAE5DE] bg-white px-4 text-xs font-black text-[#181C20] hover:bg-[#FAF7F2] transition-colors flex items-center gap-1.5 cursor-pointer"
             title="Refrescar datos"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Actualizar</span>
           </button>
           <button
             type="button"
             onClick={handleExportCSV}
             disabled={!report || report.total_orders === 0}
-            className="h-10 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs disabled:opacity-40"
+            className="h-10 rounded-xl border border-[#EAE5DE] bg-white px-4 text-xs font-black text-[#181C20] hover:bg-[#FAF7F2] transition-colors flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-[#EAA228]" />
             <span>Exportar CSV</span>
           </button>
           <button
             type="button"
             onClick={handlePrint}
             disabled={!report}
-            className="h-10 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-5 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center gap-2 disabled:opacity-40"
+            className="h-10 rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-5 text-xs font-black text-[#181C20] shadow-sm transition-all hover:shadow flex items-center gap-2 disabled:opacity-40 cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             <span>Imprimir Cierre</span>
@@ -237,62 +237,62 @@ export function DailyReportView({ restaurantName }: { restaurantName: string }) 
       </div>
 
       {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-medium text-red-700 dark:bg-red-950/30 dark:text-red-400">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-700">
           {error}
         </div>
       )}
 
       {loading ? (
-        <div className="flex h-64 items-center justify-center rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8">
-          <p className="text-xs font-medium text-zinc-400 animate-pulse">Calculando métricas financieras consolidadas...</p>
+        <div className="flex h-64 items-center justify-center rounded-2xl border border-[#EAE5DE] bg-white p-8">
+          <p className="text-xs font-bold text-[#8C95A3] animate-pulse">Calculando métricas financieras consolidadas...</p>
         </div>
       ) : report ? (
         <div className="space-y-6">
           {/* Encabezado visible al imprimir */}
-          <div className="hidden print:block border-b border-zinc-200 pb-4 mb-4">
-            <h1 className="text-xl font-black text-zinc-900">Cierre de Caja & Reporte Financiero</h1>
-            <p className="text-xs text-zinc-600">{restaurantName} · Fecha: {report.date}</p>
+          <div className="hidden print:block border-b border-[#EAE5DE] pb-4 mb-4">
+            <h1 className="text-xl font-black text-[#181C20]">Cierre de Caja & Reporte Financiero</h1>
+            <p className="text-xs text-[#666E7A]">{restaurantName} · Fecha: {report.date}</p>
           </div>
 
           {/* Tarjetas KPI Financieras */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs">
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Ventas Totales</span>
-              <p className="mt-2 text-3xl font-black text-zinc-900 dark:text-zinc-100">
+            <div className="rounded-2xl border border-[#EAA228]/50 bg-[#FEF9EE] p-5 shadow-sm">
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#8F5E00]">Ventas Totales</span>
+              <p className="mt-2 text-3xl font-black text-[#EAA228]">
                 {formatMoney(report.total_sales_cents)}
               </p>
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-zinc-500 font-medium">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-[#8F5E00] font-bold">
+                <TrendingUp className="w-3.5 h-3.5" />
                 <span>{report.total_orders} pedidos cobrados</span>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs">
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Costos de Operación ({report.cost_percentage}%)</span>
-              <p className="mt-2 text-3xl font-black text-zinc-500 dark:text-zinc-400">
+            <div className="rounded-2xl border border-[#EAE5DE] bg-white p-5 shadow-sm">
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#666E7A]">Costos de Operación ({report.cost_percentage}%)</span>
+              <p className="mt-2 text-3xl font-black text-[#666E7A]">
                 {formatMoney(report.operating_cost_cents)}
               </p>
-              <p className="mt-2 text-[11px] text-zinc-400">Costo estimado de materia prima</p>
+              <p className="mt-2 text-xs text-[#8C95A3]">Costo estimado materia prima</p>
             </div>
 
-            <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs">
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Margen Operativo Neto</span>
-              <p className="mt-2 text-3xl font-black text-emerald-600 dark:text-emerald-400">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 shadow-sm">
+              <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800">Margen Operativo Neto</span>
+              <p className="mt-2 text-3xl font-black text-emerald-700">
                 {formatMoney(report.net_margin_cents)}
               </p>
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-300 font-medium">
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-emerald-700 font-bold">
                 <DollarSign className="w-3.5 h-3.5" />
                 <span>{100 - report.cost_percentage}% de margen bruto</span>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs">
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Efectivo en Caja</span>
-              <p className="mt-2 text-3xl font-black text-zinc-900 dark:text-zinc-100">
+            <div className="rounded-2xl border border-[#EAE5DE] bg-white p-5 shadow-sm">
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#666E7A]">Efectivo en Caja</span>
+              <p className="mt-2 text-3xl font-black text-[#181C20]">
                 {formatMoney(cashTotalCents)}
               </p>
-              <p className="mt-2 text-[11px] text-zinc-500">
-                Transferencia/Tarjetas: <span className="font-bold">{formatMoney(digitalTotalCents)}</span>
+              <p className="mt-2 text-xs text-[#666E7A]">
+                Bancos/Tarjetas: <span className="font-bold text-[#181C20]">{formatMoney(digitalTotalCents)}</span>
               </p>
             </div>
           </div>
@@ -300,31 +300,31 @@ export function DailyReportView({ restaurantName }: { restaurantName: string }) 
           {/* Cruzamiento: Canales de Venta vs Quién Realizó el Pedido */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* 1. Canales de Venta */}
-            <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs space-y-4">
+            <div className="rounded-2xl border border-[#EAE5DE] bg-white p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-black text-zinc-900 dark:text-zinc-100">Ventas por Canal</h3>
-                  <p className="text-xs text-zinc-400">Distribución de ingresos por punto de captación</p>
+                  <h3 className="text-sm font-black text-[#181C20]">Ventas por Canal</h3>
+                  <p className="text-xs text-[#666E7A]">Distribución de ingresos por punto de captación</p>
                 </div>
-                <Store className="w-4 h-4 text-zinc-400" />
+                <Store className="w-4 h-4 text-[#EAA228]" />
               </div>
 
               {report.by_channel.length === 0 ? (
-                <p className="py-6 text-center text-xs text-zinc-400">No hay ventas registradas para esta fecha.</p>
+                <p className="py-6 text-center text-xs text-[#8C95A3]">No hay ventas registradas para esta fecha.</p>
               ) : (
                 <div className="space-y-3">
                   {report.by_channel.map((ch) => (
                     <div key={ch.channel} className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-zinc-800 dark:text-zinc-200">{ch.channel}</span>
-                        <span className="font-black text-zinc-900 dark:text-zinc-100">
+                        <span className="font-black text-[#181C20]">{ch.channel}</span>
+                        <span className="font-black text-[#181C20]">
                           {formatMoney(ch.total_cents)}{' '}
-                          <span className="text-[11px] font-normal text-zinc-400">({ch.orders_count} órdenes · {ch.percentage}%)</span>
+                          <span className="text-[11px] font-normal text-[#666E7A]">({ch.orders_count} órdenes · {ch.percentage}%)</span>
                         </span>
                       </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-[#FAF7F2] border border-[#EAE5DE]">
                         <div
-                          className="h-full rounded-full bg-[#f3a806]"
+                          className="h-full rounded-full bg-[#EAA228]"
                           style={{ width: `${Math.min(100, Math.max(4, ch.percentage))}%` }}
                         />
                       </div>
@@ -335,36 +335,36 @@ export function DailyReportView({ restaurantName }: { restaurantName: string }) 
             </div>
 
             {/* 2. Quién Realizó / Atendió el Pedido */}
-            <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs space-y-4">
+            <div className="rounded-2xl border border-[#EAE5DE] bg-white p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-black text-zinc-900 dark:text-zinc-100">Atendido / Creado Por</h3>
-                  <p className="text-xs text-zinc-400">Cruce de ventas por mesero y autogestión de clientes</p>
+                  <h3 className="text-sm font-black text-[#181C20]">Atendido / Creado Por</h3>
+                  <p className="text-xs text-[#666E7A]">Cruce de ventas por mesero y autogestión de clientes</p>
                 </div>
-                <Users className="w-4 h-4 text-zinc-400" />
+                <Users className="w-4 h-4 text-[#EAA228]" />
               </div>
 
               {report.by_creator.length === 0 ? (
-                <p className="py-6 text-center text-xs text-zinc-400">No hay órdenes registradas para esta fecha.</p>
+                <p className="py-6 text-center text-xs text-[#8C95A3]">No hay órdenes registradas para esta fecha.</p>
               ) : (
                 <div className="space-y-3">
                   {report.by_creator.map((cr) => (
                     <div key={cr.creator} className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-zinc-800 dark:text-zinc-200">{cr.creator}</span>
-                          <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                          <span className="font-black text-[#181C20]">{cr.creator}</span>
+                          <span className="rounded-full bg-[#FAF7F2] border border-[#EAE5DE] px-2 py-0.5 text-[10px] font-bold text-[#666E7A]">
                             {cr.role}
                           </span>
                         </div>
-                        <span className="font-black text-zinc-900 dark:text-zinc-100">
+                        <span className="font-black text-[#181C20]">
                           {formatMoney(cr.total_cents)}{' '}
-                          <span className="text-[11px] font-normal text-zinc-400">({cr.orders_count} órdenes)</span>
+                          <span className="text-[11px] font-normal text-[#666E7A]">({cr.orders_count} órdenes)</span>
                         </span>
                       </div>
-                      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-[#FAF7F2] border border-[#EAE5DE]">
                         <div
-                          className="h-full rounded-full bg-zinc-800 dark:bg-zinc-200"
+                          className="h-full rounded-full bg-[#181C20]"
                           style={{ width: `${Math.min(100, Math.max(4, cr.percentage))}%` }}
                         />
                       </div>
@@ -376,25 +376,25 @@ export function DailyReportView({ restaurantName }: { restaurantName: string }) 
           </div>
 
           {/* Métodos de Pago y Desglose de Caja */}
-          <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs space-y-4">
+          <div className="rounded-2xl border border-[#EAE5DE] bg-white p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-black text-zinc-900 dark:text-zinc-100">Desglose de Métodos de Cobro</h3>
-                <p className="text-xs text-zinc-400">Arqueo y comprobantes para cierre de turno</p>
+                <h3 className="text-sm font-black text-[#181C20]">Desglose de Métodos de Cobro</h3>
+                <p className="text-xs text-[#666E7A]">Arqueo y comprobantes para cierre de turno</p>
               </div>
-              <Wallet className="w-4 h-4 text-zinc-400" />
+              <Wallet className="w-4 h-4 text-[#EAA228]" />
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {report.payment_methods.map((pm) => (
-                <div key={pm.method} className="rounded-2xl border border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-800/40 p-4">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 capitalize">
+                <div key={pm.method} className="rounded-xl border border-[#EAE5DE] bg-[#FAF7F2] p-4">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-[#666E7A] capitalize">
                     {pm.method}
                   </span>
-                  <p className="mt-1.5 text-xl font-black text-zinc-900 dark:text-zinc-100">
+                  <p className="mt-1.5 text-xl font-black text-[#181C20]">
                     {formatMoney(pm.total_cents)}
                   </p>
-                  <p className="text-[11px] text-zinc-500 mt-0.5">{pm.count} transacciones</p>
+                  <p className="text-[11px] text-[#8C95A3] mt-0.5">{pm.count} transacciones</p>
                 </div>
               ))}
             </div>

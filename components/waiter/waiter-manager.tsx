@@ -528,7 +528,7 @@ export function WaiterManager({
               onClick={onBackToTables}
               className="h-10 px-4 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-2xs cursor-pointer"
             >
-              <LayoutGrid className="h-4 w-4 text-[#f3a806]" />
+              <LayoutGrid className="h-4 w-4 text-[#EAA228]" />
               <span>Plano de Mesas</span>
             </button>
           )}
@@ -539,7 +539,7 @@ export function WaiterManager({
               onClick={onGoToOrders}
               className="h-10 px-4 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-2xs cursor-pointer"
             >
-              <ClipboardList className="h-4 w-4 text-[#f3a806]" />
+              <ClipboardList className="h-4 w-4 text-[#EAA228]" />
               <span>Caja & Cobros</span>
             </button>
           )}
@@ -673,7 +673,7 @@ export function WaiterManager({
             type="button"
             onClick={() => void handleOpenTableCheckout(selectedTable)}
             disabled={isFetchingCheckout}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-5 py-2.5 text-xs font-black text-zinc-950 shadow-xs transition-colors shrink-0 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#EAA228] hover:bg-[#D99318] px-5 py-2.5 text-xs font-black text-zinc-950 shadow-xs transition-colors shrink-0 disabled:opacity-50"
           >
             <CreditCard className="w-4 h-4" />
             <span>{isFetchingCheckout ? 'Consultando orden...' : `Cobrar Mesa #${selectedTable.tableNumber}`}</span>
@@ -749,7 +749,7 @@ export function WaiterManager({
                   onClick={() => setCategoryFilter(cat)}
                   className={`h-9 px-4 rounded-full text-xs font-bold capitalize transition-all cursor-pointer whitespace-nowrap ${
                     categoryFilter === cat
-                      ? 'bg-[#f3a806] text-zinc-950 shadow-xs'
+                      ? 'bg-[#EAA228] text-zinc-950 shadow-xs'
                       : 'border border-[#E8E8E8] bg-white text-zinc-700 hover:bg-[#F7F7F7]'
                   }`}
                 >
@@ -764,7 +764,7 @@ export function WaiterManager({
                   onClick={() => setCategoryFilter(catName)}
                   className={`h-9 px-3.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                     categoryFilter === catName
-                      ? 'bg-[#f3a806] text-zinc-950 shadow-xs'
+                      ? 'bg-[#EAA228] text-zinc-950 shadow-xs'
                       : 'border border-[#E8E8E8] bg-white text-zinc-700 hover:bg-[#F7F7F7]'
                   }`}
                 >
@@ -786,7 +786,7 @@ export function WaiterManager({
                     onClick={() => addToCart(prod)}
                     className={`group relative flex flex-col justify-between overflow-hidden rounded-[24px] border transition-all duration-200 cursor-pointer ${
                       inCart
-                        ? 'border-[#f3a806] bg-amber-50/20 dark:bg-amber-950/20 shadow-md ring-2 ring-[#f3a806]/40'
+                        ? 'border-[#EAA228] bg-amber-50/20 dark:bg-amber-950/20 shadow-md ring-2 ring-[#EAA228]/40'
                         : 'border-[#E8E8E8] bg-white dark:bg-zinc-900 hover:border-amber-400/70 dark:hover:border-amber-500/50 shadow-2xs hover:shadow-md'
                     }`}
                   >
@@ -807,7 +807,7 @@ export function WaiterManager({
                         </span>
 
                         {inCart && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-[#f3a806] text-zinc-950 px-2.5 py-0.5 text-[11px] font-black shadow-md animate-in fade-in zoom-in">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#EAA228] text-zinc-950 px-2.5 py-0.5 text-[11px] font-black shadow-md animate-in fade-in zoom-in">
                             <Check className="w-3 h-3 stroke-[3]" />
                             <span>{inCart.quantity} en orden</span>
                           </span>
@@ -816,7 +816,7 @@ export function WaiterManager({
 
                       {/* Precio flotante y botón rápido de tocar */}
                       <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between">
-                        <span className="rounded-xl bg-[#f3a806] px-2.5 py-1 font-mono text-xs font-black text-zinc-950 shadow-xs">
+                        <span className="rounded-xl bg-[#EAA228] px-2.5 py-1 font-mono text-xs font-black text-zinc-950 shadow-xs">
                           ${(prod.priceCents / 100).toFixed(2)}
                         </span>
                         <span className="rounded-full bg-black/50 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 opacity-90 group-hover:opacity-100">
@@ -861,7 +861,7 @@ export function WaiterManager({
                             <button
                               type="button"
                               onClick={() => changeQuantity(prod.id, inCart.quantity + 1)}
-                              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f3a806] text-zinc-950 hover:bg-[#e09804] active:scale-95 transition-transform font-bold cursor-pointer"
+                              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EAA228] text-zinc-950 hover:bg-[#D99318] active:scale-95 transition-transform font-bold cursor-pointer"
                             >
                               <Plus className="h-3.5 w-3.5" />
                             </button>
@@ -870,7 +870,7 @@ export function WaiterManager({
                           <button
                             type="button"
                             onClick={() => addToCart(prod)}
-                            className="h-8.5 px-3.5 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-xs font-black text-zinc-950 transition-all flex items-center gap-1 active:scale-95 shadow-2xs cursor-pointer"
+                            className="h-8.5 px-3.5 rounded-full bg-[#EAA228] hover:bg-[#D99318] text-xs font-black text-zinc-950 transition-all flex items-center gap-1 active:scale-95 shadow-2xs cursor-pointer"
                           >
                             <Plus className="h-3 w-3" />
                             <span>Pedir</span>
@@ -895,7 +895,7 @@ export function WaiterManager({
                     onClick={() => addToCart(prod)}
                     className={`flex items-center justify-between gap-3 p-3 rounded-2xl border transition-all cursor-pointer ${
                       inCart
-                        ? 'border-[#f3a806] bg-amber-50/20 dark:bg-amber-950/20 shadow-xs ring-1 ring-[#f3a806]/40'
+                        ? 'border-[#EAA228] bg-amber-50/20 dark:bg-amber-950/20 shadow-xs ring-1 ring-[#EAA228]/40'
                         : 'border-[#E8E8E8] bg-white dark:bg-zinc-900 hover:border-zinc-300'
                     }`}
                   >
@@ -910,7 +910,7 @@ export function WaiterManager({
                         <span className="text-[10px] text-zinc-500 capitalize">
                           {prod.categoryName || prod.station}
                         </span>
-                        <div className="font-mono text-xs font-black text-[#f3a806]">
+                        <div className="font-mono text-xs font-black text-[#EAA228]">
                           ${(prod.priceCents / 100).toFixed(2)}
                         </div>
                       </div>
@@ -930,7 +930,7 @@ export function WaiterManager({
                           <button
                             type="button"
                             onClick={() => changeQuantity(prod.id, inCart.quantity + 1)}
-                            className="h-7 w-7 rounded-full bg-[#f3a806] flex items-center justify-center text-zinc-950 font-bold hover:bg-[#e09804] cursor-pointer"
+                            className="h-7 w-7 rounded-full bg-[#EAA228] flex items-center justify-center text-zinc-950 font-bold hover:bg-[#D99318] cursor-pointer"
                           >
                             <Plus className="h-3 w-3" />
                           </button>
@@ -939,7 +939,7 @@ export function WaiterManager({
                         <button
                           type="button"
                           onClick={() => addToCart(prod)}
-                          className="h-8 px-3 rounded-full bg-[#f3a806] text-xs font-black text-zinc-950 hover:bg-[#e09804] cursor-pointer"
+                          className="h-8 px-3 rounded-full bg-[#EAA228] text-xs font-black text-zinc-950 hover:bg-[#D99318] cursor-pointer"
                         >
                           + Pedir
                         </button>
@@ -965,7 +965,7 @@ export function WaiterManager({
         >
           <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3">
             <div>
-              <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-[#f3a806] mb-0.5">
+              <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-[#EAA228] mb-0.5">
                 <ShoppingBag className="w-3.5 h-3.5" />
                 <span>Comanda en Vivo</span>
               </div>
@@ -1028,7 +1028,7 @@ export function WaiterManager({
                     <button
                       type="button"
                       onClick={() => changeQuantity(item.productId, item.quantity + 1)}
-                      className="h-7 w-7 rounded-full bg-[#f3a806] flex items-center justify-center text-zinc-950 font-bold hover:bg-[#e09804] cursor-pointer"
+                      className="h-7 w-7 rounded-full bg-[#EAA228] flex items-center justify-center text-zinc-950 font-bold hover:bg-[#D99318] cursor-pointer"
                     >
                       <Plus className="h-3 w-3" />
                     </button>
@@ -1071,7 +1071,7 @@ export function WaiterManager({
               type="button"
               disabled={isSubmitting || !cart.length || !selectedTable}
               onClick={() => void handleSubmitOrder(true)}
-              className="h-14 w-full rounded-full bg-[#f3a806] hover:bg-[#e09804] text-sm font-black text-zinc-950 transition-colors shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              className="h-14 w-full rounded-full bg-[#EAA228] hover:bg-[#D99318] text-sm font-black text-zinc-950 transition-colors shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               <CreditCard className="w-4 h-4 stroke-[2.2]" />
               <span>
@@ -1190,7 +1190,7 @@ export function WaiterManager({
               const el = document.getElementById('waiter-active-order');
               el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }}
-            className="w-full h-14 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 px-5 flex items-center justify-between shadow-2xl font-black text-sm border-2 border-white cursor-pointer"
+            className="w-full h-14 rounded-full bg-[#EAA228] hover:bg-[#D99318] text-zinc-950 px-5 flex items-center justify-between shadow-2xl font-black text-sm border-2 border-white cursor-pointer"
           >
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5" />

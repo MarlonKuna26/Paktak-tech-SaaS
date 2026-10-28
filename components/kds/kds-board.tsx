@@ -479,61 +479,61 @@ export function KdsBoard({
     <div className="space-y-6 font-sans">
       {/* Toast Flotante cuando una Orden está Lista para Despachar */}
       {readyToast && (
-        <div className="fixed top-5 right-5 z-50 rounded-3xl border border-[#f3a806]/40 bg-white p-4.5 shadow-2xl flex items-start gap-3 max-w-sm w-full animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-auto">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f3a806] text-zinc-950 font-black shadow-xs">
+        <div className="fixed top-5 right-5 z-50 rounded-[24px] border border-[#EAA228]/40 bg-white p-4.5 shadow-2xl flex items-start gap-3 max-w-sm w-full animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-auto">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#EAA228] text-[#181C20] font-black shadow-xs">
             <CheckCheck className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-xs font-black uppercase tracking-wider text-amber-950">
+            <h4 className="text-xs font-black uppercase tracking-wider text-[#EAA228]">
               ¡Orden Lista para Despachar!
             </h4>
-            <p className="mt-0.5 text-sm font-extrabold text-zinc-900">
+            <p className="mt-0.5 text-sm font-extrabold text-[#181C20]">
               Mesa #{readyToast.tableNumber} · Orden #{readyToast.orderNumber}
             </p>
-            <p className="text-[11px] text-zinc-500">
+            <p className="text-[11px] text-[#666E7A]">
               {readyToast.count} {readyToast.count === 1 ? 'platillo preparado' : 'platillos preparados'} esperando retiro en cocina.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setReadyToast(null)}
-            className="text-zinc-400 hover:text-zinc-600 text-xs font-bold cursor-pointer"
+            className="text-[#8C95A3] hover:text-[#181C20] text-xs font-bold cursor-pointer"
           >
             ✕
           </button>
         </div>
       )}
 
-      {/* 1. Header Principal y Barra de Herramientas de Cocina (Tema Claro y Dorado) */}
-      <header className="rounded-3xl border border-zinc-200/90 bg-white p-5 sm:p-6 shadow-xs space-y-5">
+      {/* 1. Header Principal y Barra de Herramientas de Cocina (Tema Warm Ivory y Golden Amber) */}
+      <header className="rounded-[28px] border border-[#EAE5DE] bg-white p-5 sm:p-6 shadow-xs space-y-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           {/* Logo y Título */}
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#f3a806]/15 border border-[#f3a806]/30 text-[#f3a806] shadow-2xs">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FEF9EE] border border-[#EAA228]/40 text-[#EAA228] shadow-2xs">
               <ChefHat className="h-6 w-6 stroke-[2.2]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-[#f3a806] animate-pulse" />
-                <span className="text-[11px] font-black uppercase tracking-wider text-[#f3a806]">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-[#EAA228] animate-pulse" />
+                <span className="text-[11px] font-black uppercase tracking-wider text-[#EAA228]">
                   KDS Cocina & Barra · En Vivo
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#181C20]">
                 Comandero de Cocina
               </h1>
               <div className="flex flex-wrap items-center gap-2 mt-1">
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-amber-500/10 px-3 py-1 text-[11px] font-bold text-amber-950">
-                  <span className="h-2 w-2 rounded-full bg-[#f3a806] animate-pulse" />
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-[#EAA228]/40 bg-[#FEF9EE] px-3 py-1 text-[11px] font-bold text-[#181C20]">
+                  <span className="h-2 w-2 rounded-full bg-[#EAA228] animate-pulse" />
                   <span>Cocinero en Turno: {kitchenStaffName}</span>
                 </div>
                 {userRole !== 'kitchen' && (
-                  <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/80 bg-amber-50 px-3 py-1 text-[11px] font-bold text-amber-950 shadow-2xs">
-                    <Eye className="h-3.5 w-3.5 text-[#f3a806] shrink-0" />
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-[#EAE5DE] bg-[#FAF7F2] px-3 py-1 text-[11px] font-bold text-[#666E7A] shadow-2xs">
+                    <Eye className="h-3.5 w-3.5 text-[#EAA228] shrink-0" />
                     <span>Modo Supervisión ({userRole === 'admin' ? 'Administrador' : userRole}) · Solo Lectura</span>
                   </div>
                 )}
-                <span className="text-[11px] font-medium text-zinc-500">
+                <span className="text-[11px] font-medium text-[#8C95A3]">
                   · Pantalla Operativa de Cocina
                 </span>
               </div>
@@ -541,19 +541,19 @@ export function KdsBoard({
           </div>
 
           {/* Selector de Pestañas: Activos vs Finalizados */}
-          <div className="flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-100 p-1.5 shadow-inner">
+          <div className="flex items-center gap-1.5 rounded-full border border-[#EAE5DE] bg-[#FAF7F2] p-1.5 shadow-2xs">
             <button
               type="button"
               onClick={() => setActiveTab('activos')}
               className={`flex items-center gap-2 rounded-full px-5 py-2 text-xs font-black transition-all cursor-pointer ${
                 activeTab === 'activos'
-                  ? 'bg-[#f3a806] text-zinc-950 shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-[#EAA228] text-[#181C20] shadow-xs'
+                  : 'text-[#666E7A] hover:text-[#181C20]'
               }`}
             >
               <Zap className="h-4 w-4 stroke-[2.5]" />
               <span>En Marcha</span>
-              <span className={`ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${activeTab === 'activos' ? 'bg-zinc-950 text-[#f3a806]' : 'bg-zinc-200 text-zinc-700'}`}>
+              <span className={`ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${activeTab === 'activos' ? 'bg-[#181C20] text-[#EAA228]' : 'bg-[#EAE5DE] text-[#666E7A]'}`}>
                 {kpiStats.activeTickets}
               </span>
             </button>
@@ -563,13 +563,13 @@ export function KdsBoard({
               onClick={() => setActiveTab('finalizados')}
               className={`flex items-center gap-2 rounded-full px-5 py-2 text-xs font-black transition-all cursor-pointer ${
                 activeTab === 'finalizados'
-                  ? 'bg-zinc-950 text-[#f3a806] shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-[#181C20] text-[#EAA228] shadow-xs'
+                  : 'text-[#666E7A] hover:text-[#181C20]'
               }`}
             >
               <PackageCheck className="h-4 w-4 stroke-[2.5]" />
               <span>Finalizados / Entregados</span>
-              <span className={`ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${activeTab === 'finalizados' ? 'bg-[#f3a806] text-zinc-950' : 'bg-zinc-200 text-zinc-700'}`}>
+              <span className={`ml-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${activeTab === 'finalizados' ? 'bg-[#EAA228] text-[#181C20]' : 'bg-[#EAE5DE] text-[#666E7A]'}`}>
                 {kpiStats.completedTickets}
               </span>
             </button>
@@ -578,7 +578,7 @@ export function KdsBoard({
           {/* Controles: Estaciones, Sonido, Vista, Fullscreen */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Filtro de Estación */}
-            <div className="inline-flex rounded-full bg-zinc-100 border border-zinc-200 p-1">
+            <div className="inline-flex rounded-full bg-[#FAF7F2] border border-[#EAE5DE] p-1">
               {(['todas', 'cocina', 'barra'] as const).map((station) => (
                 <button
                   key={station}
@@ -586,8 +586,8 @@ export function KdsBoard({
                   onClick={() => setStationFilter(station)}
                   className={`rounded-full px-3.5 py-1.5 text-xs font-bold capitalize transition-colors cursor-pointer ${
                     stationFilter === station
-                      ? 'bg-white text-zinc-900 shadow-2xs'
-                      : 'text-zinc-600 hover:text-zinc-900'
+                      ? 'bg-white text-[#181C20] shadow-2xs'
+                      : 'text-[#666E7A] hover:text-[#181C20]'
                   }`}
                 >
                   {station}
@@ -597,13 +597,13 @@ export function KdsBoard({
 
             {/* Alternador de Vista (Kanban vs Cuadrícula) */}
             {activeTab === 'activos' && (
-              <div className="inline-flex rounded-full bg-zinc-100 border border-zinc-200 p-1">
+              <div className="inline-flex rounded-full bg-[#FAF7F2] border border-[#EAE5DE] p-1">
                 <button
                   type="button"
                   onClick={() => setViewMode('kanban')}
                   title="Vista Columnas Kanban"
                   className={`rounded-full p-2 text-xs transition-colors cursor-pointer ${
-                    viewMode === 'kanban' ? 'bg-white text-[#f3a806] shadow-2xs' : 'text-zinc-600 hover:text-zinc-900'
+                    viewMode === 'kanban' ? 'bg-white text-[#EAA228] shadow-2xs' : 'text-[#666E7A] hover:text-[#181C20]'
                   }`}
                 >
                   <Columns3 className="h-4 w-4" />
@@ -613,7 +613,7 @@ export function KdsBoard({
                   onClick={() => setViewMode('grid')}
                   title="Vista Cuadrícula Compacta (Muchos Pedidos)"
                   className={`rounded-full p-2 text-xs transition-colors cursor-pointer ${
-                    viewMode === 'grid' ? 'bg-white text-[#f3a806] shadow-2xs' : 'text-zinc-600 hover:text-zinc-900'
+                    viewMode === 'grid' ? 'bg-white text-[#EAA228] shadow-2xs' : 'text-[#666E7A] hover:text-[#181C20]'
                   }`}
                 >
                   <Grid3X3 className="h-4 w-4" />
@@ -625,10 +625,10 @@ export function KdsBoard({
             <button
               type="button"
               onClick={() => setCollapseAll((prev) => !prev)}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-700 hover:bg-zinc-50 transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#EAE5DE] bg-white px-3 text-xs font-bold text-[#181C20] hover:bg-[#FAF7F2] transition-colors cursor-pointer shadow-2xs"
               title={collapseAll ? 'Expandir detalle de todas las órdenes' : 'Compactar todas las órdenes'}
             >
-              <ChevronsUpDown className="h-3.5 w-3.5 text-[#f3a806]" />
+              <ChevronsUpDown className="h-3.5 w-3.5 text-[#EAA228]" />
               <span className="hidden sm:inline">{collapseAll ? 'Expandir Todo' : 'Compactar Todo'}</span>
             </button>
 
@@ -638,14 +638,14 @@ export function KdsBoard({
               onClick={() => setSoundEnabled(!soundEnabled)}
               className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-bold transition-colors cursor-pointer ${
                 soundEnabled
-                  ? 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50 shadow-2xs'
-                  : 'border-zinc-200 bg-zinc-100 text-zinc-400'
+                  ? 'border-[#EAE5DE] bg-white text-[#181C20] hover:bg-[#FAF7F2] shadow-2xs'
+                  : 'border-[#EAE5DE] bg-[#FAF7F2] text-[#8C95A3]'
               }`}
               title={soundEnabled ? 'Silenciar campanilla' : 'Activar campanilla'}
             >
               {soundEnabled ? (
                 <>
-                  <Bell className="h-3.5 w-3.5 text-[#f3a806]" />
+                  <Bell className="h-3.5 w-3.5 text-[#EAA228]" />
                   <span className="hidden sm:inline">Sonido</span>
                 </>
               ) : (
@@ -660,7 +660,7 @@ export function KdsBoard({
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EAE5DE] bg-white text-[#666E7A] hover:text-[#181C20] hover:bg-[#FAF7F2] transition-colors cursor-pointer shadow-2xs"
               title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa de cocina'}
             >
               {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -671,33 +671,33 @@ export function KdsBoard({
               type="button"
               onClick={() => void loadKdsData()}
               disabled={isRefreshing}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#EAE5DE] bg-white text-[#666E7A] hover:text-[#181C20] hover:bg-[#FAF7F2] transition-colors disabled:opacity-50 cursor-pointer shadow-2xs"
               title="Refrescar comanda"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin text-[#f3a806]' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin text-[#EAA228]' : ''}`} />
             </button>
           </div>
         </div>
 
         {/* 2. Barra de KPIs y Buscador en una sola fila integrada */}
-        <div className="pt-4 border-t border-zinc-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="pt-4 border-t border-[#EAE5DE] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           {/* Métricas / Conteo de Platos */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 flex-1">
-            <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 flex items-center justify-between shadow-2xs">
-              <span className="text-[11px] font-bold text-zinc-600">⏳ Por Iniciar</span>
+            <div className="rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-2.5 flex items-center justify-between shadow-2xs">
+              <span className="text-[11px] font-bold text-[#666E7A]">⏳ Por Iniciar</span>
               <span className="text-base font-black text-amber-700">{kpiStats.pendingCount}</span>
             </div>
-            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-2.5 flex items-center justify-between shadow-2xs">
-              <span className="text-[11px] font-bold text-amber-900">🔥 En Fuego</span>
-              <span className="text-base font-black text-[#f3a806]">{kpiStats.cookingCount}</span>
+            <div className="rounded-2xl border border-[#EAA228]/30 bg-[#FEF9EE] p-2.5 flex items-center justify-between shadow-2xs">
+              <span className="text-[11px] font-bold text-[#181C20]">🔥 En Fuego</span>
+              <span className="text-base font-black text-[#EAA228]">{kpiStats.cookingCount}</span>
             </div>
-            <div className="rounded-2xl border border-zinc-200/90 bg-white p-2.5 flex items-center justify-between shadow-2xs">
-              <span className="text-[11px] font-bold text-zinc-700">🛎️ Listos</span>
-              <span className="text-base font-black text-[#f3a806]">{kpiStats.readyCount}</span>
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-2.5 flex items-center justify-between shadow-2xs">
+              <span className="text-[11px] font-bold text-emerald-800">🛎️ Listos</span>
+              <span className="text-base font-black text-emerald-700">{kpiStats.readyCount}</span>
             </div>
-            <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 flex items-center justify-between shadow-2xs">
-              <span className="text-[11px] font-bold text-zinc-600">⏱️ Espera Prom.</span>
-              <span className={`text-base font-black ${kpiStats.avgWait > 15 ? 'text-amber-700' : 'text-zinc-800'}`}>
+            <div className="rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-2.5 flex items-center justify-between shadow-2xs">
+              <span className="text-[11px] font-bold text-[#666E7A]">⏱️ Espera Prom.</span>
+              <span className={`text-base font-black ${kpiStats.avgWait > 15 ? 'text-rose-700' : 'text-[#181C20]'}`}>
                 {kpiStats.avgWait}m
               </span>
             </div>
@@ -705,19 +705,19 @@ export function KdsBoard({
 
           {/* Buscador Rápido de Comandas */}
           <div className="relative w-full md:w-72 shrink-0">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8C95A3]" />
             <input
               type="text"
               placeholder="Buscar mesa, # orden o plato..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 w-full rounded-full border border-zinc-200 bg-zinc-50/80 pl-9 pr-8 text-xs font-medium text-zinc-900 placeholder-zinc-400 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors shadow-2xs"
+              className="h-10 w-full rounded-full border border-[#D9D3C7] bg-[#FAF7F2] pl-9 pr-8 text-xs font-medium text-[#181C20] placeholder-[#8C95A3] focus:bg-white focus:border-[#EAA228] focus:outline-none transition-colors shadow-2xs"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 text-xs font-bold"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8C95A3] hover:text-[#181C20] text-xs font-bold"
               >
                 ✕
               </button>
@@ -732,19 +732,19 @@ export function KdsBoard({
       {activeTab === 'activos' && (
         <>
           {activeOrders.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-zinc-200 bg-white p-16 text-center shadow-xs">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-zinc-100 text-zinc-400">
+            <div className="rounded-[28px] border border-dashed border-[#EAE5DE] bg-white p-16 text-center shadow-xs">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-[#FAF7F2] text-[#8C95A3]">
                 <UtensilsCrossed className="h-8 w-8" />
               </div>
-              <h2 className="text-xl font-black text-zinc-900">Cocina libre de pedidos activos</h2>
-              <p className="mt-1 text-xs text-zinc-500 max-w-md mx-auto">
+              <h2 className="text-xl font-black text-[#181C20]">Cocina libre de pedidos activos</h2>
+              <p className="mt-1 text-xs text-[#666E7A] max-w-md mx-auto">
                 No hay órdenes pendientes de preparación en este momento. Cuando se tome un pedido en salón o en caja, aparecerá aquí con aviso en tiempo real.
               </p>
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="mt-4 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-800 hover:bg-zinc-50"
+                  className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#EAE5DE] bg-[#FAF7F2] px-4 py-2 text-xs font-bold text-[#181C20] hover:bg-[#F2ECE4]"
                 >
                   Limpiar filtro de búsqueda &quot;{searchQuery}&quot;
                 </button>
@@ -755,21 +755,21 @@ export function KdsBoard({
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               {/* Columna 1: Por Iniciar / Nuevo */}
               <section className="space-y-4">
-                <div className="flex items-center justify-between rounded-2xl border border-amber-200/80 bg-amber-50/70 px-4 py-3 shadow-2xs">
+                <div className="flex items-center justify-between rounded-2xl border border-amber-200/90 bg-[#FEF9EE] px-4 py-3 shadow-2xs">
                   <div className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse" />
-                    <h2 className="text-xs font-black uppercase tracking-wider text-amber-950">
+                    <h2 className="text-xs font-black uppercase tracking-wider text-[#181C20]">
                       Por Iniciar (Nuevos)
                     </h2>
                   </div>
-                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-amber-200/60 px-2 text-xs font-black text-amber-950">
+                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-amber-200/80 px-2 text-xs font-black text-amber-950">
                     {columns.nuevo.length}
                   </span>
                 </div>
 
                 {columns.nuevo.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-2xs">
-                    <p className="text-xs text-zinc-400">Sin órdenes en espera</p>
+                  <div className="rounded-2xl border border-dashed border-[#EAE5DE] bg-white p-8 text-center shadow-2xs">
+                    <p className="text-xs text-[#8C95A3]">Sin órdenes en espera</p>
                   </div>
                 ) : (
                   <div className="space-y-3.5 max-h-[calc(100vh-270px)] min-h-[460px] overflow-y-auto pr-1.5 pb-8 overscroll-contain kds-scrollbar">
@@ -792,21 +792,21 @@ export function KdsBoard({
 
               {/* Columna 2: En Preparación / En Fuego */}
               <section className="space-y-4">
-                <div className="flex items-center justify-between rounded-2xl border border-orange-200/80 bg-orange-50/70 px-4 py-3 shadow-2xs">
+                <div className="flex items-center justify-between rounded-2xl border border-orange-200/90 bg-[#FEF9EE] px-4 py-3 shadow-2xs">
                   <div className="flex items-center gap-2">
                     <Flame className="h-4 w-4 text-orange-600" />
-                    <h2 className="text-xs font-black uppercase tracking-wider text-orange-950">
+                    <h2 className="text-xs font-black uppercase tracking-wider text-[#181C20]">
                       En Preparación (En Fuego)
                     </h2>
                   </div>
-                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#f3a806] px-2 text-xs font-black text-zinc-950">
+                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#EAA228] px-2 text-xs font-black text-[#181C20]">
                     {columns.preparando.length}
                   </span>
                 </div>
 
                 {columns.preparando.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-2xs">
-                    <p className="text-xs text-zinc-400">Ningún plato en fuego actualmente</p>
+                  <div className="rounded-2xl border border-dashed border-[#EAE5DE] bg-white p-8 text-center shadow-2xs">
+                    <p className="text-xs text-[#8C95A3]">Ningún plato en fuego actualmente</p>
                   </div>
                 ) : (
                   <div className="space-y-3.5 max-h-[calc(100vh-270px)] min-h-[460px] overflow-y-auto pr-1.5 pb-8 overscroll-contain kds-scrollbar">
@@ -829,21 +829,21 @@ export function KdsBoard({
 
               {/* Columna 3: Listos para Despacho */}
               <section className="space-y-4">
-                <div className="flex items-center justify-between rounded-2xl border border-amber-300/70 bg-amber-500/10 px-4 py-3 shadow-2xs">
+                <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 shadow-2xs">
                   <div className="flex items-center gap-2">
-                    <CheckCheck className="h-4 w-4 text-[#f3a806]" />
-                    <h2 className="text-xs font-black uppercase tracking-wider text-amber-950">
+                    <CheckCheck className="h-4 w-4 text-emerald-600" />
+                    <h2 className="text-xs font-black uppercase tracking-wider text-emerald-950">
                       Listos para Entrega
                     </h2>
                   </div>
-                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#f3a806] px-2 text-xs font-black text-zinc-950">
+                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-600 px-2 text-xs font-black text-white">
                     {columns.listo.length}
                   </span>
                 </div>
 
                 {columns.listo.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-2xs">
-                    <p className="text-xs text-zinc-400">Sin platos listos esperando despacho</p>
+                  <div className="rounded-2xl border border-dashed border-[#EAE5DE] bg-white p-8 text-center shadow-2xs">
+                    <p className="text-xs text-[#8C95A3]">Sin platos listos esperando despacho</p>
                   </div>
                 ) : (
                   <div className="space-y-3.5 max-h-[calc(100vh-270px)] min-h-[460px] overflow-y-auto pr-1.5 pb-8 overscroll-contain kds-scrollbar">
@@ -903,59 +903,59 @@ export function KdsBoard({
       {/* PESTAÑA B: APARTADO DE FINALIZADOS O YA ENTREGADOS */}
       {activeTab === 'finalizados' && (
         <section className="space-y-4">
-          <div className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4 shadow-2xs">
+          <div className="flex items-center justify-between rounded-2xl border border-[#EAE5DE] bg-white p-4 shadow-2xs">
             <div>
-              <h2 className="text-base font-black text-zinc-900 flex items-center gap-2">
-                <PackageCheck className="h-5 w-5 text-[#f3a806]" />
+              <h2 className="text-base font-black text-[#181C20] flex items-center gap-2">
+                <PackageCheck className="h-5 w-5 text-[#EAA228]" />
                 Historial de Órdenes Entregadas ({completedOrders.length})
               </h2>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-xs text-[#666E7A] mt-0.5">
                 Platos y pedidos despachados durante el turno de hoy. Si marcaste un pedido como entregado por error, puedes pulsar &quot;Reabrir a Cocina&quot; para recuperarlo inmediatamente.
               </p>
             </div>
           </div>
 
           {completedOrders.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-zinc-200 bg-white p-12 text-center shadow-xs">
-              <p className="text-zinc-400 text-xs font-medium">Aún no se han despachado pedidos finalizados hoy.</p>
+            <div className="rounded-[28px] border border-dashed border-[#EAE5DE] bg-white p-12 text-center shadow-xs">
+              <p className="text-[#8C95A3] text-xs font-medium">Aún no se han despachado pedidos finalizados hoy.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {completedOrders.map((ord) => (
                 <div
                   key={ord.id}
-                  className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-xs flex flex-col justify-between space-y-4"
+                  className="rounded-[24px] border border-[#EAE5DE] bg-white p-5 shadow-xs flex flex-col justify-between space-y-4"
                 >
                   <div>
                     {/* Cabecera */}
-                    <div className="flex items-start justify-between border-b border-zinc-100 pb-3">
+                    <div className="flex items-start justify-between border-b border-[#EAE5DE] pb-3">
                       <div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C95A3]">
                           {ord.zone || 'Salón'} · {ord.status === 'pagada' ? 'Pagado' : 'Salón'}
                         </span>
-                        <h3 className="text-xl font-black text-zinc-900">
+                        <h3 className="text-xl font-black text-[#181C20]">
                           Mesa #{ord.tableNumber}
                         </h3>
                       </div>
                       <div className="text-right">
-                        <span className="font-mono text-2xl font-black text-zinc-800">
+                        <span className="font-mono text-2xl font-black text-[#181C20]">
                           #{ord.orderNumber}
                         </span>
-                        <span className="block text-[10px] text-zinc-400 font-medium">
+                        <span className="block text-[10px] text-[#8C95A3] font-medium">
                           {new Date(ord.openedAt).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                     </div>
 
                     {/* Lista de Platos Entregados */}
-                    <ul className="divide-y divide-zinc-100 py-3 space-y-2">
+                    <ul className="divide-y divide-[#EAE5DE]/60 py-3 space-y-2">
                       {ord.items.map((it) => (
                         <li key={it.id} className="pt-2 flex items-center justify-between text-xs">
-                          <span className="text-zinc-700 font-semibold flex items-center gap-2">
-                            <span className="font-bold font-mono text-[#f3a806]">{it.quantity}×</span>
-                            <span className="line-through text-zinc-400">{it.productName}</span>
+                          <span className="text-[#181C20] font-semibold flex items-center gap-2">
+                            <span className="font-bold font-mono text-[#EAA228]">{it.quantity}×</span>
+                            <span className="line-through text-[#8C95A3]">{it.productName}</span>
                           </span>
-                          <span className="text-[10px] text-amber-950 font-bold bg-amber-500/10 border border-[#f3a806]/30 px-2.5 py-0.5 rounded-full">
+                          <span className="text-[10px] text-[#181C20] font-bold bg-[#FEF9EE] border border-[#EAA228]/30 px-2.5 py-0.5 rounded-full">
                             Entregado
                           </span>
                         </li>
@@ -964,20 +964,20 @@ export function KdsBoard({
                   </div>
 
                   {/* Botón Reabrir (solo para Cocinero) */}
-                  <div className="pt-2 border-t border-zinc-100">
+                  <div className="pt-2 border-t border-[#EAE5DE]">
                     {isCook ? (
                       <button
                         type="button"
                         onClick={() => void reopenDeliveredOrder(ord)}
-                        className="h-10 w-full rounded-full border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-xs font-bold text-zinc-800 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                        className="h-10 w-full rounded-full border border-[#EAE5DE] bg-[#FAF7F2] hover:bg-[#F2ECE4] text-xs font-bold text-[#181C20] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
                       >
-                        <RotateCcw className="h-3.5 w-3.5 text-[#f3a806]" />
+                        <RotateCcw className="h-3.5 w-3.5 text-[#EAA228]" />
                         <span>Reabrir a Cocina</span>
                       </button>
                     ) : (
                       <div className="flex items-center justify-between px-2 py-1 text-xs">
-                        <span className="text-[11px] font-medium text-zinc-400">Despacho completado</span>
-                        <span className="rounded-full bg-amber-500/10 border border-[#f3a806]/30 px-2.5 py-0.5 text-[10px] font-black text-amber-950">
+                        <span className="text-[11px] font-medium text-[#8C95A3]">Despacho completado</span>
+                        <span className="rounded-full bg-[#FEF9EE] border border-[#EAA228]/30 px-2.5 py-0.5 text-[10px] font-black text-[#181C20]">
                           ✓ Entregado
                         </span>
                       </div>
@@ -1025,9 +1025,9 @@ function KdsTicketCard({
       : 0;
 
   // Estados visuales de demora acordes a la paleta del sistema
-  let borderClass = 'border-zinc-200 hover:border-zinc-300';
+  let borderClass = 'border-[#EAE5DE] hover:border-[#D99318]/50';
   let waitStatusText = `${minutesElapsed} min · A tiempo`;
-  let timeBadgeColor = 'text-zinc-600 bg-zinc-100 border-zinc-200';
+  let timeBadgeColor = 'text-[#666E7A] bg-[#FAF7F2] border-[#EAE5DE]';
 
   if (minutesElapsed >= 20) {
     borderClass = 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/30';
@@ -1041,16 +1041,16 @@ function KdsTicketCard({
 
   let actionLabel = 'Marchar a Cocina';
   let actionIcon = Flame;
-  let actionBg = 'bg-[#f3a806] hover:bg-[#e09804] text-zinc-950';
+  let actionBg = 'bg-[#EAA228] hover:bg-[#D99318] text-[#181C20]';
 
   if (stage === 'preparando') {
     actionLabel = 'Marcar Todo Listo';
     actionIcon = Check;
-    actionBg = 'bg-[#f3a806] hover:bg-[#e09804] text-zinc-950';
+    actionBg = 'bg-[#EAA228] hover:bg-[#D99318] text-[#181C20]';
   } else if (stage === 'listo') {
     actionLabel = 'Despachar al Mesero';
     actionIcon = CheckCheck;
-    actionBg = 'bg-zinc-950 hover:bg-zinc-800 text-[#f3a806]';
+    actionBg = 'bg-[#181C20] hover:bg-black text-[#EAA228]';
   }
 
   const ActionIcon = actionIcon;
@@ -1058,31 +1058,31 @@ function KdsTicketCard({
 
   return (
     <article
-      className={`flex flex-col justify-between rounded-3xl border bg-white p-5 shadow-xs transition-all duration-200 hover:shadow-md ${borderClass} ${
-        isFlashing ? 'ring-4 ring-[#f3a806] scale-[1.01]' : ''
+      className={`flex flex-col justify-between rounded-[24px] border bg-white p-5 shadow-xs transition-all duration-200 hover:shadow-md ${borderClass} ${
+        isFlashing ? 'ring-4 ring-[#EAA228] scale-[1.01]' : ''
       }`}
     >
       <div>
         {/* Cabecera del Ticket */}
-        <div className="flex items-start justify-between gap-3 border-b border-zinc-100 pb-3">
+        <div className="flex items-start justify-between gap-3 border-b border-[#EAE5DE] pb-3">
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C95A3]">
                 {order.zone || 'Salón'}
               </span>
               {order.status === 'pagada' && (
-                <span className="rounded-full bg-amber-500/15 border border-[#f3a806]/30 px-2 py-0.2 text-[9px] font-bold text-amber-950">
+                <span className="rounded-full bg-[#FEF9EE] border border-[#EAA228]/40 px-2 py-0.2 text-[9px] font-bold text-[#181C20]">
                   Pre-pagado
                 </span>
               )}
             </div>
-            <h3 className="text-2xl font-black text-zinc-900 leading-tight mt-0.5">
+            <h3 className="text-2xl font-black text-[#181C20] leading-tight mt-0.5">
               Mesa #{order.tableNumber}
             </h3>
           </div>
 
           <div className="text-right">
-            <span className="text-3xl font-black leading-none text-zinc-900 font-mono tracking-tight block">
+            <span className="text-3xl font-black leading-none text-[#181C20] font-mono tracking-tight block">
               #{order.orderNumber}
             </span>
             <div className={`mt-1.5 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] ${timeBadgeColor}`}>
@@ -1096,16 +1096,16 @@ function KdsTicketCard({
         <button
           type="button"
           onClick={() => setIsExpanded((prev) => !prev)}
-          className="mt-3 flex items-center justify-between w-full rounded-2xl bg-zinc-50 hover:bg-zinc-100/90 border border-zinc-200/80 px-3 py-2 text-xs font-bold text-zinc-700 transition-colors cursor-pointer shadow-2xs"
+          className="mt-3 flex items-center justify-between w-full rounded-2xl bg-[#FAF7F2] hover:bg-[#F2ECE4] border border-[#EAE5DE] px-3 py-2 text-xs font-bold text-[#181C20] transition-colors cursor-pointer shadow-2xs"
         >
           <span className="flex items-center gap-2">
-            <UtensilsCrossed className="w-3.5 h-3.5 text-[#f3a806]" />
+            <UtensilsCrossed className="w-3.5 h-3.5 text-[#EAA228]" />
             <span>{isExpanded ? 'Ocultar Detalle' : 'Ver Detalle'}</span>
-            <span className="text-[11px] font-semibold text-zinc-500">
+            <span className="text-[11px] font-semibold text-[#666E7A]">
               ({totalItemsCount} {totalItemsCount === 1 ? 'plato' : 'platos'})
             </span>
           </span>
-          <span className="flex items-center gap-1 text-[11px] text-zinc-400 font-semibold">
+          <span className="flex items-center gap-1 text-[11px] text-[#8C95A3] font-semibold">
             <span>{isExpanded ? 'Plegar' : 'Desplegar'}</span>
             {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </span>
@@ -1113,7 +1113,7 @@ function KdsTicketCard({
 
         {/* Vista Compacta (cuando está plegado para que se haga pequeño) */}
         {!isExpanded && (
-          <p className="mt-2 text-[11px] text-zinc-500 font-medium truncate px-1">
+          <p className="mt-2 text-[11px] text-[#666E7A] font-medium truncate px-1">
             {order.items.map((it) => `${it.quantity}× ${it.productName}`).join(' · ')}
           </p>
         )}
@@ -1121,7 +1121,7 @@ function KdsTicketCard({
         {/* Vista Detallada con Scroll Interno (para que no se vaya hasta abajo la pantalla) */}
         {isExpanded && (
           <div className="mt-3 max-h-52 overflow-y-auto pr-1 kds-scrollbar">
-            <ul className="divide-y divide-zinc-100 space-y-2.5">
+            <ul className="divide-y divide-[#EAE5DE]/60 space-y-2.5">
               {order.items.map((it) => {
                 const isReady = it.status === 'listo';
                 const isCooking = it.status === 'preparando';
@@ -1132,18 +1132,18 @@ function KdsTicketCard({
                   <li key={it.id} className="pt-2.5 first:pt-0">
                     <div className="flex items-start justify-between gap-2.5">
                       <div className="flex items-baseline gap-2.5 flex-1 min-w-0">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/25 text-sm font-black text-[#f3a806]">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-[#FEF9EE] border border-[#EAA228]/40 text-sm font-black text-[#EAA228]">
                           {it.quantity}
                         </span>
                         <div className="min-w-0 flex-1">
                           <span
                             className={`text-sm font-extrabold leading-snug block transition-opacity ${
-                              isReady ? 'text-[#f3a806] line-through opacity-80' : 'text-zinc-900'
+                              isReady ? 'text-[#EAA228] line-through opacity-80' : 'text-[#181C20]'
                             }`}
                           >
                             {it.productName}
                           </span>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#8C95A3]">
                             {it.station === 'barra' ? '🥤 Barra' : '🍳 Cocina'}
                           </span>
                         </div>
@@ -1152,22 +1152,22 @@ function KdsTicketCard({
                       {/* Estado del ítem */}
                       <div className="shrink-0">
                         {isPending && (
-                          <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                          <span className="inline-flex items-center rounded-full border border-amber-200 bg-[#FEF9EE] px-2 py-0.5 text-[10px] font-bold text-amber-800">
                             ⏳ Espera
                           </span>
                         )}
                         {isCooking && (
-                          <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-black text-orange-800">
+                          <span className="inline-flex items-center rounded-full border border-orange-200 bg-[#FEF9EE] px-2 py-0.5 text-[10px] font-black text-orange-800">
                             🔥 Cocinando
                           </span>
                         )}
                         {isReady && (
-                          <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-black text-amber-950">
+                          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-800">
                             ✅ Listo
                           </span>
                         )}
                         {isDelivered && (
-                          <span className="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-bold text-zinc-500">
+                          <span className="inline-flex items-center rounded-full bg-[#FAF7F2] border border-[#EAE5DE] px-2 py-0.5 text-[10px] font-bold text-[#8C95A3]">
                             ✓ Despachado
                           </span>
                         )}
@@ -1175,7 +1175,7 @@ function KdsTicketCard({
                     </div>
 
                     {it.notes && (
-                      <div className="mt-1.5 ml-9 rounded-xl border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-900">
+                      <div className="mt-1.5 ml-9 rounded-xl border border-amber-200 bg-[#FEF9EE] px-2.5 py-1 text-[11px] font-bold text-amber-900">
                         ⚠️ Nota: {it.notes}
                       </div>
                     )}
@@ -1188,7 +1188,7 @@ function KdsTicketCard({
       </div>
 
       {/* Botón de Acción Principal para Avanzar la Orden */}
-      <div className="mt-3.5 pt-3 border-t border-zinc-100">
+      <div className="mt-3.5 pt-3 border-t border-[#EAE5DE]">
         {canAction ? (
           <button
             type="button"
@@ -1199,9 +1199,9 @@ function KdsTicketCard({
             <span>{actionLabel}</span>
           </button>
         ) : (
-          <div className="flex items-center justify-between rounded-2xl bg-zinc-50 border border-zinc-200/80 px-4 py-2">
-            <span className="text-[11px] font-bold text-zinc-500 flex items-center gap-1.5">
-              <Eye className="h-3.5 w-3.5 text-[#f3a806] shrink-0" />
+          <div className="flex items-center justify-between rounded-2xl bg-[#FAF7F2] border border-[#EAE5DE] px-4 py-2">
+            <span className="text-[11px] font-bold text-[#666E7A] flex items-center gap-1.5">
+              <Eye className="h-3.5 w-3.5 text-[#EAA228] shrink-0" />
               Supervisión en cocina:
             </span>
             <span
@@ -1209,10 +1209,10 @@ function KdsTicketCard({
                 stage === 'nuevo'
                   ? 'bg-amber-100/80 text-amber-900 border border-amber-200'
                   : stage === 'preparando'
-                  ? 'bg-amber-500/20 text-amber-950 border border-[#f3a806]/40'
+                  ? 'bg-[#FEF9EE] text-[#181C20] border border-[#EAA228]/40'
                   : stage === 'listo'
-                  ? 'bg-zinc-950 text-[#f3a806] border border-zinc-800'
-                  : 'bg-zinc-100 text-zinc-700 border border-zinc-200'
+                  ? 'bg-[#181C20] text-[#EAA228] border border-black'
+                  : 'bg-[#FAF7F2] text-[#666E7A] border border-[#EAE5DE]'
               }`}
             >
               {stage === 'nuevo'

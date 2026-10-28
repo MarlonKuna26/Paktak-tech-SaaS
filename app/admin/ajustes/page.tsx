@@ -29,12 +29,12 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">Configuración</p>
-        <h1 className="text-3xl font-bold tracking-tight">Ajustes del Restaurante</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Gestiona los datos principales de tu local y tu suscripción activa.
+    <div className="mx-auto max-w-5xl space-y-6 pb-16 font-sans">
+      <div className="space-y-1">
+        <span className="text-xs font-bold uppercase tracking-wider text-[#EAA228]">Configuración</span>
+        <h1 className="text-3xl font-black tracking-tight text-[#181C20]">Ajustes del Restaurante</h1>
+        <p className="text-xs text-[#666E7A] max-w-xl">
+          Gestiona los datos principales de tu local, moneda, impuestos, horarios y el pie de comprobante térmico.
         </p>
       </div>
 

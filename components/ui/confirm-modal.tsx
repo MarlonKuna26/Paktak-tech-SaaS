@@ -59,13 +59,13 @@ export function ConfirmModal({
         aria-modal="true"
       >
         <div className="flex items-start gap-4">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 border border-amber-500/30 text-[#f3a806] shadow-2xs">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 border border-amber-500/30 text-[#EAA228] shadow-2xs">
             {variant === 'danger' ? (
               <AlertTriangle className="h-5 w-5 stroke-[2.3] text-[#ea580c]" />
             ) : variant === 'info' ? (
-              <Info className="h-5 w-5 stroke-[2.3] text-[#f3a806]" />
+              <Info className="h-5 w-5 stroke-[2.3] text-[#EAA228]" />
             ) : (
-              <AlertCircle className="h-5 w-5 stroke-[2.3] text-[#f3a806]" />
+              <AlertCircle className="h-5 w-5 stroke-[2.3] text-[#EAA228]" />
             )}
           </div>
           <div className="flex-1 min-w-0">
@@ -100,7 +100,7 @@ export function ConfirmModal({
             type="button"
             disabled={isBusy}
             onClick={() => void handleConfirmClick()}
-            className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 px-5 text-xs font-black shadow-xs transition-all active:scale-[0.98] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+            className="h-9 rounded-full bg-[#EAA228] hover:bg-[#D99318] text-zinc-950 px-5 text-xs font-black shadow-xs transition-all active:scale-[0.98] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
           >
             {isBusy ? (
               <span>Procesando...</span>

@@ -37,49 +37,49 @@ const roleDetails: Record<
   owner: {
     label: 'Dueño',
     icon: Shield,
-    color: 'text-amber-950 dark:text-amber-200',
-    bg: 'bg-amber-500/15',
-    border: 'border-[#f3a806]/30',
+    color: 'text-[#181C20]',
+    bg: 'bg-[#FEF9EE]',
+    border: 'border-[#F6E3B8]',
     desc: 'Dueño fundador. Control irrestricto de sedes y facturación.',
   },
   admin: {
     label: 'Administrador',
     icon: Shield,
-    color: 'text-amber-950 dark:text-amber-200',
-    bg: 'bg-amber-500/15',
-    border: 'border-[#f3a806]/30',
+    color: 'text-[#181C20]',
+    bg: 'bg-[#FEF9EE]',
+    border: 'border-[#EAA228]',
     desc: 'Gestiona menú, precios, salón, personal y reportes financieros.',
   },
   cashier: {
     label: 'Cajero & Servicio',
     icon: CreditCard,
-    color: 'text-zinc-900 dark:text-zinc-100',
-    bg: 'bg-zinc-100 dark:bg-zinc-800',
-    border: 'border-zinc-200 dark:border-zinc-700',
+    color: 'text-[#181C20]',
+    bg: 'bg-[#FAF7F2]',
+    border: 'border-[#EAE5DE]',
     desc: 'Atención en salón y mostrador: asigna mesas, toma órdenes y cobra antes o después de servir.',
   },
   waiter: {
     label: 'Cajero & Servicio',
     icon: CreditCard,
-    color: 'text-zinc-900 dark:text-zinc-100',
-    bg: 'bg-zinc-100 dark:bg-zinc-800',
-    border: 'border-zinc-200 dark:border-zinc-700',
+    color: 'text-[#181C20]',
+    bg: 'bg-[#FAF7F2]',
+    border: 'border-[#EAE5DE]',
     desc: 'Atención en salón y mostrador (rol unificado con Cajero).',
   },
   kitchen: {
     label: 'Cocinero / Chef',
     icon: ChefHat,
-    color: 'text-[#d97706] dark:text-[#f3a806]',
-    bg: 'bg-amber-500/15',
-    border: 'border-[#f3a806]/30',
+    color: 'text-[#181C20]',
+    bg: 'bg-[#FEF9EE]',
+    border: 'border-[#EAA228]',
     desc: 'Pantalla KDS táctil con semáforos de tiempo y despacho de órdenes.',
   },
   host: {
     label: 'Anfitrión (Superusuario)',
     icon: Shield,
-    color: 'text-amber-950 dark:text-amber-200',
-    bg: 'bg-amber-500/15',
-    border: 'border-[#f3a806]/30',
+    color: 'text-[#EAA228]',
+    bg: 'bg-[#161A1E]',
+    border: 'border-[#2D3540]',
     desc: 'Superusuario: Control total del sistema, apartados, menú, personal, reportes y ajustes generales.',
   },
 };
@@ -308,20 +308,20 @@ export function StaffManager() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans text-[#181C20]">
       {/* Alert Feedback */}
       {feedback && (
         <div
           className={`flex items-center gap-2 rounded-2xl p-4 text-xs font-semibold shadow-xs transition-all ${
             feedback.ok
-              ? 'border border-emerald-500/20 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
-              : 'border border-rose-500/20 bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300'
+              ? 'border border-emerald-500/20 bg-emerald-50 text-emerald-800'
+              : 'border border-red-500/20 bg-red-50 text-red-800'
           }`}
         >
           {feedback.ok ? (
-            <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
           ) : (
-            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
           )}
           <span>{feedback.text}</span>
         </div>
@@ -329,30 +329,30 @@ export function StaffManager() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Total Personal</p>
-          <p className="mt-1 text-2xl font-black text-zinc-900 dark:text-zinc-100">{countByRole.total}</p>
-          <p className="mt-0.5 text-[11px] text-emerald-600 dark:text-emerald-400">{countByRole.active} activos</p>
+        <div className="rounded-2xl border border-[#EAE5DE] bg-white p-4 shadow-xs">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#8C95A3]">Total Personal</p>
+          <p className="mt-1 text-2xl font-black text-[#181C20]">{countByRole.total}</p>
+          <p className="mt-0.5 text-[11px] font-bold text-[#1E7E34]">{countByRole.active} activos</p>
         </div>
-        <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Anfitriones</p>
-          <p className="mt-1 text-2xl font-black text-[#f3a806]">{countByRole.hosts}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Superusuario total</p>
+        <div className="rounded-2xl border border-[#EAE5DE] bg-white p-4 shadow-xs">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#8C95A3]">Anfitriones</p>
+          <p className="mt-1 text-2xl font-black text-[#EAA228]">{countByRole.hosts}</p>
+          <p className="mt-0.5 text-[11px] text-[#666E7A]">Superusuario total</p>
         </div>
-        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Cajeros & Servicio</p>
-          <p className="mt-1 text-2xl font-black text-zinc-900 dark:text-zinc-100">{countByRole.cashiers}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Mesas, orden y cobro</p>
+        <div className="rounded-2xl border border-[#EAE5DE] bg-white p-4 shadow-xs">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#8C95A3]">Cajeros & Servicio</p>
+          <p className="mt-1 text-2xl font-black text-[#181C20]">{countByRole.cashiers}</p>
+          <p className="mt-0.5 text-[11px] text-[#666E7A]">Mesas, orden y cobro</p>
         </div>
-        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Cocina / Barra</p>
-          <p className="mt-1 text-2xl font-black text-[#f3a806]">{countByRole.kitchen}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Pantalla KDS</p>
+        <div className="rounded-2xl border border-[#EAE5DE] bg-white p-4 shadow-xs">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#8C95A3]">Cocina / Barra</p>
+          <p className="mt-1 text-2xl font-black text-[#EAA228]">{countByRole.kitchen}</p>
+          <p className="mt-0.5 text-[11px] text-[#666E7A]">Pantalla KDS</p>
         </div>
-        <div className="rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-2xs">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Administradores</p>
-          <p className="mt-1 text-2xl font-black text-zinc-900 dark:text-zinc-100">{countByRole.admins}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Gestión y menú</p>
+        <div className="rounded-2xl border border-[#EAE5DE] bg-white p-4 shadow-xs">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#8C95A3]">Administradores</p>
+          <p className="mt-1 text-2xl font-black text-[#181C20]">{countByRole.admins}</p>
+          <p className="mt-0.5 text-[11px] text-[#666E7A]">Gestión y menú</p>
         </div>
       </div>
 
@@ -360,20 +360,20 @@ export function StaffManager() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 items-center gap-2">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C95A3]" />
             <input
               type="text"
               placeholder="Buscar por nombre o correo..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-10 w-full rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 pl-10 pr-4 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-2xs"
+              className="h-10 w-full rounded-xl border border-[#D9D3C7] bg-white pl-10 pr-4 text-xs font-semibold text-[#181C20] focus:outline-none focus:ring-2 focus:ring-[#EAA228] shadow-xs"
             />
           </div>
 
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="h-10 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3.5 text-xs font-semibold text-zinc-700 dark:text-zinc-200 focus:outline-none shadow-2xs"
+            className="h-10 rounded-xl border border-[#D9D3C7] bg-white px-3.5 text-xs font-bold text-[#181C20] focus:outline-none focus:ring-2 focus:ring-[#EAA228] shadow-xs"
           >
             <option value="todos">Todos los roles</option>
             <option value="host">Anfitrión (Superusuario)</option>
@@ -385,16 +385,16 @@ export function StaffManager() {
           <button
             onClick={() => void loadStaff()}
             disabled={loading}
-            className="h-10 w-10 shrink-0 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors shadow-2xs"
+            className="h-10 w-10 shrink-0 rounded-xl border border-[#D9D3C7] bg-white flex items-center justify-center text-[#666E7A] hover:bg-[#FAF7F2] transition-colors shadow-xs cursor-pointer"
             title="Recargar personal"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#EAA228]' : ''}`} />
           </button>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex h-10 items-center justify-center gap-2 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-5 text-xs font-bold text-zinc-950 shadow-xs transition-colors shrink-0"
+          className="flex h-10 items-center justify-center gap-2 rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-5 text-xs font-black text-[#181C20] shadow-xs transition-colors shrink-0 cursor-pointer"
         >
           <UserPlus className="w-4 h-4" />
           <span>Registrar Empleado</span>
@@ -402,20 +402,20 @@ export function StaffManager() {
       </div>
 
       {/* Staff Members List */}
-      <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xs overflow-hidden">
+      <div className="rounded-2xl border border-[#EAE5DE] bg-white shadow-xs overflow-hidden">
         {loading && !staffList.length ? (
-          <div className="p-12 text-center text-xs text-muted-foreground">
-            <RefreshCw className="w-6 h-6 animate-spin mx-auto text-primary mb-2" />
+          <div className="p-12 text-center text-xs text-[#8C95A3]">
+            <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#EAA228] mb-2" />
             Cargando el equipo del restaurante...
           </div>
         ) : filteredStaff.length === 0 ? (
-          <div className="p-12 text-center text-muted-foreground">
-            <Users className="w-8 h-8 mx-auto text-zinc-400 mb-2 opacity-50" />
-            <p className="text-sm font-semibold">No se encontraron empleados con los filtros aplicados.</p>
-            <p className="mt-1 text-xs">Puedes registrar un nuevo mesero, cajero o cocinero con el botón superior.</p>
+          <div className="p-12 text-center text-[#666E7A]">
+            <Users className="w-8 h-8 mx-auto text-[#8C95A3] mb-2 opacity-50" />
+            <p className="text-sm font-bold text-[#181C20]">No se encontraron empleados con los filtros aplicados.</p>
+            <p className="mt-1 text-xs text-[#8C95A3]">Puedes registrar un nuevo mesero, cajero o cocinero con el botón superior.</p>
           </div>
         ) : (
-          <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+          <div className="divide-y divide-[#EAE5DE]">
             {filteredStaff.map((staffItem) => {
               const details = roleDetails[staffItem.role] || roleDetails.waiter;
               const Icon = details.icon;
@@ -428,32 +428,32 @@ export function StaffManager() {
               return (
                 <div
                   key={staffItem.id}
-                  className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20"
+                  className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors hover:bg-[#FAF7F2]/60"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 shrink-0 rounded-2xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center font-bold text-xs text-zinc-700 dark:text-zinc-300 shadow-2xs">
+                    <div className="w-10 h-10 shrink-0 rounded-xl bg-[#FAF7F2] border border-[#EAE5DE] flex items-center justify-center font-black text-xs text-[#181C20] shadow-xs">
                       {initials || 'EM'}
                     </div>
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100 truncate">
+                        <p className="font-extrabold text-sm text-[#181C20] truncate">
                           {staffItem.fullName}
                         </p>
                         {staffItem.isCurrentUser && (
-                          <span className="rounded-full bg-zinc-200 dark:bg-zinc-700 px-2 py-0.5 text-[10px] font-bold text-zinc-700 dark:text-zinc-300">
+                          <span className="rounded-full bg-[#181C20] text-white px-2 py-0.5 text-[10px] font-black">
                             Tú
                           </span>
                         )}
                         <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${details.bg} ${details.color} ${details.border}`}
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-extrabold border ${details.bg} ${details.color} ${details.border}`}
                         >
                           <Icon className="w-3 h-3" />
                           <span>{details.label}</span>
                         </span>
                       </div>
 
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{staffItem.email}</p>
+                      <p className="text-xs text-[#666E7A] mt-0.5">{staffItem.email}</p>
                     </div>
                   </div>
 
@@ -463,7 +463,7 @@ export function StaffManager() {
                       <select
                         value={staffItem.role}
                         onChange={(e) => void handleRoleChange(staffItem.id, e.target.value)}
-                        className="h-8 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 text-[11px] font-semibold text-zinc-700 dark:text-zinc-200 focus:outline-none"
+                        className="h-8 rounded-lg border border-[#D9D3C7] bg-[#FAF7F2] px-3 text-[11px] font-bold text-[#181C20] focus:outline-none focus:ring-1 focus:ring-[#EAA228]"
                       >
                         <option value="host">Anfitrión (Superusuario)</option>
                         <option value="cashier">Cajero & Servicio</option>
@@ -476,10 +476,10 @@ export function StaffManager() {
                     {staffItem.role !== 'owner' && !staffItem.isCurrentUser && (
                       <button
                         onClick={() => void handleToggleActive(staffItem)}
-                        className={`h-8 rounded-full px-3 text-[11px] font-bold transition-colors ${
+                        className={`h-8 rounded-lg px-3 text-[11px] font-black transition-colors ${
                           staffItem.active
-                            ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300'
-                            : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400'
+                            ? 'bg-[#EBF7EE] text-[#1E7E34] hover:bg-[#DDF2E2]'
+                            : 'bg-[#FAF7F2] text-[#8C95A3] hover:bg-[#EAE5DE]'
                         }`}
                       >
                         {staffItem.active ? 'Activo' : 'Desactivado'}
@@ -490,7 +490,7 @@ export function StaffManager() {
                     <button
                       onClick={() => setShowPasswordModal(staffItem)}
                       title="Cambiar contraseña del empleado"
-                      className="h-8 w-8 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-2xs"
+                      className="h-8 w-8 rounded-lg border border-[#D9D3C7] bg-white flex items-center justify-center text-[#666E7A] hover:bg-[#FAF7F2] transition-colors shadow-xs cursor-pointer"
                     >
                       <KeyRound className="w-3.5 h-3.5" />
                     </button>
@@ -500,7 +500,7 @@ export function StaffManager() {
                       <button
                         onClick={() => void handleDeleteStaff(staffItem)}
                         title="Remover del personal"
-                        className="h-8 w-8 rounded-full border border-rose-200 dark:border-rose-900/40 bg-white dark:bg-zinc-800 flex items-center justify-center text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors shadow-2xs"
+                        className="h-8 w-8 rounded-lg border border-red-200 bg-white flex items-center justify-center text-red-600 hover:bg-red-50 transition-colors shadow-xs cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -515,16 +515,16 @@ export function StaffManager() {
 
       {/* MODAL: Registrar Empleado */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-2xl">
-            <h3 className="text-xl font-black text-zinc-900 dark:text-zinc-100">Registrar Nuevo Empleado</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-[28px] border border-[#EAE5DE] bg-white p-6 sm:p-7 shadow-2xl">
+            <h3 className="text-xl font-black text-[#181C20]">Registrar Nuevo Empleado</h3>
+            <p className="mt-1 text-xs text-[#666E7A]">
               Crea un acceso para tu mesero, cajero, cocinero o administrador del restaurante.
             </p>
 
             <form onSubmit={(e) => void handleCreateStaff(e)} className="mt-5 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="block text-xs font-extrabold text-[#181C20] mb-1">
                   Nombre Completo *
                 </label>
                 <input
@@ -533,12 +533,12 @@ export function StaffManager() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="Ej. Carlos Mendoza"
-                  className="h-10 w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-background px-3.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-white px-3.5 text-xs font-semibold text-[#181C20] focus:outline-none focus:ring-2 focus:ring-[#EAA228]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="block text-xs font-extrabold text-[#181C20] mb-1">
                   Correo Electrónico (para inicio de sesión) *
                 </label>
                 <input
@@ -547,12 +547,12 @@ export function StaffManager() {
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   placeholder="Ej. carlos.mesero@mirestaurante.com"
-                  className="h-10 w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-background px-3.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-white px-3.5 text-xs font-semibold text-[#181C20] focus:outline-none focus:ring-2 focus:ring-[#EAA228]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="block text-xs font-extrabold text-[#181C20] mb-1">
                   Contraseña Temporal * (mínimo 6 caracteres)
                 </label>
                 <input
@@ -562,12 +562,12 @@ export function StaffManager() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Ej. Paktak2026!"
-                  className="h-10 w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-background px-3.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-white px-3.5 text-xs font-semibold text-[#181C20] focus:outline-none focus:ring-2 focus:ring-[#EAA228]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                <label className="block text-xs font-extrabold text-[#181C20] mb-2">
                   Rol y Permisos Operativos *
                 </label>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -581,35 +581,35 @@ export function StaffManager() {
                         type="button"
                         key={rKey}
                         onClick={() => setNewRole(rKey)}
-                        className={`text-left p-3 rounded-2xl border text-xs transition-all ${
+                        className={`text-left p-3 rounded-xl border text-xs transition-all ${
                           isSelected
-                            ? 'border-[#f3a806] bg-[#f3a806]/10 text-zinc-950 dark:text-zinc-100 ring-2 ring-[#f3a806]/30'
-                            : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100'
+                            ? 'border-2 border-[#EAA228] bg-[#FEF9EE] text-[#181C20]'
+                            : 'border-[#EAE5DE] bg-[#FAF7F2] text-[#666E7A] hover:bg-white'
                         }`}
                       >
-                        <div className="flex items-center gap-2 font-bold">
-                          <Icon className="w-4 h-4 text-primary" />
+                        <div className="flex items-center gap-2 font-black text-[#181C20]">
+                          <Icon className="w-4 h-4 text-[#EAA228]" />
                           <span>{r.label}</span>
                         </div>
-                        <p className="mt-1 text-[11px] text-muted-foreground leading-snug">{r.desc}</p>
+                        <p className="mt-1 text-[11px] text-[#666E7A] leading-snug">{r.desc}</p>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#EAE5DE]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="h-10 rounded-full border border-zinc-200 dark:border-zinc-700 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                  className="h-11 rounded-xl border border-[#D9D3C7] px-5 text-xs font-bold text-[#666E7A] hover:bg-[#FAF7F2] transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="h-10 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-5 text-xs font-bold text-zinc-950 shadow-xs"
+                  className="h-11 rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-6 text-xs font-black text-[#181C20] shadow-sm transition-all"
                 >
                   {isSubmitting ? 'Guardando...' : 'Crear Empleado'}
                 </button>
@@ -621,21 +621,21 @@ export function StaffManager() {
 
       {/* MODAL: Cambiar Contraseña */}
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200 font-sans">
-            <div className="flex items-start justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-[28px] border border-[#EAE5DE] bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200 font-sans">
+            <div className="flex items-start justify-between pb-3 border-b border-[#EAE5DE]">
               <div>
-                <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-100">
+                <h3 className="text-lg font-black text-[#181C20]">
                   Cambiar Contraseña
                 </h3>
-                <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                <p className="mt-0.5 text-xs text-[#666E7A]">
                   Nueva contraseña para <strong>{showPasswordModal.fullName}</strong> ({showPasswordModal.email}).
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowPasswordModal(null)}
-                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-full transition-colors"
+                className="text-[#8C95A3] hover:text-[#181C20] p-1 rounded-full transition-colors"
                 aria-label="Cerrar modal"
               >
                 <X className="h-4 w-4" />
@@ -644,7 +644,7 @@ export function StaffManager() {
 
             <form onSubmit={(e) => void handleResetPassword(e)} className="mt-4 space-y-4">
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">
+                <label className="block text-[11px] font-extrabold uppercase tracking-wider text-[#666E7A] mb-1">
                   Nueva Contraseña * (mínimo 6 caracteres)
                 </label>
                 <input
@@ -654,22 +654,22 @@ export function StaffManager() {
                   value={resetPasswordVal}
                   onChange={(e) => setResetPasswordVal(e.target.value)}
                   placeholder="Ingresa la nueva clave..."
-                  className="h-10 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/70 dark:bg-zinc-800/60 px-3.5 text-xs text-zinc-900 dark:text-zinc-100 focus:bg-white focus:border-[#f3a806] focus:outline-none transition-colors"
+                  className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-white px-3.5 text-xs font-semibold text-[#181C20] focus:border-[#EAA228] focus:ring-2 focus:ring-[#EAA228] focus:outline-none transition-colors"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#EAE5DE]">
                 <button
                   type="button"
                   onClick={() => setShowPasswordModal(null)}
-                  className="h-9 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 shadow-2xs cursor-pointer transition-colors"
+                  className="h-10 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-bold text-[#666E7A] hover:bg-[#FAF7F2] shadow-xs cursor-pointer transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="h-9 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-5 text-xs font-black text-zinc-950 shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+                  className="h-10 rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-5 text-xs font-black text-[#181C20] shadow-xs transition-all active:scale-[0.98] cursor-pointer"
                 >
                   {isSubmitting ? 'Guardando...' : 'Actualizar Clave'}
                 </button>

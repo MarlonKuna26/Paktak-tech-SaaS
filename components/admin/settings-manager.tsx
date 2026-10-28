@@ -114,68 +114,68 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
   };
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-6 font-sans text-[#181C20]">
       {/* Navegación por Pestañas */}
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800 gap-2 overflow-x-auto pb-px">
+      <div className="flex border-b border-[#EAE5DE] gap-2 overflow-x-auto pb-px scrollbar-none">
         <button
           type="button"
           onClick={() => setActiveTab('general')}
-          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition-colors whitespace-nowrap ${
+          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
             activeTab === 'general'
-              ? 'border-[#f3a806] text-zinc-900 dark:text-zinc-100'
-              : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300'
+              ? 'border-[#EAA228] text-[#181C20] font-black'
+              : 'border-transparent text-[#666E7A] hover:text-[#181C20]'
           }`}
         >
-          <Building2 className="w-4 h-4" />
+          <Building2 className="w-4 h-4 text-[#EAA228]" />
           <span>Datos del Local</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('finanzas')}
-          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition-colors whitespace-nowrap ${
+          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
             activeTab === 'finanzas'
-              ? 'border-[#f3a806] text-zinc-900 dark:text-zinc-100'
-              : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300'
+              ? 'border-[#EAA228] text-[#181C20] font-black'
+              : 'border-transparent text-[#666E7A] hover:text-[#181C20]'
           }`}
         >
-          <DollarSign className="w-4 h-4" />
+          <DollarSign className="w-4 h-4 text-[#EAA228]" />
           <span>Moneda, Impuestos & Propinas</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('operacion')}
-          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition-colors whitespace-nowrap ${
+          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
             activeTab === 'operacion'
-              ? 'border-[#f3a806] text-zinc-900 dark:text-zinc-100'
-              : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300'
+              ? 'border-[#EAA228] text-[#181C20] font-black'
+              : 'border-transparent text-[#666E7A] hover:text-[#181C20]'
           }`}
         >
-          <Clock className="w-4 h-4" />
+          <Clock className="w-4 h-4 text-[#EAA228]" />
           <span>Horarios & Alertas</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('ticket')}
-          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition-colors whitespace-nowrap ${
+          className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
             activeTab === 'ticket'
-              ? 'border-[#f3a806] text-zinc-900 dark:text-zinc-100'
-              : 'border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300'
+              ? 'border-[#EAA228] text-[#181C20] font-black'
+              : 'border-transparent text-[#666E7A] hover:text-[#181C20]'
           }`}
         >
-          <Printer className="w-4 h-4" />
+          <Printer className="w-4 h-4 text-[#EAA228]" />
           <span>Pie de Ticket & Comprobante</span>
         </button>
       </div>
 
       {message && (
         <div
-          className={`flex items-center gap-2.5 rounded-2xl border p-4 text-xs font-semibold ${
+          className={`flex items-center gap-2.5 rounded-2xl border p-4 text-xs font-bold shadow-xs ${
             message.ok
-              ? 'border-emerald-500/20 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300'
-              : 'border-red-500/20 bg-red-50 text-red-800 dark:bg-red-950/30 dark:text-red-300'
+              ? 'border-emerald-500/20 bg-emerald-50 text-emerald-800'
+              : 'border-red-500/20 bg-red-50 text-red-800'
           }`}
         >
           {message.ok ? <Check className="w-4 h-4 shrink-0 text-emerald-600" /> : <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />}
@@ -186,28 +186,28 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
       <form onSubmit={handleSave} className="space-y-6">
         {/* PESTAÑA 1: DATOS GENERALES */}
         {activeTab === 'general' && (
-          <div className="rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="rounded-[28px] border border-[#EAE5DE] bg-white p-6 sm:p-8 shadow-xs space-y-6">
             <div>
-              <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100">Información del Restaurante</h2>
-              <p className="text-xs text-zinc-500">Datos públicos visibles en la carta digital, reservas y tickets.</p>
+              <h2 className="text-lg font-black text-[#181C20]">Información del Restaurante</h2>
+              <p className="text-xs text-[#666E7A]">Datos públicos visibles en la carta digital, reservas y tickets.</p>
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-1.5 sm:col-span-2">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Nombre Comercial</label>
+                <label className="text-xs font-extrabold text-[#181C20]">Nombre Comercial</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
                   placeholder="Ej: La Trattoria Gourmet"
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 px-4 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none"
+                  className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-semibold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-zinc-400" />
+                <label className="text-xs font-extrabold text-[#181C20] flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-[#EAA228]" />
                   <span>Teléfono / WhatsApp de Pedidos</span>
                 </label>
                 <input
@@ -215,13 +215,13 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+593 99 999 9999"
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 px-4 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none font-mono"
+                  className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-bold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none font-mono"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-zinc-400" />
+                <label className="text-xs font-extrabold text-[#181C20] flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#EAA228]" />
                   <span>Dirección del Establecimiento</span>
                 </label>
                 <input
@@ -229,30 +229,30 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Av. 10 de Agosto y Orellana"
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 px-4 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none"
+                  className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-semibold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Capacidad Total Estimada (Comensales)</label>
+                <label className="text-xs font-extrabold text-[#181C20]">Capacidad Total Estimada (Comensales)</label>
                 <input
                   type="number"
                   min="1"
                   max="500"
                   value={capacity}
                   onChange={(e) => setCapacity(parseInt(e.target.value) || 0)}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 px-4 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none"
+                  className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-bold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-zinc-400" />
+                <label className="text-xs font-extrabold text-[#181C20] flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-[#EAA228]" />
                   <span>Slug Público (Enlace Web)</span>
                 </label>
-                <div className="flex items-center rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 px-4 py-2.5 text-xs font-mono text-zinc-500">
+                <div className="flex items-center rounded-xl border border-[#EAE5DE] bg-[#FAF7F2] px-4 h-11 text-xs font-mono text-[#666E7A]">
                   <span>paktak.tech/</span>
-                  <span className="font-bold text-zinc-900 dark:text-zinc-100">{data.slug}</span>
+                  <span className="font-extrabold text-[#181C20] ml-0.5">{data.slug}</span>
                 </div>
               </div>
             </div>
@@ -261,19 +261,19 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
 
         {/* PESTAÑA 2: FINANZAS, IMPUESTOS & PROPINAS */}
         {activeTab === 'finanzas' && (
-          <div className="rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="rounded-[28px] border border-[#EAE5DE] bg-white p-6 sm:p-8 shadow-xs space-y-6">
             <div>
-              <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100">Moneda, Impuestos y Propinas</h2>
-              <p className="text-xs text-zinc-500">Define los cálculos automáticos de cobro para el cajero y mesero.</p>
+              <h2 className="text-lg font-black text-[#181C20]">Moneda, Impuestos y Propinas</h2>
+              <p className="text-xs text-[#666E7A]">Define los cálculos automáticos de cobro para el cajero y mesero.</p>
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Moneda de Facturación</label>
+                <label className="text-xs font-extrabold text-[#181C20]">Moneda de Facturación</label>
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 px-4 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none"
+                  className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-bold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none"
                 >
                   <option value="USD">Dólar Estadounidense ($ USD)</option>
                   <option value="EUR">Euro (€ EUR)</option>
@@ -284,19 +284,19 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Nombre del Impuesto Local</label>
+                <label className="text-xs font-extrabold text-[#181C20]">Nombre del Impuesto Local</label>
                 <input
                   type="text"
                   value={taxName}
                   onChange={(e) => setTaxName(e.target.value)}
                   placeholder="IVA, IGV, ITBMS..."
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 px-4 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none"
+                  className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-bold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-                  <Percent className="w-3.5 h-3.5 text-zinc-400" />
+                <label className="text-xs font-extrabold text-[#181C20] flex items-center gap-1.5">
+                  <Percent className="w-3.5 h-3.5 text-[#EAA228]" />
                   <span>Porcentaje de {taxName} (%)</span>
                 </label>
                 <input
@@ -306,16 +306,16 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
                   max="35"
                   value={taxRate}
                   onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 px-4 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none font-mono"
+                  className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-bold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none font-mono"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Propina Sugerida por Defecto (%)</label>
+                <label className="text-xs font-extrabold text-[#181C20]">Propina Sugerida por Defecto (%)</label>
                 <select
                   value={defaultTip}
                   onChange={(e) => setDefaultTip(parseInt(e.target.value) || 0)}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 px-4 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none"
+                  className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-bold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none"
                 >
                   <option value={0}>0% (Sin propina sugerida)</option>
                   <option value={5}>5%</option>
@@ -330,16 +330,16 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
 
         {/* PESTAÑA 3: OPERACIÓN & ALERTAS */}
         {activeTab === 'operacion' && (
-          <div className="rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="rounded-[28px] border border-[#EAE5DE] bg-white p-6 sm:p-8 shadow-xs space-y-6">
             <div>
-              <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100">Horarios y Alertas Sonoras</h2>
-              <p className="text-xs text-zinc-500">Configura la dinámica operativa del salón y cocina.</p>
+              <h2 className="text-lg font-black text-[#181C20]">Horarios y Alertas Sonoras</h2>
+              <p className="text-xs text-[#666E7A]">Configura la dinámica operativa del salón y cocina.</p>
             </div>
 
             <div className="space-y-5">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                <label className="text-xs font-extrabold text-[#181C20] flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-[#EAA228]" />
                   <span>Horario de Atención al Público</span>
                 </label>
                 <input
@@ -347,16 +347,16 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
                   value={openingHours}
                   onChange={(e) => setOpeningHours(e.target.value)}
                   placeholder="Ej: Lunes a Sábado: 11:30 - 23:00 / Domingos: 12:00 - 18:00"
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 px-4 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none"
+                  className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-semibold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Zona Horaria del Sistema</label>
+                <label className="text-xs font-extrabold text-[#181C20]">Zona Horaria del Sistema</label>
                 <select
                   value={timezone}
                   onChange={(e) => setTimezone(e.target.value)}
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 px-4 py-2.5 text-xs text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none"
+                  className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-bold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none"
                 >
                   <option value="America/Guayaquil">Ecuador / Lima / Bogotá (UTC-5)</option>
                   <option value="America/Mexico_City">Ciudad de México (UTC-6)</option>
@@ -366,13 +366,13 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
                 </select>
               </div>
 
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center justify-between p-4.5 rounded-2xl bg-[#FAF7F2] border border-[#EAE5DE]">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-[#f3a806]" />
-                    <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Timbre y Alertas de Sonido en Vivo</span>
+                    <Bell className="w-4 h-4 text-[#EAA228]" />
+                    <span className="text-xs font-extrabold text-[#181C20]">Timbre y Alertas de Sonido en Vivo</span>
                   </div>
-                  <p className="text-[11px] text-zinc-500">
+                  <p className="text-[11px] text-[#666E7A]">
                     Reproduce campana acústica al entrar nueva orden en KDS y cuando la cocina pasa un plato a &ldquo;Listo&rdquo;.
                   </p>
                 </div>
@@ -384,7 +384,7 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
                     onChange={(e) => setSoundAlerts(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#f3a806]"></div>
+                  <div className="w-11 h-6 bg-[#D9D3C7] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[#D9D3C7] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#EAA228]"></div>
                 </label>
               </div>
             </div>
@@ -393,47 +393,47 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
 
         {/* PESTAÑA 4: PIE DE TICKET */}
         {activeTab === 'ticket' && (
-          <div className="rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="rounded-[28px] border border-[#EAE5DE] bg-white p-6 sm:p-8 shadow-xs space-y-6">
             <div>
-              <h2 className="text-lg font-black text-zinc-900 dark:text-zinc-100">Personalización de Tickets Térmicos</h2>
-              <p className="text-xs text-zinc-500">Personaliza el mensaje que sale impreso al final del comprobante de mesa.</p>
+              <h2 className="text-lg font-black text-[#181C20]">Personalización de Tickets Térmicos</h2>
+              <p className="text-xs text-[#666E7A]">Personaliza el mensaje que sale impreso al final del comprobante de mesa.</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Mensaje de Agradecimiento / Redes</label>
+                <label className="text-xs font-extrabold text-[#181C20]">Mensaje de Agradecimiento / Redes</label>
                 <textarea
                   rows={4}
                   value={ticketFooter}
                   onChange={(e) => setTicketFooter(e.target.value)}
                   placeholder="¡Gracias por su visita! Síguenos en @tucuenta..."
-                  className="w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800/50 p-3.5 text-xs text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none"
+                  className="w-full rounded-2xl border border-[#D9D3C7] bg-white p-3.5 text-xs font-semibold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none"
                 />
-                <p className="text-[11px] text-zinc-400">Aparecerá centrado al final de cada recibo de 80mm y 58mm.</p>
+                <p className="text-[11px] text-[#8C95A3]">Aparecerá centrado al final de cada recibo de 80mm y 58mm.</p>
               </div>
 
               {/* Vista previa en papel térmico */}
-              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-950 p-4 font-mono text-[11px] text-zinc-800 dark:text-zinc-300 space-y-2">
-                <div className="text-center border-b border-dashed border-zinc-300 dark:border-zinc-700 pb-2">
-                  <p className="font-bold text-xs uppercase">{name || 'Nombre del Restaurante'}</p>
-                  <p className="text-[10px] text-zinc-500">{address}</p>
-                  <p className="text-[10px] text-zinc-500">Tel: {phone}</p>
+              <div className="rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-5 font-mono text-[11px] text-[#181C20] space-y-2 shadow-xs">
+                <div className="text-center border-b border-dashed border-[#D9D3C7] pb-2">
+                  <p className="font-extrabold text-xs uppercase text-[#181C20]">{name || 'Nombre del Restaurante'}</p>
+                  <p className="text-[10px] text-[#666E7A]">{address}</p>
+                  <p className="text-[10px] text-[#666E7A]">Tel: {phone}</p>
                 </div>
                 <div className="py-2 text-[10px] space-y-1">
                   <div className="flex justify-between">
                     <span>1x Cebiche Clásico</span>
-                    <span>$12.50</span>
+                    <span className="font-bold">$12.50</span>
                   </div>
                   <div className="flex justify-between">
                     <span>1x Bebida Refrescante</span>
-                    <span>$3.00</span>
+                    <span className="font-bold">$3.00</span>
                   </div>
-                  <div className="border-t border-dashed border-zinc-300 dark:border-zinc-700 pt-1 flex justify-between font-bold">
+                  <div className="border-t border-dashed border-[#D9D3C7] pt-1 flex justify-between font-black text-xs">
                     <span>TOTAL:</span>
                     <span>$15.50</span>
                   </div>
                 </div>
-                <div className="border-t border-dashed border-zinc-300 dark:border-zinc-700 pt-2 text-center text-[10px] text-zinc-500 italic">
+                <div className="border-t border-dashed border-[#D9D3C7] pt-2 text-center text-[10px] text-[#666E7A] italic">
                   {ticketFooter || '¡Gracias por su visita!'}
                 </div>
               </div>
@@ -446,7 +446,7 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
           <button
             type="submit"
             disabled={isSaving}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#f3a806] hover:bg-[#e09804] px-6 text-xs font-black text-zinc-950 shadow-xs transition-colors disabled:opacity-50"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-7 text-xs font-black text-[#181C20] shadow-sm transition-all disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{isSaving ? 'Guardando ajustes...' : 'Guardar Todos los Cambios'}</span>

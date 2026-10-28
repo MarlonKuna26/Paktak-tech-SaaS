@@ -3,8 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import { getCurrentStaff } from '@/lib/auth/get-current-staff';
-
-import { AlertCircle, Clock } from 'lucide-react';
+import { AlertCircle, Clock, Sparkles } from 'lucide-react';
 
 export async function AdminShell({
   children,
@@ -17,12 +16,12 @@ export async function AdminShell({
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] dark:bg-zinc-950 md:flex">
+    <div className="min-h-screen bg-[#FAF7F2] font-sans text-[#181C20] md:flex selection:bg-[#EAA228] selection:text-[#181C20]">
       <AdminSidebar staff={staff} />
       <div className="min-w-0 flex-1 flex flex-col">
         {/* Banner de Suscripción / Período de Prueba */}
         {staff.isTrialExpired ? (
-          <div className="bg-rose-600 text-white px-4 py-2 text-xs font-semibold flex items-center justify-between shadow-xs">
+          <div className="bg-rose-600 text-white px-4 sm:px-6 py-2.5 text-xs font-bold flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 text-white" />
               <span>
@@ -33,29 +32,29 @@ export async function AdminShell({
               href="https://wa.me/593999999999?text=Hola,%20deseo%20activar%20mi%20suscripción%20de%20Paktak%20Tech"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-full bg-white text-rose-700 px-3.5 py-1 font-bold hover:bg-zinc-100 text-[11px] shrink-0 ml-3"
+              className="rounded-full bg-white text-rose-700 px-3.5 py-1 font-black hover:bg-zinc-100 text-[11px] shrink-0 ml-3"
             >
               Renovar Plan
             </a>
           </div>
         ) : staff.status === 'trial' ? (
-          <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-xs flex items-center justify-between text-amber-800 dark:text-amber-300">
+          <div className="bg-[#FEF9EE] border-b border-[#F6E3B8] px-4 sm:px-6 py-2.5 text-xs flex items-center justify-between text-[#7A642B]">
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <Sparkles className="w-4 h-4 shrink-0 text-[#EAA228]" />
               <span>
-                <strong>Prueba Gratuita:</strong> Te quedan <strong>{staff.daysRemaining} días</strong> de acceso completo a todas las funciones.
+                <strong>Prueba Gratuita:</strong> Te quedan <strong>{staff.daysRemaining} días</strong> de acceso completo a todas las funciones sin tarjeta.
               </span>
             </div>
             <Link
               href="/#precios"
-              className="text-[11px] font-bold text-amber-900 dark:text-amber-200 underline hover:no-underline"
+              className="text-[11px] font-black text-[#181C20] bg-[#EAA228] px-3 py-1 rounded-full hover:bg-[#D99318] transition-colors"
             >
               Ver Planes ↗
             </Link>
           </div>
         ) : null}
 
-        <main className="min-w-0 flex-1 p-4 md:p-8">{children}</main>
+        <main className="min-w-0 flex-1 p-4 sm:p-6 md:p-8">{children}</main>
       </div>
     </div>
   );

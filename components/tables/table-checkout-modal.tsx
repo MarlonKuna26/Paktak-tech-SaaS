@@ -147,25 +147,26 @@ export function TableCheckoutModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl animate-in zoom-in-95 duration-200 font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+
+      <div className="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-[28px] border border-[#EAE5DE] bg-white shadow-2xl animate-in zoom-in-95 duration-200 font-sans">
         {/* Encabezado */}
-        <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 px-6 py-5">
+        <div className="flex items-center justify-between border-b border-[#EAE5DE] px-6 py-5">
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-[#f3a806]" />
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#f3a806]">
+              <span className="flex h-2 w-2 rounded-full bg-[#EAA228]" />
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#EAA228]">
                 {order.zone || 'Salón Principal'}
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-zinc-100 mt-0.5">
+            <h2 className="text-xl sm:text-2xl font-black text-[#181C20] mt-0.5">
               Cierre de Cuenta · Mesa #{order.tableNumber}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-700 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shadow-2xs cursor-pointer"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#EAE5DE] text-[#666E7A] hover:text-[#181C20] hover:bg-[#FAF7F2] transition-colors cursor-pointer"
             aria-label="Cerrar modal"
           >
             <X className="h-4 w-4" />
@@ -174,42 +175,42 @@ export function TableCheckoutModal({
 
         <form onSubmit={handleCheckout} className="flex flex-1 flex-col overflow-y-auto p-6 space-y-5">
           {error && (
-            <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs font-bold text-amber-900 shadow-2xs">
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-700">
               ⚠️ {error}
             </div>
           )}
 
           {/* Desglose de Consumo */}
-          <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-800/40 p-4 space-y-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <div className="rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-4 space-y-2">
+            <p className="text-[11px] font-black uppercase tracking-wider text-[#666E7A]">
               Consumo de la mesa
             </p>
-            <div className="max-h-36 overflow-y-auto divide-y divide-zinc-200/60 dark:divide-zinc-700/60 text-xs">
+            <div className="max-h-36 overflow-y-auto divide-y divide-[#EAE5DE] text-xs">
               {order.items.map((it) => (
                 <div key={it.id} className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-2 min-w-0 pr-2">
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-amber-500/10 text-[#f3a806] font-black text-[11px]">
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[#EAA228]/20 text-[#181C20] font-black text-[11px]">
                       {it.quantity}×
                     </span>
-                    <span className="text-zinc-800 dark:text-zinc-200 font-medium truncate">
+                    <span className="text-[#181C20] font-bold truncate">
                       {it.productName}
                     </span>
                   </div>
-                  <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100 shrink-0">
+                  <span className="font-mono font-black text-[#181C20] shrink-0">
                     ${((it.unitPriceCents * it.quantity) / 100).toFixed(2)}
                   </span>
                 </div>
               ))}
             </div>
-            <div className="border-t border-zinc-200 dark:border-zinc-700 pt-2.5 flex justify-between text-xs font-black">
-              <span className="text-zinc-700 dark:text-zinc-300">Subtotal consumo:</span>
-              <span className="font-mono text-zinc-950 dark:text-zinc-100">${(order.subtotalCents / 100).toFixed(2)}</span>
+            <div className="border-t border-[#EAE5DE] pt-2.5 flex justify-between text-xs font-black">
+              <span className="text-[#666E7A]">Subtotal consumo:</span>
+              <span className="font-mono text-[#181C20]">${(order.subtotalCents / 100).toFixed(2)}</span>
             </div>
           </div>
 
           {/* Propina */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <label className="text-[11px] font-black uppercase tracking-wider text-[#666E7A]">
               Propina sugerida
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -218,10 +219,10 @@ export function TableCheckoutModal({
                   key={pct}
                   type="button"
                   onClick={() => setTipPercent(pct)}
-                  className={`h-10 rounded-full border text-xs font-black transition-all cursor-pointer ${
+                  className={`h-10 rounded-xl border text-xs font-black transition-all cursor-pointer ${
                     tipPercent === pct
-                      ? 'border-[#f3a806] bg-[#f3a806] text-zinc-950 shadow-xs'
-                      : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50'
+                      ? 'border-[#EAA228] bg-[#EAA228] text-[#181C20] shadow-xs'
+                      : 'border-[#EAE5DE] bg-white text-[#666E7A] hover:bg-[#FAF7F2]'
                   }`}
                 >
                   {pct === 0 ? 'Sin propina' : `${pct}%`}
@@ -230,10 +231,10 @@ export function TableCheckoutModal({
               <button
                 type="button"
                 onClick={() => setTipPercent('custom')}
-                className={`h-10 rounded-full border text-xs font-black transition-all cursor-pointer ${
+                className={`h-10 rounded-xl border text-xs font-black transition-all cursor-pointer ${
                   tipPercent === 'custom'
-                    ? 'border-[#f3a806] bg-[#f3a806] text-zinc-950 shadow-xs'
-                    : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50'
+                    ? 'border-[#EAA228] bg-[#EAA228] text-[#181C20] shadow-xs'
+                    : 'border-[#EAE5DE] bg-white text-[#666E7A] hover:bg-[#FAF7F2]'
                 }`}
               >
                 Otro USD
@@ -245,31 +246,31 @@ export function TableCheckoutModal({
                 placeholder="Monto en dólares (ej. 2.00)"
                 value={customTipDollars}
                 onChange={(e) => setCustomTipDollars(e.target.value)}
-                className="mt-2 h-11 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-xs font-mono font-bold text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none shadow-2xs"
+                className="mt-2 h-11 w-full rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/40 px-3.5 text-xs font-mono font-bold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:border-transparent outline-none"
               />
             )}
           </div>
 
           {/* División de Cuenta Simple */}
-          <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 space-y-2 shadow-2xs">
+          <div className="rounded-2xl border border-[#EAE5DE] bg-white p-4 space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              <label className="text-[11px] font-black uppercase tracking-wider text-[#666E7A]">
                 Dividir cuenta entre comensales
               </label>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setSplitPersons(Math.max(1, splitPersons - 1))}
-                  className="h-8 w-8 rounded-full border border-zinc-200 dark:border-zinc-700 flex items-center justify-center font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer shadow-2xs"
+                  className="h-8 w-8 rounded-full border border-[#EAE5DE] flex items-center justify-center font-black text-[#181C20] hover:bg-[#FAF7F2] cursor-pointer"
                   aria-label="Restar persona"
                 >
                   <Minus className="h-3.5 w-3.5" />
                 </button>
-                <span className="w-6 text-center font-black text-sm text-zinc-900 dark:text-zinc-100">{splitPersons}</span>
+                <span className="w-6 text-center font-black text-sm text-[#181C20]">{splitPersons}</span>
                 <button
                   type="button"
                   onClick={() => setSplitPersons(splitPersons + 1)}
-                  className="h-8 w-8 rounded-full border border-zinc-200 dark:border-zinc-700 flex items-center justify-center font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer shadow-2xs"
+                  className="h-8 w-8 rounded-full border border-[#EAE5DE] flex items-center justify-center font-black text-[#181C20] hover:bg-[#FAF7F2] cursor-pointer"
                   aria-label="Sumar persona"
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -277,7 +278,7 @@ export function TableCheckoutModal({
               </div>
             </div>
             {splitPersons > 1 && (
-              <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-2.5 text-center text-xs font-black text-amber-950 dark:text-amber-300">
+              <div className="rounded-xl border border-[#EAA228]/30 bg-[#FEF9EE] p-2.5 text-center text-xs font-black text-[#8F5E00]">
                 Cada persona paga ${(perPersonCents / 100).toFixed(2)} USD
               </div>
             )}
@@ -285,7 +286,7 @@ export function TableCheckoutModal({
 
           {/* Método de Pago */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <label className="text-[11px] font-black uppercase tracking-wider text-[#666E7A]">
               Método de cobro
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -303,13 +304,13 @@ export function TableCheckoutModal({
                     key={m.id}
                     type="button"
                     onClick={() => setPayMethod(m.id)}
-                    className={`h-12 rounded-2xl border text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    className={`h-12 rounded-xl border text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-[#f3a806] bg-amber-500/15 text-amber-950 dark:text-amber-300 ring-2 ring-[#f3a806]/40 shadow-xs'
-                        : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50'
+                        ? 'border-[#EAA228] bg-[#FEF9EE] text-[#181C20] ring-2 ring-[#EAA228]'
+                        : 'border-[#EAE5DE] bg-white text-[#666E7A] hover:bg-[#FAF7F2]'
                     }`}
                   >
-                    <Icon className={`h-4 w-4 ${isSelected ? 'text-[#f3a806]' : 'text-zinc-500'}`} />
+                    <Icon className={`h-4 w-4 ${isSelected ? 'text-[#EAA228]' : 'text-[#666E7A]'}`} />
                     <span>{m.label}</span>
                   </button>
                 );
@@ -319,8 +320,8 @@ export function TableCheckoutModal({
 
           {/* Monto entregado y vuelto (si es efectivo) */}
           {payMethod === 'efectivo' && (
-            <div className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-800/40 p-4 space-y-2">
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <div className="rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-4 space-y-2">
+              <label className="block text-[11px] font-black uppercase tracking-wider text-[#666E7A]">
                 Efectivo recibido del cliente
               </label>
               <input
@@ -328,10 +329,10 @@ export function TableCheckoutModal({
                 placeholder={`Ej: ${Math.ceil(totalCents / 100)} o 20.00`}
                 value={cashGivenDollars}
                 onChange={(e) => setCashGivenDollars(e.target.value)}
-                className="h-11 w-full rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 text-sm font-mono font-bold text-zinc-900 dark:text-zinc-100 focus:border-[#f3a806] focus:outline-none shadow-2xs"
+                className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-white px-3.5 text-sm font-mono font-bold text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:border-transparent outline-none"
               />
               {cashGivenCents > totalCents && (
-                <div className="flex justify-between items-center pt-2 text-xs font-black text-amber-950 dark:text-amber-300 bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/25">
+                <div className="flex justify-between items-center pt-2 text-xs font-black text-[#8F5E00] bg-[#FEF9EE] p-2.5 rounded-xl border border-[#EAA228]/30">
                   <span>Vuelto a entregar:</span>
                   <span className="font-mono text-sm">${(changeCents / 100).toFixed(2)} USD</span>
                 </div>
@@ -340,47 +341,47 @@ export function TableCheckoutModal({
           )}
 
           {/* Total Definitivo */}
-          <div className="rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-zinc-50/90 dark:bg-zinc-800/60 p-4.5 flex items-center justify-between shadow-xs">
+          <div className="rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-4.5 flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total a cobrar</p>
-              <p className="text-[11px] text-zinc-400">Incluye propina: ${(tipCents / 100).toFixed(2)}</p>
+              <p className="text-[11px] font-black uppercase tracking-wider text-[#666E7A]">Total a cobrar</p>
+              <p className="text-[11px] text-[#8C95A3]">Incluye propina: ${(tipCents / 100).toFixed(2)}</p>
             </div>
             <div className="text-right">
-              <span className="font-mono text-3xl font-black text-zinc-950 dark:text-zinc-100">
+              <span className="font-mono text-3xl font-black text-[#181C20]">
                 ${(totalCents / 100).toFixed(2)}
               </span>
-              <span className="block text-[10px] font-bold text-zinc-400">USD</span>
+              <span className="block text-[10px] font-black text-[#8C95A3]">USD</span>
             </div>
           </div>
 
           {/* Modalidad de Cobro Anticipado / Pre-pago */}
           {isFoodNotServed ? (
-            <div className="p-3.5 rounded-2xl border border-amber-500/30 bg-amber-500/10 flex items-start gap-3">
-              <div className="h-6 w-6 rounded-full bg-amber-500/20 text-[#f3a806] flex items-center justify-center shrink-0 mt-0.5">
+            <div className="p-3.5 rounded-2xl border border-[#EAA228]/40 bg-[#FEF9EE] flex items-start gap-3">
+              <div className="h-6 w-6 rounded-full bg-[#EAA228]/20 text-[#181C20] flex items-center justify-center shrink-0 mt-0.5">
                 <Lock className="w-3.5 h-3.5" />
               </div>
               <div className="text-xs">
-                <span className="font-black text-amber-950 dark:text-amber-200 block">
+                <span className="font-black text-[#8F5E00] block">
                   Cobro anticipado (Mesa permanecerá ocupada)
                 </span>
-                <p className="text-zinc-600 dark:text-zinc-300 text-[11px] mt-0.5 leading-relaxed">
+                <p className="text-[#666E7A] text-[11px] mt-0.5 leading-relaxed">
                   La comida aún no ha sido servida en mesa. Por seguridad operativa, <strong>la mesa continuará ocupada</strong> para que los comensales reciban sus platos. Podrás liberarla una vez servida.
                 </p>
               </div>
             </div>
           ) : (
-            <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/60 cursor-pointer hover:bg-zinc-100/80 dark:hover:bg-zinc-800 transition-colors">
+            <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-[#EAE5DE] bg-white cursor-pointer hover:bg-[#FAF7F2] transition-colors">
               <input
                 type="checkbox"
                 checked={keepTableOccupied}
                 onChange={(e) => setKeepTableOccupied(e.target.checked)}
-                className="h-4 w-4 rounded accent-[#f3a806] cursor-pointer"
+                className="h-4 w-4 rounded accent-[#EAA228] cursor-pointer"
               />
               <div className="text-xs">
-                <span className="font-black text-zinc-900 dark:text-zinc-100 block">
+                <span className="font-black text-[#181C20] block">
                   Mantener mesa ocupada tras cobrar
                 </span>
-                <p className="text-zinc-500 dark:text-zinc-400 text-[11px] mt-0.5">
+                <p className="text-[#666E7A] text-[11px] mt-0.5">
                   {keepTableOccupied
                     ? 'La mesa continuará como OCUPADA en el salón mientras los comensales disfrutan sus platos.'
                     : 'La mesa se liberará de inmediato tras confirmar este cobro (los comensales ya se retiran).'}
@@ -394,7 +395,7 @@ export function TableCheckoutModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="h-12 sm:h-13 w-full rounded-full bg-[#f3a806] hover:bg-[#e09804] text-sm font-black text-zinc-950 transition-all shadow-md active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+              className="h-12 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-xs font-black uppercase tracking-wider text-[#181C20] transition-all shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
             >
               <Check className="h-4 w-4 stroke-[3]" />
               <span>
@@ -411,3 +412,6 @@ export function TableCheckoutModal({
     </div>
   );
 }
+
+
+

@@ -292,7 +292,7 @@ export default async function AdminPage(props: {
   return (
     <div className="mx-auto max-w-6xl space-y-8 pb-16 font-sans">
       <div className="space-y-1">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#f3a806]">
+        <span className="text-xs font-bold uppercase tracking-wider text-[#EAA228]">
           Panel de Control
         </span>
         <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">

@@ -34,33 +34,34 @@ type PublicOrder = {
 const statusBadges: Record<PublicOrder['status'], { label: string; className: string }> = {
   pendiente: {
     label: 'Pendiente',
-    className: 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
+    className: 'bg-[#FEF9EE] text-[#7A642B] border border-[#F6E3B8]',
   },
   confirmado: {
     label: 'Confirmado',
-    className: 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200',
+    className: 'bg-[#FAF7F2] text-[#181C20] border border-[#EAE5DE]',
   },
   preparando: {
     label: 'En Cocina',
-    className: 'bg-amber-500/15 text-amber-950 dark:text-amber-200 border border-[#f3a806]/40',
+    className: 'bg-[#FEF9EE] text-[#EAA228] border border-[#F6E3B8]',
   },
   listo: {
     label: 'Listo para Entrega',
-    className: 'bg-zinc-950 text-[#f3a806] dark:bg-zinc-800 dark:text-amber-300 border border-zinc-800',
+    className: 'bg-[#161A1E] text-[#EAA228] border border-[#2D3540]',
   },
   completado: {
     label: 'Completado',
-    className: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
+    className: 'bg-[#FAF7F2] text-[#666E7A] border border-[#EAE5DE]',
   },
   rechazado: {
     label: 'Rechazado',
-    className: 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300',
+    className: 'bg-red-50 text-red-700 border border-red-200',
   },
   cancelado: {
     label: 'Cancelado',
-    className: 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400',
+    className: 'bg-[#FAF7F2] text-[#8C95A3] border border-[#EAE5DE]',
   },
 };
+
 
 export function OrderManager({
   restaurantId,
@@ -374,18 +375,18 @@ export function OrderManager({
   const pendingCount = orders.filter((o) => o.status === 'pendiente').length;
 
   return (
-    <div className="space-y-8 font-sans">
+    <div className="space-y-8 font-sans text-[#181C20]">
       {/* 1. Header & Filtros Limpios (Whitespace y Jerarquía) */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2">
         {/* Píldoras de Filtro Minimalistas */}
-        <div className="inline-flex rounded-full bg-zinc-100 dark:bg-zinc-800/80 p-1 shadow-2xs overflow-x-auto max-w-full">
+        <div className="inline-flex rounded-2xl bg-[#FAF7F2] border border-[#EAE5DE] p-1 shadow-xs overflow-x-auto max-w-full scrollbar-none">
           <button
             type="button"
             onClick={() => setFilter('activos')}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+            className={`rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
               filter === 'activos'
-                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
-                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+                ? 'bg-[#EAA228] text-[#181C20] font-black shadow-xs'
+                : 'text-[#666E7A] hover:text-[#181C20]'
             }`}
           >
             Activos ({activeCount})
@@ -393,10 +394,10 @@ export function OrderManager({
           <button
             type="button"
             onClick={() => setFilter('pendientes')}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+            className={`rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
               filter === 'pendientes'
-                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
-                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+                ? 'bg-[#EAA228] text-[#181C20] font-black shadow-xs'
+                : 'text-[#666E7A] hover:text-[#181C20]'
             }`}
           >
             Por Confirmar ({pendingCount})
@@ -404,10 +405,10 @@ export function OrderManager({
           <button
             type="button"
             onClick={() => setFilter('mesas')}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+            className={`rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
               filter === 'mesas'
-                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
-                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+                ? 'bg-[#EAA228] text-[#181C20] font-black shadow-xs'
+                : 'text-[#666E7A] hover:text-[#181C20]'
             }`}
           >
             Mesas Salón
@@ -415,10 +416,10 @@ export function OrderManager({
           <button
             type="button"
             onClick={() => setFilter('cobrados')}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+            className={`rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
               filter === 'cobrados'
-                ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 font-bold shadow-xs'
-                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+                ? 'bg-[#1E7E34] text-white font-black shadow-xs'
+                : 'text-[#666E7A] hover:text-[#181C20]'
             }`}
           >
             Cobrados Hoy ({paidOrders.length})
@@ -426,10 +427,10 @@ export function OrderManager({
           <button
             type="button"
             onClick={() => setFilter('todos')}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+            className={`rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
               filter === 'todos'
-                ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs'
-                : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+                ? 'bg-[#181C20] text-white font-black shadow-xs'
+                : 'text-[#666E7A] hover:text-[#181C20]'
             }`}
           >
             Historial ({orders.length})
@@ -437,19 +438,19 @@ export function OrderManager({
         </div>
 
         {/* Buscador & Estado en Vivo y Refrescar */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8C95A3]" />
             <input
               type="text"
               placeholder="Buscar mesa, código o cliente..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 pl-8 pr-3 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-[#f3a806]"
+              className="h-10 rounded-xl border border-[#D9D3C7] bg-white pl-9 pr-3 text-xs font-semibold text-[#181C20] focus:outline-none focus:ring-2 focus:ring-[#EAA228] shadow-xs"
             />
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-medium text-zinc-500">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#666E7A] bg-white border border-[#EAE5DE] px-3 py-2 rounded-xl shadow-xs">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
@@ -461,9 +462,9 @@ export function OrderManager({
             type="button"
             onClick={() => void load()}
             disabled={isRefreshing}
-            className="h-8 px-3 rounded-full text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-40 flex items-center gap-1.5 shadow-2xs"
+            className="h-10 px-3.5 rounded-xl border border-[#D9D3C7] bg-white text-xs font-bold text-[#666E7A] hover:bg-[#FAF7F2] transition-colors disabled:opacity-40 flex items-center gap-1.5 shadow-xs cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-[#EAA228]' : ''}`} />
             <span>Actualizar</span>
           </button>
 
@@ -471,9 +472,9 @@ export function OrderManager({
             <button
               type="button"
               onClick={onGoToTables}
-              className="h-8 px-3 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-bold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+              className="h-10 px-3.5 rounded-xl border border-[#D9D3C7] bg-white text-xs font-black text-[#181C20] hover:bg-[#FAF7F2] transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
-              <LayoutGrid className="w-3.5 h-3.5 text-[#f3a806]" />
+              <LayoutGrid className="w-3.5 h-3.5 text-[#EAA228]" />
               <span>Plano de Mesas</span>
             </button>
           )}
@@ -482,9 +483,9 @@ export function OrderManager({
             <button
               type="button"
               onClick={onGoToComandero}
-              className="h-8 px-3 rounded-full border border-amber-500/30 bg-amber-500/10 text-xs font-bold text-amber-900 dark:text-amber-300 hover:bg-amber-500/20 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+              className="h-10 px-3.5 rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-xs font-black text-[#181C20] transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
-              <Utensils className="w-3.5 h-3.5 text-[#f3a806]" />
+              <Utensils className="w-3.5 h-3.5" />
               <span>+ Tomar Orden</span>
             </button>
           )}
@@ -493,68 +494,68 @@ export function OrderManager({
 
       {/* BANNER DE ARQUEO EN VIVO PARA EL CAJERO AL SELECCIONAR 'COBRADOS HOY' */}
       {filter === 'cobrados' && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 rounded-3xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-xs animate-in fade-in duration-150">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 rounded-2xl border border-[#EAE5DE] bg-white p-6 shadow-xs animate-in fade-in duration-150">
           <div>
-            <div className="flex items-center gap-1.5 text-zinc-400">
-              <Wallet className="w-3.5 h-3.5 text-emerald-500" />
+            <div className="flex items-center gap-1.5 text-[#8C95A3]">
+              <Wallet className="w-3.5 h-3.5 text-[#1E7E34]" />
               <span className="text-[11px] font-bold uppercase tracking-wider">Total Cobrado Hoy</span>
             </div>
-            <p className="mt-1.5 text-3xl font-black text-emerald-600 dark:text-emerald-400">
+            <p className="mt-1.5 text-3xl font-black text-[#1E7E34]">
               ${(paidTotalCents / 100).toFixed(2)}
             </p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">{paidOrders.length} cobros completados</p>
+            <p className="text-[11px] text-[#666E7A] mt-0.5">{paidOrders.length} cobros completados</p>
           </div>
 
           <div>
-            <div className="flex items-center gap-1.5 text-zinc-400">
-              <DollarSign className="w-3.5 h-3.5 text-[#f3a806]" />
+            <div className="flex items-center gap-1.5 text-[#8C95A3]">
+              <DollarSign className="w-3.5 h-3.5 text-[#EAA228]" />
               <span className="text-[11px] font-bold uppercase tracking-wider">Efectivo en Gaveta</span>
             </div>
-            <p className="mt-1.5 text-3xl font-black text-zinc-900 dark:text-zinc-100">
+            <p className="mt-1.5 text-3xl font-black text-[#181C20]">
               ${(cashTotalCents / 100).toFixed(2)}
             </p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">{cashCount} cobros en efectivo</p>
+            <p className="text-[11px] text-[#666E7A] mt-0.5">{cashCount} cobros en efectivo</p>
           </div>
 
           <div>
-            <div className="flex items-center gap-1.5 text-zinc-400">
+            <div className="flex items-center gap-1.5 text-[#8C95A3]">
               <CreditCard className="w-3.5 h-3.5 text-blue-500" />
               <span className="text-[11px] font-bold uppercase tracking-wider">Digital / Tarjeta</span>
             </div>
-            <p className="mt-1.5 text-3xl font-black text-zinc-900 dark:text-zinc-100">
+            <p className="mt-1.5 text-3xl font-black text-[#181C20]">
               ${(digitalTotalCents / 100).toFixed(2)}
             </p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">{digitalCount} cobros bancarios</p>
+            <p className="text-[11px] text-[#666E7A] mt-0.5">{digitalCount} cobros bancarios</p>
           </div>
 
           <div>
-            <div className="flex items-center gap-1.5 text-zinc-400">
-              <Receipt className="w-3.5 h-3.5 text-zinc-400" />
+            <div className="flex items-center gap-1.5 text-[#8C95A3]">
+              <Receipt className="w-3.5 h-3.5 text-[#EAA228]" />
               <span className="text-[11px] font-bold uppercase tracking-wider">Ticket Promedio</span>
             </div>
-            <p className="mt-1.5 text-3xl font-black text-[#f3a806]">
+            <p className="mt-1.5 text-3xl font-black text-[#EAA228]">
               ${paidOrders.length > 0 ? (paidTotalCents / (paidOrders.length * 100)).toFixed(2) : '0.00'}
             </p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">Por orden cobrada</p>
+            <p className="text-[11px] text-[#666E7A] mt-0.5">Por orden cobrada</p>
           </div>
         </div>
       )}
 
       {error && (
-        <div role="alert" className="rounded-2xl bg-red-50 dark:bg-red-950/30 p-4 text-xs font-medium text-red-700 dark:text-red-400">
+        <div role="alert" className="rounded-2xl bg-red-50 border border-red-200 p-4 text-xs font-bold text-red-700 shadow-xs">
           {error}
         </div>
       )}
 
       {/* 2. Lista de Pedidos en Tarjetas Respiradas y Sin Bordes Duros */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         {filteredOrders.length === 0 ? (
-          <div className="text-center py-20 rounded-3xl bg-white dark:bg-zinc-900 p-8 shadow-xs">
-            <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 mx-auto mb-3">
-              <ClipboardList className="w-6 h-6 stroke-[1.8]" />
+          <div className="text-center py-20 rounded-2xl bg-white border border-[#EAE5DE] p-8 shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-[#FEF9EE] border border-[#F6E3B8] flex items-center justify-center text-[#EAA228] mx-auto mb-3 shadow-xs">
+              <ClipboardList className="w-6 h-6 stroke-[2]" />
             </div>
-            <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">No hay pedidos en esta sección</p>
-            <p className="text-xs text-zinc-500 mt-1">Los nuevos pedidos en vivo aparecerán aquí de forma automática.</p>
+            <p className="text-sm font-extrabold text-[#181C20]">No hay pedidos en esta sección</p>
+            <p className="text-xs text-[#666E7A] mt-1">Los nuevos pedidos en vivo aparecerán aquí de forma automática.</p>
           </div>
         ) : (
           filteredOrders.map((order) => {
@@ -566,28 +567,28 @@ export function OrderManager({
             return (
               <article
                 key={order.id}
-                className="rounded-2xl bg-white dark:bg-zinc-900 p-6 sm:p-7 shadow-xs hover:shadow-md transition-shadow"
+                className="rounded-2xl border border-[#EAE5DE] bg-white p-6 sm:p-7 shadow-xs hover:border-[#EAA228] transition-all"
               >
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                   {/* Contenido Principal */}
                   <div className="flex-1 space-y-4">
                     {/* Fila Superior: Código, Badges Elegantes y Hora */}
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <span className="font-mono text-sm font-extrabold text-zinc-900 dark:text-zinc-100">
+                      <span className="font-mono text-sm font-black text-[#181C20]">
                         {order.tracking_code}
                       </span>
 
                       {/* Badge de Estado Sutil */}
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge.className}`}>
+                      <span className={`inline-flex items-center rounded-full px-3 py-0.5 text-xs font-bold ${badge.className}`}>
                         {badge.label}
                       </span>
 
                       {/* Badge de Pago Sutil */}
                       <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        className={`inline-flex items-center rounded-full px-3 py-0.5 text-xs font-bold ${
                           isPaid
-                            ? 'bg-amber-500/15 text-amber-950 dark:text-amber-200 border border-[#f3a806]/30'
-                            : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border border-zinc-200'
+                            ? 'bg-[#EBF7EE] text-[#1E7E34] border border-emerald-200'
+                            : 'bg-[#FEF9EE] text-[#7A642B] border border-[#F6E3B8]'
                         }`}
                       >
                         {isPaid ? `Pagado (${order.payment_method || 'caja'})` : 'Pago al Retirar'}
@@ -595,44 +596,44 @@ export function OrderManager({
 
                       {/* Badge de Ubicación / Paleta */}
                       {order.table_or_token_number && (
-                        <span className="inline-flex items-center rounded-full bg-amber-500/10 text-amber-950 dark:text-amber-200 border border-[#f3a806]/20 px-2.5 py-0.5 text-xs font-semibold">
+                        <span className="inline-flex items-center rounded-full bg-[#FAF7F2] text-[#181C20] border border-[#EAE5DE] px-3 py-0.5 text-xs font-bold">
                           {order.service_type === 'paleta_madera' ? `Paleta #${order.table_or_token_number}` : `Mesa #${order.table_or_token_number}`}
                         </span>
                       )}
 
-                      <span className="text-xs text-zinc-400 ml-auto sm:ml-2">
+                      <span className="text-xs text-[#8C95A3] ml-auto sm:ml-2">
                         {timeStr}
                       </span>
                     </div>
 
                     {/* Cliente */}
                     <div>
-                      <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                      <h3 className="text-base font-extrabold text-[#181C20]">
                         {order.customer_name}
                       </h3>
-                      <p className="text-xs text-zinc-500 mt-0.5">
+                      <p className="text-xs text-[#666E7A] mt-0.5">
                         {order.customer_phone}
                       </p>
                     </div>
 
-                    {/* Desglose de Productos Limpio (Sin cajas toscas) */}
+                    {/* Desglose de Productos */}
                     <div className="pt-2">
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-[#8C95A3] mb-2">
                         Detalle de la Orden:
                       </p>
-                      <ul className="space-y-1.5 text-xs text-zinc-700 dark:text-zinc-300">
+                      <ul className="space-y-1.5 text-xs text-[#181C20]">
                         {order.public_order_items.map((item, idx) => (
                           <li key={`${order.id}-${idx}`} className="flex items-baseline justify-between">
                             <span className="pr-4">
-                              <strong className="font-bold text-zinc-900 dark:text-zinc-100">{item.quantity}×</strong>{' '}
+                              <strong className="font-extrabold text-[#181C20]">{item.quantity}×</strong>{' '}
                               <span>{item.product_name}</span>
                               {item.notes && (
-                                <span className="text-zinc-400 italic ml-1.5 font-normal">
+                                <span className="text-[#8C95A3] italic ml-1.5 font-normal">
                                   ({item.notes})
                                 </span>
                               )}
                             </span>
-                            <span className="font-mono text-zinc-500 shrink-0">
+                            <span className="font-mono text-[#666E7A] shrink-0 font-bold">
                               ${((item.unit_price_cents * item.quantity) / 100).toFixed(2)}
                             </span>
                           </li>
@@ -640,9 +641,9 @@ export function OrderManager({
                       </ul>
 
                       {/* Fila de Total Minimalista */}
-                      <div className="mt-3 pt-3 flex justify-between items-baseline border-t border-zinc-100 dark:border-zinc-800">
-                        <span className="text-xs font-semibold text-zinc-500">Total:</span>
-                        <span className="text-base font-black text-zinc-900 dark:text-zinc-100">
+                      <div className="mt-3 pt-3 flex justify-between items-baseline border-t border-[#EAE5DE]">
+                        <span className="text-xs font-bold text-[#666E7A]">Total:</span>
+                        <span className="text-base font-black text-[#181C20]">
                           ${formattedTotal}
                         </span>
                       </div>
@@ -650,13 +651,13 @@ export function OrderManager({
 
                     {/* Nota del Cliente si existe */}
                     {order.notes && (
-                      <p className="text-xs text-amber-900 dark:text-amber-300 bg-amber-500/10 p-3 rounded-xl italic">
+                      <p className="text-xs text-[#7A642B] bg-[#FEF9EE] border border-[#F6E3B8] p-3 rounded-xl italic">
                         Nota: {order.notes}
                       </p>
                     )}
 
                     {order.rejection_reason && (
-                      <p className="text-xs text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-3 rounded-xl">
+                      <p className="text-xs text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl">
                         Motivo de rechazo: {order.rejection_reason}
                       </p>
                     )}
@@ -689,7 +690,7 @@ export function OrderManager({
                             openPaymentModal(order);
                           }
                         }}
-                        className="h-11 w-full rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                        className="h-11 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-4 text-xs font-black text-[#181C20] shadow-sm transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <CreditCard className="w-4 h-4" />
                         <span>{order.service_type === 'mesa_fija' ? 'Cobrar Mesa (Salón)' : 'Cobrar Pedido'}</span>
@@ -700,7 +701,7 @@ export function OrderManager({
                       <button
                         type="button"
                         onClick={() => setPrintingOrder(order)}
-                        className="h-11 w-full rounded-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 text-xs font-bold shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                        className="h-11 w-full rounded-xl bg-[#1E7E34] hover:bg-[#19692c] text-white px-4 text-xs font-bold shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <Printer className="w-4 h-4" />
                         <span>Reimprimir Comprobante</span>
@@ -711,10 +712,10 @@ export function OrderManager({
                       <button
                         type="button"
                         onClick={() => void transition(order.id, 'confirmado')}
-                        className={`h-11 w-full rounded-full px-4 text-xs font-bold transition-all active:scale-[0.99] flex items-center justify-center gap-2 ${
+                        className={`h-11 w-full rounded-xl px-4 text-xs font-bold transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer ${
                           isPaid
-                            ? 'bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 shadow-xs'
-                            : 'border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50'
+                            ? 'bg-[#EAA228] hover:bg-[#D99318] text-[#181C20] shadow-xs'
+                            : 'border border-[#D9D3C7] bg-white text-[#181C20] hover:bg-[#FAF7F2]'
                         }`}
                       >
                         <span>Confirmar a Cocina</span>
@@ -726,10 +727,10 @@ export function OrderManager({
                       <button
                         type="button"
                         onClick={() => void transition(order.id, 'preparando')}
-                        className={`h-11 w-full rounded-full px-4 text-xs font-bold transition-all active:scale-[0.99] flex items-center justify-center gap-2 ${
+                        className={`h-11 w-full rounded-xl px-4 text-xs font-bold transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer ${
                           isPaid
-                            ? 'bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 shadow-xs'
-                            : 'border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-50'
+                            ? 'bg-[#EAA228] hover:bg-[#D99318] text-[#181C20] shadow-xs'
+                            : 'border border-[#D9D3C7] bg-white text-[#181C20] hover:bg-[#FAF7F2]'
                         }`}
                       >
                         <span>Marchar en Cocina</span>
@@ -740,7 +741,7 @@ export function OrderManager({
                       <button
                         type="button"
                         onClick={() => void transition(order.id, 'listo')}
-                        className="h-11 w-full rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                        className="h-11 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-4 text-xs font-black text-[#181C20] shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <Check className="w-4 h-4" />
                         <span>Marcar como Listo</span>
@@ -751,7 +752,7 @@ export function OrderManager({
                       <button
                         type="button"
                         onClick={() => void transition(order.id, 'completado')}
-                        className="h-11 w-full rounded-full bg-[#f3a806] hover:bg-[#e09804] px-4 text-xs font-bold text-zinc-950 shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                        className="h-11 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-4 text-xs font-black text-[#181C20] shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <Check className="w-4 h-4" />
                         <span>Entregar al Cliente</span>
@@ -762,9 +763,9 @@ export function OrderManager({
                       <button
                         type="button"
                         onClick={() => setPrintingOrder(order)}
-                        className="h-10 w-full rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 shadow-2xs"
+                        className="h-10 w-full rounded-xl border border-[#D9D3C7] bg-white px-3 text-xs font-bold text-[#181C20] hover:bg-[#FAF7F2] transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                       >
-                        <Printer className="w-4 h-4" />
+                        <Printer className="w-4 h-4 text-[#EAA228]" />
                         <span>Pre-cuenta / Ticket</span>
                       </button>
                     )}
@@ -776,7 +777,7 @@ export function OrderManager({
                           setRejectingOrderId(order.id);
                           setRejectReason('');
                         }}
-                        className="h-9 w-full rounded-full text-xs font-medium text-zinc-400 hover:text-red-600 transition-colors"
+                        className="h-9 w-full rounded-xl text-xs font-semibold text-[#8C95A3] hover:text-red-600 transition-colors cursor-pointer"
                       >
                         Rechazar Pedido
                       </button>
@@ -791,21 +792,21 @@ export function OrderManager({
 
       {/* Modal de Cobro & Paleta Limpio y Minimalista */}
       {payingOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-zinc-900 p-6 sm:p-7 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-[28px] border border-[#EAE5DE] bg-white p-6 sm:p-7 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#f3a806]">Caja & Salón</span>
-              <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-100 mt-0.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#EAA228]">Caja & Salón</span>
+              <h2 className="text-xl font-black text-[#181C20] mt-0.5">
                 Cobrar Pedido #{payingOrder.tracking_code}
               </h2>
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-[#666E7A]">
                 Cliente: {payingOrder.customer_name} · Total: ${(payingOrder.total_cents / 100).toFixed(2)}
               </p>
             </div>
 
             <form onSubmit={handleConfirmPayment} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#181C20] mb-1.5">
                   Tipo de Entrega / Identificador
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -818,10 +819,10 @@ export function OrderManager({
                       key={s.type}
                       type="button"
                       onClick={() => setPayServiceType(s.type as unknown as typeof payServiceType)}
-                      className={`h-9 rounded-xl text-xs font-bold transition-all ${
+                      className={`h-10 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         payServiceType === s.type
-                          ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs'
-                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200'
+                          ? 'bg-[#161A1E] text-[#EAA228] font-black shadow-xs'
+                          : 'bg-[#FAF7F2] border border-[#EAE5DE] text-[#666E7A] hover:bg-white'
                       }`}
                     >
                       {s.label}
@@ -832,7 +833,7 @@ export function OrderManager({
 
               {payServiceType !== 'para_llevar' && (
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#181C20] mb-1.5">
                     Número de {payServiceType === 'paleta_madera' ? 'Paleta' : 'Mesa'}
                   </label>
                   <input
@@ -841,13 +842,13 @@ export function OrderManager({
                     onChange={(e) => setTokenInput(e.target.value)}
                     placeholder="Ej: 5"
                     required
-                    className="w-full h-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 text-xs font-bold text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+                    className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-3.5 text-xs font-bold text-[#181C20] focus:outline-none focus:ring-2 focus:ring-[#EAA228]"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#181C20] mb-1.5">
                   Método de Pago
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -860,10 +861,10 @@ export function OrderManager({
                       key={m.method}
                       type="button"
                       onClick={() => setPayMethod(m.method as unknown as typeof payMethod)}
-                      className={`h-9 rounded-xl text-xs font-bold transition-all ${
+                      className={`h-10 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         payMethod === m.method
-                          ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs'
-                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200'
+                          ? 'bg-[#EAA228] text-[#181C20] font-black shadow-xs'
+                          : 'bg-[#FAF7F2] border border-[#EAE5DE] text-[#666E7A] hover:bg-white'
                       }`}
                     >
                       {m.label}
@@ -874,14 +875,14 @@ export function OrderManager({
 
               {payMethod === 'efectivo' && (
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#181C20] mb-1.5">
                     Monto Recibido ($)
                   </label>
                   <input
                     type="text"
                     value={cashAmountInput}
                     onChange={(e) => setCashAmountInput(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 text-xs font-bold text-zinc-900 dark:text-zinc-100"
+                    className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-3.5 text-xs font-bold text-[#181C20] focus:outline-none focus:ring-2 focus:ring-[#EAA228]"
                   />
                 </div>
               )}
@@ -890,14 +891,14 @@ export function OrderManager({
                 <button
                   type="button"
                   onClick={() => setPayingOrder(null)}
-                  className="h-10 px-5 rounded-full text-xs font-semibold text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  className="h-11 px-5 rounded-xl border border-[#D9D3C7] text-xs font-bold text-[#666E7A] hover:bg-[#FAF7F2] transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isProcessingPayment}
-                  className="h-10 px-6 rounded-full bg-[#f3a806] hover:bg-[#e09804] text-zinc-950 font-bold text-xs shadow-md transition-all active:scale-95 disabled:opacity-50"
+                  className="h-11 px-6 rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-[#181C20] font-black text-xs shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {isProcessingPayment ? 'Registrando...' : 'Confirmar Cobro'}
                 </button>
@@ -909,12 +910,12 @@ export function OrderManager({
 
       {/* Modal de Rechazo de Pedido */}
       {rejectingOrderId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-zinc-900 p-6 shadow-2xl space-y-4">
-            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-[28px] border border-[#EAE5DE] bg-white p-6 shadow-2xl space-y-4">
+            <h3 className="text-base font-black text-[#181C20]">
               Rechazar Pedido
             </h3>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-[#666E7A]">
               Ingresa el motivo que verá el cliente (ej. cocina saturada, ingrediente agotado):
             </p>
             <input
@@ -922,20 +923,20 @@ export function OrderManager({
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="Motivo del rechazo"
-              className="w-full h-10 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-3 text-xs"
+              className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-3.5 text-xs text-[#181C20] focus:ring-2 focus:ring-red-400 focus:outline-none"
             />
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setRejectingOrderId(null)}
-                className="h-9 px-4 rounded-full text-xs font-medium text-zinc-500 hover:bg-zinc-100"
+                className="h-10 px-4 rounded-xl border border-[#D9D3C7] text-xs font-bold text-[#666E7A] hover:bg-[#FAF7F2]"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleRejectOrder}
-                className="h-9 px-5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold"
+                className="h-10 px-5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black shadow-xs cursor-pointer"
               >
                 Confirmar Rechazo
               </button>
@@ -943,6 +944,7 @@ export function OrderManager({
           </div>
         </div>
       )}
+
 
       {/* Ticket Térmico Modal */}
       {printingOrder && (

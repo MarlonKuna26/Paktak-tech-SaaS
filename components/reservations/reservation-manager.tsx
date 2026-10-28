@@ -32,11 +32,11 @@ const STATUS_LABELS: Record<ReservationStatus, string> = {
 };
 
 const STATUS_BADGES: Record<ReservationStatus, string> = {
-  pendiente: 'border-[#FFE6A5] bg-[#FFF8E7] text-[#9A6700]',
-  confirmada: 'border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D]',
-  cancelada: 'border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]',
-  no_show: 'border-[#E8E8E8] bg-[#F7F7F7] text-[#6B6B6B]',
-  completada: 'border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]',
+  pendiente: 'border-[#F6E3B8] bg-[#FEF9EE] text-[#7A642B]',
+  confirmada: 'border-emerald-200 bg-[#EBF7EE] text-[#1E7E34]',
+  cancelada: 'border-red-200 bg-red-50 text-red-700',
+  no_show: 'border-[#EAE5DE] bg-[#FAF7F2] text-[#8C95A3]',
+  completada: 'border-[#2D3540] bg-[#161A1E] text-white',
 };
 
 function buildWhatsAppUrl(phone: string, name: string, dateTime: string, guests: number): string {
@@ -104,34 +104,34 @@ export function ReservationManager({ restaurantId }: { restaurantId: string }) {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans text-[#181C20]">
       {error && (
         <div
           role="alert"
-          className="flex items-start gap-3 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] p-4 text-sm font-semibold text-[#B91C1C]"
+          className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-700 shadow-xs"
         >
-          <AlertCircle className="h-5 w-5 shrink-0" />
+          <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
           <p>{error}</p>
         </div>
       )}
       {message && (
         <div
           role="status"
-          className="flex items-start gap-3 rounded-2xl border border-[#BBF7D0] bg-[#F0FDF4] p-4 text-sm font-semibold text-[#15803D]"
+          className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-bold text-emerald-800 shadow-xs"
         >
-          <Check className="h-5 w-5 shrink-0" />
+          <Check className="h-4 w-4 shrink-0 text-emerald-600" />
           <p>{message}</p>
         </div>
       )}
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-xl font-extrabold text-[#1A1A1A]">Próximas reservas</h2>
-          <p className="text-sm text-[#6B6B6B]">Mesas y horarios agendados por clientes.</p>
+          <h2 className="text-xl font-black text-[#181C20]">Próximas reservas</h2>
+          <p className="text-xs text-[#666E7A]">Mesas y horarios agendados por clientes.</p>
         </div>
 
         {upcoming.length === 0 && (
-          <div className="rounded-[24px] border border-dashed border-[#E8E8E8] bg-white p-8 text-center text-sm text-[#6B6B6B]">
+          <div className="rounded-2xl border border-dashed border-[#D9D3C7] bg-white p-10 text-center text-xs font-semibold text-[#666E7A] shadow-xs">
             No hay reservas próximas registradas.
           </div>
         )}
@@ -144,10 +144,10 @@ export function ReservationManager({ restaurantId }: { restaurantId: string }) {
       </section>
 
       {past.length > 0 && (
-        <section className="space-y-4 border-t border-[#E8E8E8] pt-6">
+        <section className="space-y-4 border-t border-[#EAE5DE] pt-6">
           <div>
-            <h2 className="text-xl font-extrabold text-[#1A1A1A]">Historial de reservas</h2>
-            <p className="text-sm text-[#6B6B6B]">Reservas completadas o canceladas.</p>
+            <h2 className="text-xl font-black text-[#181C20]">Historial de reservas</h2>
+            <p className="text-xs text-[#666E7A]">Reservas completadas o canceladas.</p>
           </div>
 
           <div className="space-y-3">
@@ -180,13 +180,13 @@ function ReservationCard({
   });
 
   return (
-    <article className="rounded-[24px] border border-[#E8E8E8] bg-white p-5 md:p-6 transition-colors hover:border-[#1A1A1A]">
+    <article className="rounded-2xl border border-[#EAE5DE] bg-white p-5 md:p-6 shadow-xs transition-all hover:border-[#EAA228]">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="text-lg font-extrabold text-[#1A1A1A]">{r.customer_name}</h3>
+            <h3 className="text-lg font-black text-[#181C20]">{r.customer_name}</h3>
             <span
-              className={`rounded-full border px-3 py-0.5 text-xs font-bold ${
+              className={`rounded-full border px-3 py-0.5 text-xs font-extrabold ${
                 STATUS_BADGES[r.status]
               }`}
             >
@@ -194,24 +194,24 @@ function ReservationCard({
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-[#6B6B6B]">
+          <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-[#666E7A]">
             <span className="flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5" />
-              {dateStr} · {timeStr}
+              <Calendar className="h-3.5 w-3.5 text-[#EAA228]" />
+              <span>{dateStr} · {timeStr}</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5" />
-              {r.guests} persona{r.guests !== 1 ? 's' : ''}
+              <Users className="h-3.5 w-3.5 text-[#EAA228]" />
+              <span>{r.guests} persona{r.guests !== 1 ? 's' : ''}</span>
             </span>
-            <span className="flex items-center gap-1.5">
-              <Phone className="h-3.5 w-3.5" />
-              {r.customer_phone}
+            <span className="flex items-center gap-1.5 font-mono">
+              <Phone className="h-3.5 w-3.5 text-[#EAA228]" />
+              <span>{r.customer_phone}</span>
             </span>
           </div>
 
           {r.notes && (
-            <p className="flex items-center gap-1.5 text-xs text-[#6B6B6B]">
-              <FileText className="h-3.5 w-3.5 shrink-0" />
+            <p className="flex items-center gap-1.5 text-xs text-[#666E7A] bg-[#FAF7F2] p-2.5 rounded-xl border border-[#EAE5DE]">
+              <FileText className="h-3.5 w-3.5 shrink-0 text-[#EAA228]" />
               <span>{r.notes}</span>
             </p>
           )}
@@ -223,7 +223,7 @@ function ReservationCard({
             href={buildWhatsAppUrl(r.customer_phone, r.customer_name, r.date_time, r.guests)}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-10 items-center justify-center rounded-full border border-[#E8E8E8] bg-white px-4 text-xs font-bold text-[#1A1A1A] hover:bg-[#F7F7F7] transition-colors"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-bold text-[#181C20] hover:bg-[#FAF7F2] transition-colors shadow-xs"
           >
             WhatsApp
           </a>
@@ -233,14 +233,14 @@ function ReservationCard({
               <button
                 id={`btn-confirm-${r.id}`}
                 onClick={() => void onUpdate(r.id, 'confirmada')}
-                className="h-10 rounded-full bg-[#FFC21A] px-5 text-xs font-extrabold text-[#1A1A1A] hover:opacity-90 transition-opacity"
+                className="h-10 rounded-xl bg-[#EAA228] px-5 text-xs font-black text-[#181C20] hover:bg-[#D99318] transition-colors shadow-xs cursor-pointer"
               >
                 Confirmar
               </button>
               <button
                 id={`btn-cancel-${r.id}`}
                 onClick={() => void onUpdate(r.id, 'cancelada')}
-                className="h-10 rounded-full border border-[#E8E8E8] bg-white px-4 text-xs font-bold text-[#B91C1C] hover:bg-[#FEF2F2] transition-colors"
+                className="h-10 rounded-xl border border-red-200 bg-white px-4 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors shadow-xs cursor-pointer"
               >
                 Cancelar
               </button>
@@ -252,14 +252,14 @@ function ReservationCard({
               <button
                 id={`btn-complete-${r.id}`}
                 onClick={() => void onUpdate(r.id, 'completada')}
-                className="h-10 rounded-full border border-[#E8E8E8] bg-white px-4 text-xs font-bold text-[#15803D] hover:bg-[#F0FDF4] transition-colors"
+                className="h-10 rounded-xl border border-emerald-200 bg-[#EBF7EE] px-4 text-xs font-black text-[#1E7E34] hover:bg-[#DDF2E2] transition-colors shadow-xs cursor-pointer"
               >
                 Completada
               </button>
               <button
                 id={`btn-noshow-${r.id}`}
                 onClick={() => void onUpdate(r.id, 'no_show')}
-                className="h-10 rounded-full border border-[#E8E8E8] bg-white px-4 text-xs font-bold text-[#6B6B6B] hover:bg-[#F7F7F7] transition-colors"
+                className="h-10 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-bold text-[#666E7A] hover:bg-[#FAF7F2] transition-colors shadow-xs cursor-pointer"
               >
                 No se presentó
               </button>

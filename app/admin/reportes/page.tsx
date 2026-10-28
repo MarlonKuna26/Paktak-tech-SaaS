@@ -19,16 +19,17 @@ export default async function ReportesPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-16 font-sans">
       <div className="space-y-1">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#f3a806]">
+        <span className="text-xs font-black uppercase tracking-wider text-[#EAA228]">
           Finanzas & Operación
         </span>
-        <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
+        <h1 className="text-3xl font-black tracking-tight text-[#181C20]">
           Cierre de Caja & Reportes
         </h1>
-        <p className="text-xs text-zinc-500 max-w-xl">
+        <p className="text-xs text-[#666E7A] max-w-xl">
           Visualiza ingresos reales, cruza costos de materia prima vs margen neto, y analiza qué mesero o canal generó cada venta.
         </p>
       </div>
+
 
       <DailyReportView restaurantName={staff.restaurantName} />
     </div>
