@@ -13,6 +13,7 @@ const roleLabelMap = {
 const navigation = [
   { href: '/admin', label: 'Resumen Ejecutivo', roles: ['owner', 'admin', 'host'] },
   { href: '/admin/mesas', label: 'Caja, Salón & Órdenes', roles: ['owner', 'admin', 'host', 'cashier', 'waiter'] },
+  { href: '/admin/caja', label: 'Turnos & Cuadre de Caja', roles: ['owner', 'admin', 'host', 'cashier'] },
   { href: '/admin/menu', label: 'Menú & Platos', roles: ['owner', 'admin', 'host'] },
   { href: '/admin/cocina', label: 'KDS Cocina', roles: ['owner', 'admin', 'host', 'kitchen', 'cashier', 'waiter'] },
   { href: '/admin/reservas', label: 'Reservas', roles: ['owner', 'admin', 'host', 'cashier'] },
@@ -26,11 +27,11 @@ function getVisibleNav(role) {
 }
 
 describe('Unit Tests: Role Permissions & Navigation Filter Matrix', () => {
-  it('el rol "admin" u "owner" debe tener acceso completo a los 8 módulos del sistema', () => {
+  it('el rol "admin" u "owner" debe tener acceso completo a los 9 módulos del sistema', () => {
     const adminNav = getVisibleNav('admin');
-    assert.strictEqual(adminNav.length, 8);
+    assert.strictEqual(adminNav.length, 9);
     const ownerNav = getVisibleNav('owner');
-    assert.strictEqual(ownerNav.length, 8);
+    assert.strictEqual(ownerNav.length, 9);
   });
 
   it('el rol "kitchen" debe tener acceso restringido únicamente a KDS Cocina', () => {
@@ -50,10 +51,11 @@ describe('Unit Tests: Role Permissions & Navigation Filter Matrix', () => {
     assert.ok(!hrefs.includes('/admin/menu'), 'El mesero no debe editar Menú');
   });
 
-  it('el rol "cashier" (cajero) debe poder ver Reportes y Reservas además de Mesas y Cocina', () => {
+  it('el rol "cashier" (cajero) debe poder ver Reportes, Reservas y Caja además de Mesas y Cocina', () => {
     const cashierNav = getVisibleNav('cashier');
     const hrefs = cashierNav.map((it) => it.href);
     assert.ok(hrefs.includes('/admin/mesas'));
+    assert.ok(hrefs.includes('/admin/caja'));
     assert.ok(hrefs.includes('/admin/cocina'));
     assert.ok(hrefs.includes('/admin/reportes'));
     assert.ok(hrefs.includes('/admin/reservas'));

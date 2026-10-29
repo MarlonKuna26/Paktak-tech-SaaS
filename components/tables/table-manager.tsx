@@ -107,15 +107,13 @@ export function TableManager({
   restaurantSlug?: string;
   restaurantName?: string;
   initialTableId?: string;
-  initialView?: 'tables' | 'comandero' | 'pedidos' | 'caja';
+  initialView?: 'tables' | 'comandero' | 'pedidos';
 }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
-  // Vista unificada: Plano de Mesas vs Comandero vs Pedidos vs Turnos de Caja
-  const [activeTab, setActiveTab] = useState<'tables' | 'comandero' | 'pedidos' | 'caja'>(
-    initialView === 'caja'
-      ? 'caja'
-      : initialView === 'pedidos'
+  // Vista unificada: Plano de Mesas vs Comandero vs Pedidos
+  const [activeTab, setActiveTab] = useState<'tables' | 'comandero' | 'pedidos'>(
+    initialView === 'pedidos'
       ? 'pedidos'
       : initialView === 'comandero' || !!initialTableId
       ? 'comandero'
@@ -720,34 +718,36 @@ export function TableManager({
         </div>
       )}
 
-      {/* Switch de Vista del Cajero: Mesas, Comandero y Caja/Cobros */}
+      {/* Botones de Operación del Cajero: 1, 2, 3, Pedido Para Llevar y Enviar Carta WhatsApp */}
       <div className="rounded-2xl border border-[#EAE5DE] bg-white p-2.5 sm:p-3 shadow-xs">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#FAF7F2] border border-[#EAE5DE] overflow-x-auto">
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
+          {/* Pestañas de Navegación 1, 2 y 3 */}
+          <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-[#FAF7F2] border border-[#EAE5DE]">
             <button
               type="button"
               onClick={() => setActiveTab('tables')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${
                 activeTab === 'tables'
                   ? 'bg-[#EAA228] text-[#181C20] shadow-xs'
                   : 'text-[#666E7A] hover:text-[#181C20]'
               }`}
             >
               <LayoutGrid className="w-4 h-4 text-[#181C20]" />
-              <span>1. Plano de Mesas & Salón</span>
+              <span>1. Plano de Mesas</span>
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
                 activeTab === 'tables' ? 'bg-white/40 text-[#181C20]' : 'bg-[#EAE5DE] text-[#666E7A]'
               }`}>
                 {occupiedTables}/{totalTables}
               </span>
             </button>
+
             <button
               type="button"
               onClick={() => {
                 setComanderoTableId(undefined);
                 setActiveTab('comandero');
               }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${
                 activeTab === 'comandero'
                   ? 'bg-[#EAA228] text-[#181C20] shadow-xs'
                   : 'text-[#666E7A] hover:text-[#181C20]'
@@ -756,37 +756,27 @@ export function TableManager({
               <ConciergeBell className="w-4 h-4 text-[#181C20]" />
               <span>2. Tomar Orden</span>
             </button>
+
             <button
               type="button"
               onClick={() => setActiveTab('pedidos')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-black transition-all cursor-pointer ${
                 activeTab === 'pedidos'
                   ? 'bg-[#EAA228] text-[#181C20] shadow-xs'
                   : 'text-[#666E7A] hover:text-[#181C20]'
               }`}
             >
               <ClipboardList className="w-4 h-4 text-[#181C20]" />
-              <span>3. Caja, Pedidos & Cobros</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('caja')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'caja'
-                  ? 'bg-[#EAA228] text-[#181C20] shadow-xs'
-                  : 'text-[#666E7A] hover:text-[#181C20]'
-              }`}
-            >
-              <Wallet className="w-4 h-4 text-[#181C20]" />
-              <span>4. Turnos & Arqueo de Caja</span>
+              <span>3. Caja & Pedidos</span>
             </button>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          {/* Botones de Acción Directa: Pedido Para Llevar y Enviar Carta WhatsApp */}
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => setShowTakeawayModal(true)}
-              className="h-9 px-3.5 rounded-xl bg-[#181C20] hover:bg-black text-white text-xs font-black transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer whitespace-nowrap"
+              className="h-9 px-3.5 rounded-xl bg-[#181C20] hover:bg-black text-white text-xs font-black transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <ShoppingBag className="w-3.5 h-3.5 text-[#EAA228]" />
               <span>🛍️ Pedido Para Llevar</span>
@@ -796,34 +786,17 @@ export function TableManager({
               <button
                 type="button"
                 onClick={() => setShowShareMenuModal(true)}
-                className="h-9 px-3 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-black transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+                className="h-9 px-3.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-black transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
               >
                 <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Enviar Carta WhatsApp</span>
               </button>
             )}
-
-            <div className="hidden sm:flex items-center gap-2 text-xs text-[#666E7A] px-2">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-              <span className="text-[11px] font-bold">
-                {activeTab === 'tables' && 'Plano de ocupación en vivo y cobro de cuentas'}
-                {activeTab === 'comandero' && 'Toma rápida de órdenes en mesa y mostrador'}
-                {activeTab === 'pedidos' && 'Cola de cobro, arqueo diario en vivo e impresión'}
-                {activeTab === 'caja' && 'Apertura de turno, fondo inicial y arqueo de gaveta'}
-              </span>
-            </div>
           </div>
         </div>
       </div>
 
-      {activeTab === 'caja' ? (
-        <div className="space-y-4">
-          <CashShiftManager restaurantId={restaurantId} userRole={userRole} />
-        </div>
-      ) : activeTab === 'comandero' ? (
+      {activeTab === 'comandero' ? (
         <div className="space-y-4">
           <WaiterManager
             restaurantId={restaurantId}

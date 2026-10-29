@@ -10,6 +10,7 @@ import {
   ChefHat,
   ConciergeBell,
   ClipboardList,
+  Wallet,
   TrendingUp,
   Settings,
   Users,
@@ -39,6 +40,7 @@ const roleLabelMap: Record<StaffRole, string> = {
 const navigation: readonly NavItem[] = [
   { href: '/admin', label: 'Resumen Ejecutivo', icon: LayoutDashboard, roles: ['owner', 'admin', 'host'] },
   { href: '/admin/mesas', label: 'Caja, Salón & Órdenes', icon: UtensilsCrossed, roles: ['owner', 'admin', 'host', 'cashier', 'waiter'] },
+  { href: '/admin/caja', label: 'Turnos & Cuadre de Caja', icon: Wallet, roles: ['owner', 'admin', 'host', 'cashier'] },
   { href: '/admin/menu', label: 'Menú & Platos', icon: BookOpen, roles: ['owner', 'admin', 'host'] },
   { href: '/admin/cocina', label: 'KDS Cocina', icon: ChefHat, roles: ['owner', 'admin', 'host', 'kitchen', 'cashier', 'waiter'] },
   { href: '/admin/reservas', label: 'Reservas', icon: Calendar, roles: ['owner', 'admin', 'host', 'cashier'] },
