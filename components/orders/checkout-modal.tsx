@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { AlertModal } from '@/components/ui/alert-modal';
 import type { CartItem } from '@/lib/orders/types';
 
 type PaymentMethod = 'efectivo' | 'tarjeta' | 'transferencia';
@@ -42,6 +43,8 @@ export function CheckoutModal({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('efectivo');
   const [billingType, setBillingType] = useState<'final' | 'datos'>('final');
   const [billingRuc, setBillingRuc] = useState('');
+  const [dismissedError, setDismissedError] = useState<string | null>(null);
+  const activeError = error && error !== dismissedError ? error : '';
   const [billingName, setBillingName] = useState('');
   const [billingAddress, setBillingAddress] = useState('');
 
@@ -277,8 +280,6 @@ export function CheckoutModal({
               <span className="text-3xl sm:text-4xl font-black text-[#181C20] leading-none tracking-tight">${total}</span>
             </div>
 
-            {error && <p role="alert" className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs font-bold text-red-600 animate-in fade-in">{error}</p>}
-
             <button
               type="submit"
               disabled={isSubmitting || cart.length === 0}
@@ -289,6 +290,15 @@ export function CheckoutModal({
           </section>
         </form>
       </div>
+
+      {/* Modal Central de Error al Finalizar Pedido */}
+      <AlertModal
+        isOpen={Boolean(activeError)}
+        title="Datos Incompletos"
+        message={activeError}
+        variant="error"
+        onClose={() => setDismissedError(error ?? '')}
+      />
     </div>
   );
 }

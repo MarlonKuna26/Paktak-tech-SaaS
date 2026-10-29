@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { AlertModal } from '@/components/ui/alert-modal';
 import {
   RefreshCw,
   Download,
@@ -236,11 +237,14 @@ export function DailyReportView({ restaurantName }: { restaurantName: string }) 
         </div>
       </div>
 
-      {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-700">
-          {error}
-        </div>
-      )}
+      {/* Modal Central de Error en Reportes */}
+      <AlertModal
+        isOpen={Boolean(error)}
+        title="Aviso de Reportes"
+        message={error}
+        variant="error"
+        onClose={() => setError('')}
+      />
 
       {loading ? (
         <div className="flex h-64 items-center justify-center rounded-2xl border border-[#EAE5DE] bg-white p-8">

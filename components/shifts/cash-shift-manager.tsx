@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import type { CashShift, ShiftLiveMetrics } from '@/lib/models/cash-shift.model';
 import { OpenShiftModal, CloseShiftModal } from './cash-shift-modal';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 function getTodayString(): string {
   const d = new Date();
@@ -146,11 +147,14 @@ export function CashShiftManager({
           </div>
         </div>
 
-        {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-700">
-            {error}
-          </div>
-        )}
+        {/* Modal Central de Alerta de Turnos */}
+        <AlertModal
+          isOpen={Boolean(error)}
+          title="Aviso de Turnos de Caja"
+          message={error}
+          variant="error"
+          onClose={() => setError('')}
+        />
 
         {/* Detalle del Turno Activo */}
         {currentShift ? (

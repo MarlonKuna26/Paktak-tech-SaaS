@@ -14,6 +14,7 @@ import {
   Check,
 } from 'lucide-react';
 import type { CashShift, ShiftLiveMetrics } from '@/lib/models/cash-shift.model';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 export function OpenShiftModal({
   isOpen,
@@ -96,12 +97,6 @@ export function OpenShiftModal({
             <X className="h-5 w-5" />
           </button>
         </div>
-
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -192,6 +187,15 @@ export function OpenShiftModal({
           </div>
         </form>
       </div>
+
+      {/* Modal Central de Error en Apertura de Turno */}
+      <AlertModal
+        isOpen={Boolean(error)}
+        title="Aviso de Apertura de Caja"
+        message={error}
+        variant="error"
+        onClose={() => setError('')}
+      />
     </div>
   );
 }
@@ -292,12 +296,6 @@ export function CloseShiftModal({
             <X className="h-5 w-5" />
           </button>
         </div>
-
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">
-            {error}
-          </div>
-        )}
 
         {/* Resumen de Valores Esperados en el Turno */}
         <div className="rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-4.5 space-y-3">
@@ -438,6 +436,15 @@ export function CloseShiftModal({
           </div>
         </form>
       </div>
+
+      {/* Modal Central de Error en Cierre de Turno */}
+      <AlertModal
+        isOpen={Boolean(error)}
+        title="Aviso de Cierre de Turno"
+        message={error}
+        variant="error"
+        onClose={() => setError('')}
+      />
     </div>
   );
 }

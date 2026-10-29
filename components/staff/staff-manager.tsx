@@ -18,6 +18,7 @@ import {
   X,
 } from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 export type StaffItem = {
   id: string;
@@ -309,23 +310,14 @@ export function StaffManager() {
 
   return (
     <div className="space-y-6 font-sans text-[#181C20]">
-      {/* Alert Feedback */}
-      {feedback && (
-        <div
-          className={`flex items-center gap-2 rounded-2xl p-4 text-xs font-semibold shadow-xs transition-all ${
-            feedback.ok
-              ? 'border border-emerald-500/20 bg-emerald-50 text-emerald-800'
-              : 'border border-red-500/20 bg-red-50 text-red-800'
-          }`}
-        >
-          {feedback.ok ? (
-            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-          ) : (
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-          )}
-          <span>{feedback.text}</span>
-        </div>
-      )}
+      {/* Modal Central de Éxito o Error de Personal */}
+      <AlertModal
+        isOpen={Boolean(feedback)}
+        title={feedback?.ok ? '¡Personal Actualizado!' : 'Aviso de Personal'}
+        message={feedback?.text || ''}
+        variant={feedback?.ok ? 'success' : 'error'}
+        onClose={() => setFeedback(null)}
+      />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">

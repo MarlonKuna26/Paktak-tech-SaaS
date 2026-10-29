@@ -15,6 +15,7 @@ import {
   Utensils,
 } from 'lucide-react';
 import { ThermalReceiptModal } from '@/components/orders/thermal-receipt-modal';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 type OrderItem = {
   id: string;
@@ -226,19 +227,6 @@ export function TableCheckoutModal({
         </div>
 
         <form onSubmit={handleCheckout} className="flex flex-1 flex-col overflow-y-auto p-6 space-y-5">
-          {error && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-700">
-              ⚠️ {error}
-            </div>
-          )}
-
-          {removeNotice && (
-            <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-3.5 text-xs font-bold text-emerald-800 flex items-center gap-2">
-              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{removeNotice}</span>
-            </div>
-          )}
-
           {/* Desglose de Consumo */}
           <div className="rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-4 space-y-2">
             <div className="flex items-center justify-between">
@@ -546,6 +534,24 @@ export function TableCheckoutModal({
           </div>
         </form>
       </div>
+
+      {/* Modal Central de Error o Aviso en Cobro */}
+      <AlertModal
+        isOpen={Boolean(error)}
+        title="Aviso de Cobro"
+        message={error}
+        variant="error"
+        onClose={() => setError('')}
+      />
+
+      {/* Modal Central de Éxito al Anular Plato */}
+      <AlertModal
+        isOpen={Boolean(removeNotice)}
+        title="Plato Anulado"
+        message={removeNotice}
+        variant="success"
+        onClose={() => setRemoveNotice('')}
+      />
     </div>
   );
 }

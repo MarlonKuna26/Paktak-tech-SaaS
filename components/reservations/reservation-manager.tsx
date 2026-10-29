@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Calendar, Users, Phone, FileText, Check, AlertCircle } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 type ReservationStatus =
   | 'pendiente'
@@ -105,24 +106,23 @@ export function ReservationManager({ restaurantId }: { restaurantId: string }) {
 
   return (
     <div className="space-y-6 font-sans text-[#181C20]">
-      {error && (
-        <div
-          role="alert"
-          className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-bold text-red-700 shadow-xs"
-        >
-          <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
-          <p>{error}</p>
-        </div>
-      )}
-      {message && (
-        <div
-          role="status"
-          className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-bold text-emerald-800 shadow-xs"
-        >
-          <Check className="h-4 w-4 shrink-0 text-emerald-600" />
-          <p>{message}</p>
-        </div>
-      )}
+      {/* Modal Central de Errores y Avisos de Reservas */}
+      <AlertModal
+        isOpen={Boolean(error)}
+        title="Aviso de Reservas"
+        message={error}
+        variant="error"
+        onClose={() => setError('')}
+      />
+
+      {/* Modal Central de Éxito de Reservas */}
+      <AlertModal
+        isOpen={Boolean(message)}
+        title="¡Reserva Actualizada!"
+        message={message}
+        variant="success"
+        onClose={() => setMessage('')}
+      />
 
       <section className="space-y-4">
         <div>

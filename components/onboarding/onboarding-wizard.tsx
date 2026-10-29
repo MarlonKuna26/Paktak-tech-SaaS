@@ -27,6 +27,7 @@ import {
   Info,
 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 interface CategoryItem {
   id: string;
@@ -326,14 +327,6 @@ export function OnboardingWizard({ initialUserEmail }: { initialUserEmail?: stri
               ))}
             </div>
           </div>
-
-          {/* Error Banner */}
-          {error && (
-            <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-xs font-bold text-red-600 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-red-500"></span>
-              <span>{error}</span>
-            </div>
-          )}
 
           {/* ===================================================================
               PASO 1: TU LOCAL (NOMBRE, SLUG, PAÍS, CIUDAD)
@@ -840,6 +833,15 @@ export function OnboardingWizard({ initialUserEmail }: { initialUserEmail?: stri
           </div>
         </div>
       </main>
+
+      {/* Modal Central de Error en Onboarding */}
+      <AlertModal
+        isOpen={Boolean(error)}
+        title="Aviso de Registro"
+        message={error}
+        variant="error"
+        onClose={() => setError('')}
+      />
     </div>
   );
 }

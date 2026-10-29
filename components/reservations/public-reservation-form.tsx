@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 type ReservationResult = {
   ok: boolean;
@@ -158,19 +159,6 @@ export function PublicReservationForm({
           />
         </div>
 
-        {result && (
-          <p
-            role={result.ok ? 'status' : 'alert'}
-            className={
-              result.ok
-                ? 'rounded-xl bg-[#EBF7EE] border border-[#28A745]/30 p-3.5 text-xs font-bold text-[#1E7E34]'
-                : 'rounded-xl bg-red-50 border border-red-200 p-3.5 text-xs font-bold text-red-600'
-            }
-          >
-            {result.text}
-          </p>
-        )}
-
         <button
           id="btn-submit-reservation"
           type="button"
@@ -190,6 +178,15 @@ export function PublicReservationForm({
           </Link>
         </div>
       </div>
+
+      {/* Modal Central de Éxito o Error de Reserva */}
+      <AlertModal
+        isOpen={Boolean(result)}
+        title={result?.ok ? '¡Reserva Solicitada!' : 'Aviso de Reserva'}
+        message={result?.text || ''}
+        variant={result?.ok ? 'success' : 'error'}
+        onClose={() => setResult(null)}
+      />
     </div>
   );
 }

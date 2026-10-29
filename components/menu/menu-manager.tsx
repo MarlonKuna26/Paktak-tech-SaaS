@@ -24,6 +24,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { AlertModal } from '@/components/ui/alert-modal';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import type { MenuCategory, MenuProduct } from '@/lib/menu/types';
 import { getProductImageUrl, FOOD_PHOTO_PRESETS } from '@/lib/orders/product-images';
@@ -583,23 +584,14 @@ export function MenuManager({
 
   return (
     <div className="space-y-6">
-      {/* Alert Feedback */}
-      {feedback && (
-        <div
-          className={`flex items-center gap-2 rounded-2xl p-4 text-xs font-semibold shadow-xs transition-all ${
-            feedback.ok
-              ? 'border border-emerald-500/20 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
-              : 'border border-rose-500/20 bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300'
-          }`}
-        >
-          {feedback.ok ? (
-            <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-          ) : (
-            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
-          )}
-          <span>{feedback.text}</span>
-        </div>
-      )}
+      {/* Modal Central de Éxito o Error de Menú */}
+      <AlertModal
+        isOpen={Boolean(feedback)}
+        title={feedback?.ok ? '¡Menú Actualizado!' : 'Aviso de Carta'}
+        message={feedback?.text || ''}
+        variant={feedback?.ok ? 'success' : 'error'}
+        onClose={() => setFeedback(null)}
+      />
 
       {/* Banner de Enlace WhatsApp para Clientes */}
       {restaurantSlug && (

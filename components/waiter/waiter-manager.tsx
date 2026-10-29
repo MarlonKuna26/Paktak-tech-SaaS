@@ -587,16 +587,6 @@ export function WaiterManager({
         </div>
       )}
 
-      {feedback && feedback.ok && (
-        <div
-          role="status"
-          className="flex items-start gap-3 rounded-2xl border p-4 text-sm font-medium border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D]"
-        >
-          <Check className="h-5 w-5 shrink-0" />
-          <p>{feedback.text}</p>
-        </div>
-      )}
-
       {/* 1. Selector de Mesa Tipo Píldora */}
       <section className="space-y-3">
         <h2 className="text-xs font-bold uppercase tracking-wider text-[#6B6B6B]">
@@ -1197,16 +1187,14 @@ export function WaiterManager({
         </div>
       )}
 
-      {/* Modal de Alerta para Mensajes y Errores */}
-      {feedback && !feedback.ok && (
-        <AlertModal
-          isOpen={true}
-          title="Aviso del Comandero"
-          message={feedback.text}
-          variant="warning"
-          onClose={() => setFeedback(null)}
-        />
-      )}
+      {/* Modal de Alerta Central para Éxito y Advertencias */}
+      <AlertModal
+        isOpen={Boolean(feedback)}
+        title={feedback?.ok ? '¡Operación Exitosa!' : 'Aviso del Comandero'}
+        message={feedback?.text || ''}
+        variant={feedback?.ok ? 'success' : 'warning'}
+        onClose={() => setFeedback(null)}
+      />
     </div>
   );
 }

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { getProductImageUrl } from '@/lib/orders/product-images';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 type ProductItem = {
   id: string;
@@ -256,13 +257,6 @@ export function TakeawayOrderModal({
             <X className="h-4 w-4" />
           </button>
         </div>
-
-        {error && (
-          <div className="mx-6 mt-4 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-xs font-bold text-red-700 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col md:flex-row overflow-hidden">
           {/* Lado Izquierdo: Catálogo de Platos & Búsqueda */}
@@ -561,6 +555,15 @@ export function TakeawayOrderModal({
           </div>
         </form>
       </div>
+
+      {/* Modal Central de Errores al Crear Pedido Para Llevar */}
+      <AlertModal
+        isOpen={Boolean(error)}
+        title="Aviso de Pedido"
+        message={error}
+        variant="error"
+        onClose={() => setError('')}
+      />
     </div>
   );
 }

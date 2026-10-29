@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { AlertModal } from '@/components/ui/alert-modal';
 import {
   Building2,
   DollarSign,
@@ -170,18 +171,14 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
         </button>
       </div>
 
-      {message && (
-        <div
-          className={`flex items-center gap-2.5 rounded-2xl border p-4 text-xs font-bold shadow-xs ${
-            message.ok
-              ? 'border-emerald-500/20 bg-emerald-50 text-emerald-800'
-              : 'border-red-500/20 bg-red-50 text-red-800'
-          }`}
-        >
-          {message.ok ? <Check className="w-4 h-4 shrink-0 text-emerald-600" /> : <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />}
-          <span>{message.text}</span>
-        </div>
-      )}
+      {/* Modal Central de Éxito o Error de Configuración */}
+      <AlertModal
+        isOpen={Boolean(message)}
+        title={message?.ok ? '¡Ajustes Guardados!' : 'Error de Configuración'}
+        message={message?.text || ''}
+        variant={message?.ok ? 'success' : 'error'}
+        onClose={() => setMessage(null)}
+      />
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* PESTAÑA 1: DATOS GENERALES */}
