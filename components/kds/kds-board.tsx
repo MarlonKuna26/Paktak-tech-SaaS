@@ -39,13 +39,16 @@ export type KdsItem = {
 
 export type KdsOrder = {
   id: string;
-  orderNumber: number;
+  orderNumber: number | string;
   tableNumber: number;
   zone: string | null;
   openedAt: string;
   closedAt: string | null;
   status: string;
   items: KdsItem[];
+  customerName?: string;
+  serviceType?: string;
+  trackingCode?: string;
 };
 
 type OrderStage = 'nuevo' | 'preparando' | 'listo' | 'entregado';
@@ -93,7 +96,7 @@ export function KdsBoard({
   restaurantId: string;
   userRole?: string;
 }) {
-  const isCook = userRole === 'kitchen';
+  const isCook = ['kitchen', 'owner', 'admin', 'host'].includes(userRole);
   const [collapseAll, setCollapseAll] = useState(false);
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
@@ -133,7 +136,14 @@ export function KdsBoard({
 
   const previousOrderIdsRef = useRef<Set<string>>(new Set());
   const previousReadyIdsRef = useRef<Set<string>>(new Set());
-  const [readyToast, setReadyToast] = useState<{ id: string; tableNumber: number; orderNumber: number; count: number } | null>(null);
+  const [readyToast, setReadyToast] = useState<{
+    id: string;
+    tableNumber: number;
+    orderNumber: number | string;
+    count: number;
+    customerName?: string;
+    serviceType?: string;
+  } | null>(null);
 
   // Ticker de tiempo cada 5 segundos
   useEffect(() => {
@@ -160,7 +170,7 @@ export function KdsBoard({
     return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
-  // Carga de Comandas (Activas y Recientes)
+  // Carga de Comandas (Activas y Recientes: Salón + Para Llevar)
   const loadKdsData = useCallback(
     async (isSilent = false) => {
       if (!isSilent) setIsRefreshing(true);
@@ -169,45 +179,73 @@ export function KdsBoard({
       today.setHours(0, 0, 0, 0);
       const startOfDay = today.toISOString();
 
-      // Consultamos órdenes de hoy (abiertas, pagadas, en_espera) con left join en tables
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          id,
-          order_number,
-          opened_at,
-          closed_at,
-          status,
-          tables (
-            table_number,
-            zone
-          ),
-          order_items (
+      // Consultamos concurrentemente órdenes de salón y pedidos para llevar de hoy
+      const [{ data, error }, { data: publicData, error: pubError }] = await Promise.all([
+        supabase
+          .from('orders')
+          .select(`
             id,
-            product_id,
-            product_name,
-            quantity,
-            notes,
+            order_number,
+            opened_at,
+            closed_at,
+            status,
+            tables (
+              table_number,
+              zone
+            ),
+            order_items (
+              id,
+              product_id,
+              product_name,
+              quantity,
+              notes,
+              status,
+              created_at,
+              station,
+              products (
+                station
+              )
+            )
+          `)
+          .eq('restaurant_id', restaurantId)
+          .in('status', ['abierta', 'pagada', 'en_espera'])
+          .gte('opened_at', startOfDay)
+          .order('opened_at', { ascending: true }),
+
+        supabase
+          .from('public_order_requests')
+          .select(`
+            id,
+            tracking_code,
+            customer_name,
+            service_type,
             status,
             created_at,
-            station,
-            products (
+            public_order_items (
+              id,
+              product_id,
+              product_name,
+              quantity,
+              notes,
+              status,
+              created_at,
               station
             )
-          )
-        `)
-        .eq('restaurant_id', restaurantId)
-        .in('status', ['abierta', 'pagada', 'en_espera'])
-        .gte('opened_at', startOfDay)
-        .order('opened_at', { ascending: true });
+          `)
+          .eq('restaurant_id', restaurantId)
+          .in('status', ['confirmado', 'preparando', 'listo', 'completado'])
+          .gte('created_at', startOfDay)
+          .order('created_at', { ascending: true }),
+      ]);
 
       if (!isSilent) setIsRefreshing(false);
 
       if (error) {
-        console.error('[KDS] Error al consultar comandas:', error);
+        console.error('[KDS] Error al consultar comandas de salón:', error);
       }
-
-      if (error || !data) return;
+      if (pubError) {
+        console.error('[KDS] Error al consultar pedidos para llevar:', pubError);
+      }
 
       type RawTable = { table_number: number; zone: string | null } | null;
       type RawItem = {
@@ -222,7 +260,7 @@ export function KdsBoard({
         products: { station: string } | Array<{ station: string }> | null;
       };
 
-      const mapped: KdsOrder[] = data.map((raw) => {
+      const mappedSalon: KdsOrder[] = (data || []).map((raw) => {
         const table = Array.isArray(raw.tables) ? raw.tables[0] : (raw.tables as RawTable);
         const rawItems = (raw.order_items || []) as unknown as RawItem[];
 
@@ -250,12 +288,56 @@ export function KdsBoard({
           openedAt: raw.opened_at,
           closedAt: raw.closed_at ?? null,
           status: raw.status,
+          serviceType: 'mesa_fija',
           items,
         };
       });
 
+      type RawPublicItem = {
+        id: string;
+        product_id: string;
+        product_name: string;
+        quantity: number;
+        notes: string | null;
+        status: string;
+        created_at: string;
+        station?: string | null;
+      };
+
+      const mappedTakeaways: KdsOrder[] = (publicData || []).map((rawPub) => {
+        const rawItems = (rawPub.public_order_items || []) as unknown as RawPublicItem[];
+        const items: KdsItem[] = rawItems.map((it) => ({
+          id: it.id,
+          productId: it.product_id,
+          productName: it.product_name,
+          quantity: it.quantity,
+          notes: it.notes,
+          status: (it.status || 'pendiente') as KdsItem['status'],
+          station: (it.station || 'cocina') as 'cocina' | 'barra',
+          statusChangedAt: it.created_at,
+        }));
+
+        return {
+          id: rawPub.id,
+          orderNumber: rawPub.tracking_code || 'LLEVAR',
+          tableNumber: 0,
+          zone: 'Para Llevar / Mostrador',
+          openedAt: rawPub.created_at,
+          closedAt: rawPub.status === 'completado' ? rawPub.created_at : null,
+          status: rawPub.status === 'completado' ? 'pagada' : 'abierta',
+          customerName: rawPub.customer_name || 'Cliente Para Llevar',
+          serviceType: rawPub.service_type || 'para_llevar',
+          trackingCode: rawPub.tracking_code,
+          items,
+        };
+      });
+
+      const allOrders: KdsOrder[] = [...mappedSalon, ...mappedTakeaways].sort(
+        (a, b) => new Date(a.openedAt).getTime() - new Date(b.openedAt).getTime()
+      );
+
       // Detección de nuevas órdenes para sonido y flash
-      const activeMapped = mapped.filter((o) => o.items.some((it) => it.status !== 'entregado'));
+      const activeMapped = allOrders.filter((o) => o.items.some((it) => it.status !== 'entregado'));
       const currentIds = new Set(activeMapped.map((o) => o.id));
 
       if (previousOrderIdsRef.current.size > 0) {
@@ -282,13 +364,15 @@ export function KdsBoard({
             tableNumber: first.tableNumber,
             orderNumber: first.orderNumber,
             count: first.items.length,
+            customerName: first.customerName,
+            serviceType: first.serviceType,
           });
           setTimeout(() => setReadyToast(null), 8000);
         }
       }
       previousReadyIdsRef.current = currentReadyIds;
 
-      setOrders(mapped);
+      setOrders(allOrders);
     },
     [restaurantId, supabase, soundEnabled]
   );
@@ -309,10 +393,23 @@ export function KdsBoard({
         { event: '*', schema: 'public', table: 'orders', filter: `restaurant_id=eq.${restaurantId}` },
         () => void loadKdsData(true)
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'public_order_requests', filter: `restaurant_id=eq.${restaurantId}` },
+        () => void loadKdsData(true)
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'public_order_items', filter: `restaurant_id=eq.${restaurantId}` },
+        () => void loadKdsData(true)
+      )
       .subscribe();
+
+    const interval = setInterval(() => void loadKdsData(true), 8000);
 
     return () => {
       window.clearTimeout(timer);
+      clearInterval(interval);
       void supabase.removeChannel(channel);
     };
   }, [restaurantId, supabase, loadKdsData]);
@@ -488,7 +585,9 @@ export function KdsBoard({
               ¡Orden Lista para Despachar!
             </h4>
             <p className="mt-0.5 text-sm font-extrabold text-[#181C20]">
-              Mesa #{readyToast.tableNumber} · Orden #{readyToast.orderNumber}
+              {readyToast.serviceType === 'para_llevar' || readyToast.tableNumber === 0
+                ? `🛍️ Para Llevar: ${readyToast.customerName || 'Cliente'} · #${readyToast.orderNumber}`
+                : `Mesa #${readyToast.tableNumber} · Orden #${readyToast.orderNumber}`}
             </p>
             <p className="text-[11px] text-[#666E7A]">
               {readyToast.count} {readyToast.count === 1 ? 'platillo preparado' : 'platillos preparados'} esperando retiro en cocina.
@@ -931,14 +1030,22 @@ export function KdsBoard({
                     <div className="flex items-start justify-between border-b border-[#EAE5DE] pb-3">
                       <div>
                         <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C95A3]">
-                          {ord.zone || 'Salón'} · {ord.status === 'pagada' ? 'Pagado' : 'Salón'}
+                          {ord.serviceType === 'para_llevar' || ord.tableNumber === 0 ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#EAA228]/15 px-2 py-0.5 text-[10px] font-black text-[#8F5E00]">
+                              🛍️ PARA LLEVAR
+                            </span>
+                          ) : (
+                            `${ord.zone || 'Salón'} · ${ord.status === 'pagada' ? 'Pagado' : 'Salón'}`
+                          )}
                         </span>
                         <h3 className="text-xl font-black text-[#181C20]">
-                          Mesa #{ord.tableNumber}
+                          {ord.serviceType === 'para_llevar' || ord.tableNumber === 0
+                            ? (ord.customerName || 'Cliente Mostrador')
+                            : `Mesa #${ord.tableNumber}`}
                         </h3>
                       </div>
                       <div className="text-right">
-                        <span className="font-mono text-2xl font-black text-[#181C20]">
+                        <span className="font-mono text-xl sm:text-2xl font-black text-[#181C20]">
                           #{ord.orderNumber}
                         </span>
                         <span className="block text-[10px] text-[#8C95A3] font-medium">
@@ -1048,7 +1155,7 @@ function KdsTicketCard({
     actionIcon = Check;
     actionBg = 'bg-[#EAA228] hover:bg-[#D99318] text-[#181C20]';
   } else if (stage === 'listo') {
-    actionLabel = 'Despachar al Mesero';
+    actionLabel = order.serviceType === 'para_llevar' || order.tableNumber === 0 ? 'Despachar al Mostrador' : 'Despachar al Mesero';
     actionIcon = CheckCheck;
     actionBg = 'bg-[#181C20] hover:bg-black text-[#EAA228]';
   }
@@ -1067,9 +1174,15 @@ function KdsTicketCard({
         <div className="flex items-start justify-between gap-3 border-b border-[#EAE5DE] pb-3">
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C95A3]">
-                {order.zone || 'Salón'}
-              </span>
+              {order.serviceType === 'para_llevar' || order.tableNumber === 0 ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#EAA228]/15 px-2.5 py-0.5 text-[10px] font-black text-[#8F5E00] border border-[#EAA228]/40">
+                  🛍️ PARA LLEVAR
+                </span>
+              ) : (
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#8C95A3]">
+                  {order.zone || 'Salón'}
+                </span>
+              )}
               {order.status === 'pagada' && (
                 <span className="rounded-full bg-[#FEF9EE] border border-[#EAA228]/40 px-2 py-0.2 text-[9px] font-bold text-[#181C20]">
                   Pre-pagado
@@ -1077,7 +1190,9 @@ function KdsTicketCard({
               )}
             </div>
             <h3 className="text-2xl font-black text-[#181C20] leading-tight mt-0.5">
-              Mesa #{order.tableNumber}
+              {order.serviceType === 'para_llevar' || order.tableNumber === 0
+                ? (order.customerName || 'Cliente Para Llevar')
+                : `Mesa #${order.tableNumber}`}
             </h3>
           </div>
 

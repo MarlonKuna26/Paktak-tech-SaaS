@@ -102,9 +102,9 @@ export class OrderController {
    */
   static async updateKdsStatus(request: Request) {
     const staff = await getCurrentStaff();
-    if (!staff || staff.role !== 'kitchen') {
+    if (!staff || !['kitchen', 'owner', 'admin', 'host'].includes(staff.role)) {
       return NextResponse.json(
-        { error: 'El administrador y otros roles solo pueden supervisar. Solo el cocinero (kitchen) puede pasar de fases en la cocina.' },
+        { error: 'No tienes permisos para cambiar estados en cocina.' },
         { status: 403 },
       );
     }
