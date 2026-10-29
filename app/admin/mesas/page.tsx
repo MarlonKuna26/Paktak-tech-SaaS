@@ -41,6 +41,8 @@ export default async function TablesAdminPage(props: {
         restaurantId={staff.restaurantId}
         staffId={staff.id}
         userRole={staff.role}
+        restaurantSlug={staff.restaurantSlug}
+        restaurantName={staff.restaurantName}
         initialTableId={searchParams.tableId}
         initialView={searchParams.view}
       />

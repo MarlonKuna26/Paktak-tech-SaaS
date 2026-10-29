@@ -2,7 +2,24 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
-import { RefreshCw, ClipboardList, Check, ArrowRight, Printer, CreditCard, DollarSign, Wallet, Search, Receipt, LayoutGrid, Utensils } from 'lucide-react';
+import {
+  RefreshCw,
+  ClipboardList,
+  Check,
+  ArrowRight,
+  Printer,
+  CreditCard,
+  DollarSign,
+  Wallet,
+  Search,
+  Receipt,
+  LayoutGrid,
+  Utensils,
+  MessageCircle,
+  Copy,
+  CheckCheck,
+  X,
+} from 'lucide-react';
 import { ThermalReceiptModal } from './thermal-receipt-modal';
 import { TableCheckoutModal, type TableOrderDetails } from '@/components/tables/table-checkout-modal';
 
@@ -65,10 +82,14 @@ const statusBadges: Record<PublicOrder['status'], { label: string; className: st
 
 export function OrderManager({
   restaurantId,
+  restaurantSlug = '',
+  restaurantName = '',
   onGoToTables,
   onGoToComandero,
 }: {
   restaurantId: string;
+  restaurantSlug?: string;
+  restaurantName?: string;
   onGoToTables?: () => void;
   onGoToComandero?: () => void;
 }) {
@@ -80,6 +101,9 @@ export function OrderManager({
   const [rejectingOrderId, setRejectingOrderId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [sharePhone, setSharePhone] = useState('');
+  const [isCopiedShareLink, setIsCopiedShareLink] = useState(false);
 
   // Modal de Cobro & Paleta (para pedidos de mostrador / delivery)
   const [payingOrder, setPayingOrder] = useState<PublicOrder | null>(null);
@@ -468,6 +492,17 @@ export function OrderManager({
             <span>Actualizar</span>
           </button>
 
+          {restaurantSlug && (
+            <button
+              type="button"
+              onClick={() => setShowShareModal(true)}
+              className="h-10 px-3.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-black transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+            >
+              <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Enviar Menú WhatsApp</span>
+            </button>
+          )}
+
           {onGoToTables && (
             <button
               type="button"
@@ -744,19 +779,39 @@ export function OrderManager({
                         className="h-11 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-4 text-xs font-black text-[#181C20] shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <Check className="w-4 h-4" />
-                        <span>Marcar como Listo</span>
+                        <span>Marcar Listo para Entrega</span>
                       </button>
                     )}
 
                     {order.status === 'listo' && (
-                      <button
-                        type="button"
-                        onClick={() => void transition(order.id, 'completado')}
-                        className="h-11 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-4 text-xs font-black text-[#181C20] shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        <Check className="w-4 h-4" />
-                        <span>Entregar al Cliente</span>
-                      </button>
+                      <>
+                        {order.customer_phone && (
+                          <a
+                            href={`https://wa.me/${order.customer_phone.replace(/\D/g, '').startsWith('0') ? '593' + order.customer_phone.replace(/\D/g, '').slice(1) : order.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent(
+                              `¡Hola ${order.customer_name}! 🍽️ Tu pedido *${order.tracking_code}* ya está *LISTO PARA RETIRAR / ENTREGAR* ${
+                                order.table_or_token_number
+                                  ? `(${order.service_type === 'paleta_madera' ? 'Paleta' : 'Mesa'} #${order.table_or_token_number})`
+                                  : ''
+                              }. ¡Te esperamos en mostrador!`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="h-11 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 text-xs font-black text-white shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            <span>Avisar por WhatsApp</span>
+                          </a>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => void transition(order.id, 'completado')}
+                          className="h-11 w-full rounded-xl bg-[#181C20] hover:bg-black px-4 text-xs font-black text-white shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <Check className="w-4 h-4 text-[#EAA228]" />
+                          <span>Entregar al Cliente</span>
+                        </button>
+                      </>
                     )}
 
                     {!isPaid && (
@@ -970,6 +1025,94 @@ export function OrderManager({
           }}
           onClose={() => setPrintingOrder(null)}
         />
+      )}
+
+      {/* Modal de Enviar Menú Digital por WhatsApp */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl border border-[#EAE5DE] bg-white p-6 sm:p-7 shadow-[0_20px_50px_rgba(24,28,32,0.15)] space-y-5">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <MessageCircle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-[#181C20]">Enviar Carta Digital</h3>
+                  <p className="text-xs text-[#666E7A]">Comparte el link para que el cliente ordene por WhatsApp</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowShareModal(false)}
+                className="rounded-xl p-1.5 text-[#8C95A3] hover:bg-[#FAF7F2] transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-black uppercase tracking-wider text-[#181C20] mb-1.5">
+                  Número de WhatsApp del cliente
+                </label>
+                <input
+                  type="tel"
+                  placeholder="Ej. 0991234567 o 593991234567"
+                  value={sharePhone}
+                  onChange={(e) => setSharePhone(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/40 px-3.5 text-sm font-semibold text-[#181C20] outline-none focus:ring-2 focus:ring-[#EAA228]"
+                />
+              </div>
+
+              <div className="rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-4 text-xs space-y-2">
+                <span className="font-bold text-[#8C95A3] uppercase text-[10px] tracking-wider">
+                  Mensaje que recibirá el cliente:
+                </span>
+                <p className="text-[#181C20] font-medium leading-relaxed italic">
+                  &ldquo;¡Hola! Te comparto la carta digital de <strong>{restaurantName || 'nuestro restaurante'}</strong> para que elijas tus platos directamente: <br />
+                  <span className="text-[#EAA228] font-bold not-italic underline break-all">
+                    {typeof window !== 'undefined' ? `${window.location.origin}/${restaurantSlug}/pedir` : `/${restaurantSlug}/pedir`}
+                  </span>
+                  <br />Elige lo que desees y prepararemos tu pedido al instante.&rdquo;
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const clean = sharePhone.replace(/\D/g, '');
+                    const fullPhone = clean.startsWith('0') ? `593${clean.slice(1)}` : clean;
+                    const url = typeof window !== 'undefined' ? `${window.location.origin}/${restaurantSlug}/pedir` : `/${restaurantSlug}/pedir`;
+                    const msg = `¡Hola! Te comparto la carta digital de ${restaurantName || 'nuestro restaurante'} para que hagas tu pedido: ${url}\n\nElige tus platos y te los preparamos al instante.`;
+                    const waUrl = fullPhone
+                      ? `https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`
+                      : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                    window.open(waUrl, '_blank');
+                  }}
+                  className="h-11 flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-black text-white uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Abrir WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = typeof window !== 'undefined' ? `${window.location.origin}/${restaurantSlug}/pedir` : `/${restaurantSlug}/pedir`;
+                    void navigator.clipboard.writeText(url);
+                    setIsCopiedShareLink(true);
+                    setTimeout(() => setIsCopiedShareLink(false), 2000);
+                  }}
+                  className="h-11 px-4 rounded-xl border border-[#EAE5DE] bg-[#FAF7F2] hover:bg-[#EAE5DE] text-xs font-bold text-[#181C20] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  {isCopiedShareLink ? <CheckCheck className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                  <span>{isCopiedShareLink ? 'Copiado' : 'Copiar Link'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Modal de Cobro de Mesa para el Cajero */}

@@ -18,6 +18,10 @@ import {
   EyeOff,
   Image as ImageIcon,
   Sparkles,
+  MessageCircle,
+  Copy,
+  CheckCheck,
+  ExternalLink,
 } from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
@@ -166,12 +170,21 @@ function DishPhotoPicker({
   );
 }
 
-export function MenuManager({ restaurantId }: { restaurantId: string }) {
+export function MenuManager({
+  restaurantId,
+  restaurantSlug = '',
+  restaurantName = '',
+}: {
+  restaurantId: string;
+  restaurantSlug?: string;
+  restaurantName?: string;
+}) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [products, setProducts] = useState<MenuProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCopiedLink, setIsCopiedLink] = useState(false);
 
   // Filtros
   const [selectedCategory, setSelectedCategory] = useState<string>('todas');
@@ -585,6 +598,73 @@ export function MenuManager({ restaurantId }: { restaurantId: string }) {
             <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
           )}
           <span>{feedback.text}</span>
+        </div>
+      )}
+
+      {/* Banner de Enlace WhatsApp para Clientes */}
+      {restaurantSlug && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-xs">
+              <MessageCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-emerald-800">
+                  Carta Digital para Clientes (WhatsApp)
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Sincronización en Vivo
+                </span>
+              </div>
+              <p className="text-xs text-emerald-950/85 font-medium mt-0.5">
+                Los platos y precios que edites abajo se actualizan en tiempo real en la carta digital:
+              </p>
+              <p className="text-xs font-bold text-emerald-900 mt-1 select-all break-all">
+                {typeof window !== 'undefined' ? `${window.location.origin}/${restaurantSlug}/pedir` : `/${restaurantSlug}/pedir`}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <button
+              type="button"
+              onClick={() => {
+                const url = typeof window !== 'undefined' ? `${window.location.origin}/${restaurantSlug}/pedir` : `/${restaurantSlug}/pedir`;
+                void navigator.clipboard.writeText(url);
+                setIsCopiedLink(true);
+                setTimeout(() => setIsCopiedLink(false), 2000);
+              }}
+              className="h-9 px-3 rounded-xl border border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-900 text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+            >
+              {isCopiedLink ? <CheckCheck className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{isCopiedLink ? 'Copiado' : 'Copiar Link'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const url = typeof window !== 'undefined' ? `${window.location.origin}/${restaurantSlug}/pedir` : `/${restaurantSlug}/pedir`;
+                const msg = `¡Hola! Te comparto la carta digital de ${restaurantName || 'nuestro restaurante'} para que hagas tu pedido: ${url}\n\nElige tus platos y te los preparamos de inmediato.`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+              }}
+              className="h-9 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span>Enviar WhatsApp</span>
+            </button>
+
+            <a
+              href={`/${restaurantSlug}/pedir`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-9 px-3 rounded-xl border border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-900 text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Ver como Cliente</span>
+            </a>
+          </div>
         </div>
       )}
 

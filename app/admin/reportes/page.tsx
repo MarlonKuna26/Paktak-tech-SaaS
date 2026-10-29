@@ -1,5 +1,5 @@
 import { getCurrentStaff } from '@/lib/auth/get-current-staff';
-import { DailyReportView } from '@/components/reports/daily-report-view';
+import { ReportTabsView } from '@/components/reports/report-tabs-view';
 
 export const metadata = {
   title: 'Reportes y Cierre de Ventas | Paktak Tech',
@@ -26,12 +26,11 @@ export default async function ReportesPage() {
           Cierre de Caja & Reportes
         </h1>
         <p className="text-xs text-[#666E7A] max-w-xl">
-          Visualiza ingresos reales, cruza costos de materia prima vs margen neto, y analiza qué mesero o canal generó cada venta.
+          Control diario de turnos de cajeras, arqueo de gaveta con cálculo de sobrante/faltante, y reportes financieros con márgenes de ganancia.
         </p>
       </div>
 
-
-      <DailyReportView restaurantName={staff.restaurantName} />
+      <ReportTabsView staff={staff} />
     </div>
   );
 }

@@ -20,12 +20,17 @@ import {
   ConciergeBell,
   ClipboardList,
   Lock,
+  Wallet,
+  MessageCircle,
+  Copy,
+  CheckCheck,
 } from 'lucide-react';
 import type { RestaurantTable, TableStatus, AvailableReservation } from '@/lib/tables/types';
 import type { StaffRole } from '@/lib/auth/get-current-staff';
 import { TableCheckoutModal, type TableOrderDetails } from './table-checkout-modal';
 import { WaiterManager } from '@/components/waiter/waiter-manager';
 import { OrderManager } from '@/components/orders/order-manager';
+import { CashShiftManager } from '@/components/shifts/cash-shift-manager';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 
 function playWaiterAlertChime() {
@@ -88,26 +93,35 @@ export function TableManager({
   restaurantId,
   staffId = '',
   userRole,
+  restaurantSlug = '',
+  restaurantName = '',
   initialTableId,
   initialView = 'tables',
 }: {
   restaurantId: string;
   staffId?: string;
   userRole: StaffRole;
+  restaurantSlug?: string;
+  restaurantName?: string;
   initialTableId?: string;
-  initialView?: 'tables' | 'comandero' | 'pedidos';
+  initialView?: 'tables' | 'comandero' | 'pedidos' | 'caja';
 }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
-  // Vista unificada: Plano de Mesas vs Comandero vs Pedidos
-  const [activeTab, setActiveTab] = useState<'tables' | 'comandero' | 'pedidos'>(
-    initialView === 'pedidos'
+  // Vista unificada: Plano de Mesas vs Comandero vs Pedidos vs Turnos de Caja
+  const [activeTab, setActiveTab] = useState<'tables' | 'comandero' | 'pedidos' | 'caja'>(
+    initialView === 'caja'
+      ? 'caja'
+      : initialView === 'pedidos'
       ? 'pedidos'
       : initialView === 'comandero' || !!initialTableId
       ? 'comandero'
       : 'tables'
   );
   const [comanderoTableId, setComanderoTableId] = useState<string | undefined>(initialTableId);
+  const [showShareMenuModal, setShowShareMenuModal] = useState(false);
+  const [whatsappPhoneInput, setWhatsappPhoneInput] = useState('');
+  const [isCopiedMenuLink, setIsCopiedMenuLink] = useState(false);
 
   const openComanderoForTable = (tableId: string) => {
     setComanderoTableId(tableId);
@@ -700,23 +714,53 @@ export function TableManager({
               <ClipboardList className="w-4 h-4 text-[#181C20]" />
               <span>3. Caja, Pedidos & Cobros</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('caja')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'caja'
+                  ? 'bg-[#EAA228] text-[#181C20] shadow-xs'
+                  : 'text-[#666E7A] hover:text-[#181C20]'
+              }`}
+            >
+              <Wallet className="w-4 h-4 text-[#181C20]" />
+              <span>4. Turnos & Arqueo de Caja</span>
+            </button>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-[#666E7A] px-2">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-            <span className="text-[11px] font-bold">
-              {activeTab === 'tables' && 'Plano de ocupación en vivo y cobro de cuentas'}
-              {activeTab === 'comandero' && 'Toma rápida de órdenes en mesa y mostrador'}
-              {activeTab === 'pedidos' && 'Cola de cobro, arqueo diario en vivo e impresión'}
-            </span>
+          <div className="flex items-center gap-2.5">
+            {restaurantSlug && (
+              <button
+                type="button"
+                onClick={() => setShowShareMenuModal(true)}
+                className="h-9 px-3 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-black transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Enviar Carta WhatsApp</span>
+              </button>
+            )}
+
+            <div className="hidden sm:flex items-center gap-2 text-xs text-[#666E7A] px-2">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              <span className="text-[11px] font-bold">
+                {activeTab === 'tables' && 'Plano de ocupación en vivo y cobro de cuentas'}
+                {activeTab === 'comandero' && 'Toma rápida de órdenes en mesa y mostrador'}
+                {activeTab === 'pedidos' && 'Cola de cobro, arqueo diario en vivo e impresión'}
+                {activeTab === 'caja' && 'Apertura de turno, fondo inicial y arqueo de gaveta'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {activeTab === 'comandero' ? (
+      {activeTab === 'caja' ? (
+        <div className="space-y-4">
+          <CashShiftManager restaurantId={restaurantId} userRole={userRole} />
+        </div>
+      ) : activeTab === 'comandero' ? (
         <div className="space-y-4">
           <WaiterManager
             restaurantId={restaurantId}
@@ -735,6 +779,8 @@ export function TableManager({
         <div className="space-y-4">
           <OrderManager
             restaurantId={restaurantId}
+            restaurantSlug={restaurantSlug}
+            restaurantName={restaurantName}
             onGoToTables={() => {
               setActiveTab('tables');
               void loadTables(true);
@@ -1549,6 +1595,94 @@ export function TableManager({
             void loadTables(true);
           }}
         />
+      )}
+
+      {/* Modal de Compartir Carta Digital por WhatsApp */}
+      {showShareMenuModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl border border-[#EAE5DE] bg-white p-6 sm:p-7 shadow-[0_20px_50px_rgba(24,28,32,0.15)] space-y-5">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <MessageCircle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-[#181C20]">Enviar Carta Digital</h3>
+                  <p className="text-xs text-[#666E7A]">Comparte el link para que el cliente ordene por WhatsApp</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowShareMenuModal(false)}
+                className="rounded-xl p-1.5 text-[#8C95A3] hover:bg-[#FAF7F2] transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-black uppercase tracking-wider text-[#181C20] mb-1.5">
+                  Número de WhatsApp del cliente
+                </label>
+                <input
+                  type="tel"
+                  placeholder="Ej. 0991234567 o 593991234567"
+                  value={whatsappPhoneInput}
+                  onChange={(e) => setWhatsappPhoneInput(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/40 px-3.5 text-sm font-semibold text-[#181C20] outline-none focus:ring-2 focus:ring-[#EAA228]"
+                />
+              </div>
+
+              <div className="rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-4 text-xs space-y-2">
+                <span className="font-bold text-[#8C95A3] uppercase text-[10px] tracking-wider">
+                  Mensaje que recibirá el cliente:
+                </span>
+                <p className="text-[#181C20] font-medium leading-relaxed italic">
+                  &ldquo;¡Hola! Te comparto la carta digital de <strong>{restaurantName || 'nuestro restaurante'}</strong> para que elijas tus platos directamente: <br />
+                  <span className="text-[#EAA228] font-bold not-italic underline break-all">
+                    {typeof window !== 'undefined' ? `${window.location.origin}/${restaurantSlug}/pedir` : `/${restaurantSlug}/pedir`}
+                  </span>
+                  <br />Elige lo que desees y prepararemos tu pedido al instante.&rdquo;
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const clean = whatsappPhoneInput.replace(/\D/g, '');
+                    const fullPhone = clean.startsWith('0') ? `593${clean.slice(1)}` : clean;
+                    const url = typeof window !== 'undefined' ? `${window.location.origin}/${restaurantSlug}/pedir` : `/${restaurantSlug}/pedir`;
+                    const msg = `¡Hola! Te comparto la carta digital de ${restaurantName || 'nuestro restaurante'} para que hagas tu pedido: ${url}\n\nElige tus platos y te los preparamos al instante.`;
+                    const waUrl = fullPhone
+                      ? `https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`
+                      : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                    window.open(waUrl, '_blank');
+                  }}
+                  className="h-11 flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-black text-white uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Abrir WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = typeof window !== 'undefined' ? `${window.location.origin}/${restaurantSlug}/pedir` : `/${restaurantSlug}/pedir`;
+                    void navigator.clipboard.writeText(url);
+                    setIsCopiedMenuLink(true);
+                    setTimeout(() => setIsCopiedMenuLink(false), 2000);
+                  }}
+                  className="h-11 px-4 rounded-xl border border-[#EAE5DE] bg-[#FAF7F2] hover:bg-[#EAE5DE] text-xs font-bold text-[#181C20] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  {isCopiedMenuLink ? <CheckCheck className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                  <span>{isCopiedMenuLink ? 'Copiado' : 'Copiar Link'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Modal de Confirmación Genérico Suave (sin alert de navegador) */}

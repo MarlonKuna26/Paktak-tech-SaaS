@@ -423,6 +423,25 @@ export function OrderTracker({
             </div>
           )}
 
+          {/* Banner de Aviso Especial cuando el Pedido está LISTO */}
+          {order.status === 'listo' && (
+            <div className="rounded-2xl border-2 border-emerald-500 bg-emerald-50/90 p-5 text-center space-y-2 shadow-[0_8px_30px_rgba(16,185,129,0.15)] animate-in fade-in zoom-in-95 duration-300">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-sm mx-auto">
+                <UtensilsCrossed className="h-6 w-6 animate-pulse" />
+              </div>
+              <h3 className="text-xl font-black text-emerald-950">¡Tu pedido está LISTO para servir / retirar!</h3>
+              <p className="text-xs font-semibold text-emerald-800 max-w-md mx-auto">
+                {order.service_type === 'para_llevar'
+                  ? `Acércate al mostrador de entrega con tu código #${order.tracking_code} ${
+                      order.table_or_token_number ? `(Ficha #${order.table_or_token_number})` : ''
+                    }.`
+                  : `El personal del restaurante ya tiene preparado tu pedido para servir en tu ${
+                      order.service_type === 'paleta_madera' ? 'paleta' : 'mesa'
+                    } #${order.table_or_token_number || ''}.`}
+              </p>
+            </div>
+          )}
+
           {/* Si fue rechazado */}
           {order.status === 'rechazado' && (
             <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-700 font-bold">

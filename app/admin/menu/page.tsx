@@ -30,8 +30,11 @@ export default async function MenuPage() {
         </p>
       </div>
 
-
-      <MenuManager restaurantId={staff.restaurantId} />
+      <MenuManager
+        restaurantId={staff.restaurantId}
+        restaurantSlug={staff.restaurantSlug}
+        restaurantName={staff.restaurantName}
+      />
     </div>
   );
 }
