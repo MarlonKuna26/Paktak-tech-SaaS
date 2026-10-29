@@ -5,7 +5,6 @@ import {
   Wifi,
   WifiOff,
   Clock,
-  Zap,
   RefreshCw,
   Printer,
   Search,
@@ -103,7 +102,6 @@ export function WaiterManager({
   const [viewMode, setViewMode] = useState<'grid' | 'compact'>('grid');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
-  const [batterySaver, setBatterySaver] = useState(false);
   const [printingOrder, setPrintingOrder] = useState<LocalOrder | null>(null);
 
   // Estado para cobro de mesa (Fase 8 & Flujo Mesero)
@@ -491,7 +489,7 @@ export function WaiterManager({
   }, [products, searchQuery, categoryFilter]);
 
   return (
-    <div className={`space-y-6 ${batterySaver ? 'bg-black text-white p-4 rounded-[24px]' : ''}`}>
+    <div className="space-y-6">
       {/* Barra de Estado de Conexión y Opciones */}
       <div className="flex flex-col gap-3 rounded-[24px] border border-[#E8E8E8] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -544,19 +542,6 @@ export function WaiterManager({
               <span>Caja & Cobros</span>
             </button>
           )}
-
-          <button
-            type="button"
-            onClick={() => setBatterySaver(!batterySaver)}
-            className={`h-10 px-4 rounded-full border text-xs font-bold transition-colors flex items-center gap-1.5 ${
-              batterySaver
-                ? 'border-[#1A1A1A] bg-[#1A1A1A] text-white'
-                : 'border-[#E8E8E8] bg-white text-[#1A1A1A] hover:bg-[#F7F7F7]'
-            }`}
-          >
-            <Zap className="h-3.5 w-3.5" />
-            <span>{batterySaver ? 'Ahorro activo' : 'Modo ahorro'}</span>
-          </button>
 
           <button
             type="button"
