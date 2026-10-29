@@ -34,6 +34,7 @@ import { WaiterManager } from '@/components/waiter/waiter-manager';
 import { OrderManager } from '@/components/orders/order-manager';
 import { CashShiftManager } from '@/components/shifts/cash-shift-manager';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 function playWaiterAlertChime() {
   try {
@@ -887,18 +888,6 @@ export function TableManager({
               <p className="mt-0.5 text-xs text-[#8C95A3]">asientos en el local</p>
             </div>
           </div>
-
-          {/* Avisos */}
-          {error && (
-            <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs font-bold text-red-700">
-              {error}
-            </div>
-          )}
-          {successMsg && (
-            <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-bold text-emerald-800">
-              {successMsg}
-            </div>
-          )}
 
           {/* Sección de Pedidos Para Llevar / Mostrador */}
           <div className="rounded-2xl border border-[#EAE5DE] bg-white p-4 shadow-xs space-y-3">
@@ -1971,6 +1960,31 @@ export function TableManager({
           onClose={() => setConfirmModalData(null)}
         />
       )}
+
+      {/* Modal de Alerta y Mensajes Centrales (en lugar de avisos arriba de la página) */}
+      <AlertModal
+        isOpen={Boolean(error)}
+        title="Acción Requerida"
+        message={error}
+        variant="error"
+        onClose={() => setError('')}
+        actionButton={
+          error.includes('cobra la cuenta') || error.includes('comanda #')
+            ? {
+                label: 'Ir a Cobros & Pedidos',
+                onClick: () => setActiveTab('pedidos'),
+              }
+            : undefined
+        }
+      />
+
+      <AlertModal
+        isOpen={Boolean(successMsg)}
+        title="¡Listo!"
+        message={successMsg}
+        variant="success"
+        onClose={() => setSuccessMsg('')}
+      />
     </div>
   );
 }

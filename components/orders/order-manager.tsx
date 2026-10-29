@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { ThermalReceiptModal } from './thermal-receipt-modal';
 import { TableCheckoutModal, type TableOrderDetails } from '@/components/tables/table-checkout-modal';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 type PublicOrder = {
   id: string;
@@ -576,12 +577,6 @@ export function OrderManager({
         </div>
       )}
 
-      {error && (
-        <div role="alert" className="rounded-2xl bg-red-50 border border-red-200 p-4 text-xs font-bold text-red-700 shadow-xs">
-          {error}
-        </div>
-      )}
-
       {/* 2. Lista de Pedidos en Tarjetas Respiradas y Sin Bordes Duros */}
       <div className="space-y-4">
         {filteredOrders.length === 0 ? (
@@ -1131,6 +1126,15 @@ export function OrderManager({
           }}
         />
       )}
+
+      {/* Modal de Alerta y Mensajes */}
+      <AlertModal
+        isOpen={Boolean(error)}
+        title="Acción Requerida"
+        message={error}
+        variant="error"
+        onClose={() => setError('')}
+      />
     </div>
   );
 }

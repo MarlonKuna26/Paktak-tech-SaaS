@@ -27,6 +27,7 @@ import { syncEngine } from '@/lib/offline/sync-engine';
 import { getProductImageUrl } from '@/lib/orders/product-images';
 import { ThermalReceiptModal } from '@/components/orders/thermal-receipt-modal';
 import { TableCheckoutModal, type TableOrderDetails } from '@/components/tables/table-checkout-modal';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 function playWaiterChime() {
   try {
@@ -601,16 +602,12 @@ export function WaiterManager({
         </div>
       )}
 
-      {feedback && (
+      {feedback && feedback.ok && (
         <div
-          role={feedback.ok ? 'status' : 'alert'}
-          className={`flex items-start gap-3 rounded-2xl border p-4 text-sm font-medium ${
-            feedback.ok
-              ? 'border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D]'
-              : 'border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]'
-          }`}
+          role="status"
+          className="flex items-start gap-3 rounded-2xl border p-4 text-sm font-medium border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D]"
         >
-          {feedback.ok ? <Check className="h-5 w-5 shrink-0" /> : <AlertCircle className="h-5 w-5 shrink-0" />}
+          <Check className="h-5 w-5 shrink-0" />
           <p>{feedback.text}</p>
         </div>
       )}
@@ -1213,6 +1210,17 @@ export function WaiterManager({
             </div>
           </button>
         </div>
+      )}
+
+      {/* Modal de Alerta para Mensajes y Errores */}
+      {feedback && !feedback.ok && (
+        <AlertModal
+          isOpen={true}
+          title="Aviso del Comandero"
+          message={feedback.text}
+          variant="warning"
+          onClose={() => setFeedback(null)}
+        />
       )}
     </div>
   );
