@@ -1120,6 +1120,10 @@ export function OrderManager({
         <TableCheckoutModal
           order={checkoutTableOrder}
           onClose={() => setCheckoutTableOrder(null)}
+          onAddMoreDishes={onGoToComandero ? () => {
+            setCheckoutTableOrder(null);
+            onGoToComandero();
+          } : undefined}
           onSuccess={() => {
             const tableNum = checkoutTableOrder.tableNumber;
             setCheckoutTableOrder(null);

@@ -76,3 +76,4 @@ test('Unit Tests: Cash Shifts & Drawer Balance Math', async (t) => {
     assert.equal(result.withdrawnCents, 19000); // Se retiran $190.00
   });
 });
+

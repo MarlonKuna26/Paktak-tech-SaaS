@@ -1,7 +1,19 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { X, Banknote, Smartphone, CreditCard, Plus, Minus, Lock, Check } from 'lucide-react';
+import {
+  X,
+  Banknote,
+  Smartphone,
+  CreditCard,
+  Plus,
+  Minus,
+  Lock,
+  Check,
+  Trash2,
+  AlertTriangle,
+  Utensils,
+} from 'lucide-react';
 import { ThermalReceiptModal } from '@/components/orders/thermal-receipt-modal';
 
 type OrderItem = {
@@ -26,13 +38,16 @@ export function TableCheckoutModal({
   order,
   onClose,
   onSuccess,
+  onAddMoreDishes,
   initialKeepTableOccupied = false,
 }: {
   order: TableOrderDetails;
   onClose: () => void;
   onSuccess: () => void;
+  onAddMoreDishes?: () => void;
   initialKeepTableOccupied?: boolean;
 }) {
+  const [currentItems, setCurrentItems] = useState<OrderItem[]>(order.items);
   const [tipPercent, setTipPercent] = useState<number | 'custom'>(10);
   const [customTipDollars, setCustomTipDollars] = useState('');
   const [splitPersons, setSplitPersons] = useState<number>(1);
@@ -43,6 +58,11 @@ export function TableCheckoutModal({
     isFoodNotServed ? true : initialKeepTableOccupied,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Estado para anulación de platos que no se van a servir
+  const [itemBeingRemoved, setItemBeingRemoved] = useState<OrderItem | null>(null);
+  const [isRemovingItem, setIsRemovingItem] = useState(false);
+  const [removeNotice, setRemoveNotice] = useState('');
 
   const [error, setError] = useState('');
   const [completedReceiptData, setCompletedReceiptData] = useState<{
@@ -57,16 +77,21 @@ export function TableCheckoutModal({
     tipCents?: number;
   } | null>(null);
 
+  // Subtotal recalculado en vivo según los platos vigentes
+  const currentSubtotalCents = useMemo(() => {
+    return currentItems.reduce((acc, it) => acc + it.unitPriceCents * it.quantity, 0);
+  }, [currentItems]);
+
   // Cálculo de propina en centavos
   const tipCents = useMemo(() => {
     if (tipPercent === 'custom') {
       const parsed = parseFloat(customTipDollars.replace(',', '.'));
       return isNaN(parsed) || parsed < 0 ? 0 : Math.round(parsed * 100);
     }
-    return Math.round((order.subtotalCents * tipPercent) / 100);
-  }, [order.subtotalCents, tipPercent, customTipDollars]);
+    return Math.round((currentSubtotalCents * tipPercent) / 100);
+  }, [currentSubtotalCents, tipPercent, customTipDollars]);
 
-  const totalCents = order.subtotalCents + tipCents;
+  const totalCents = currentSubtotalCents + tipCents;
 
   // División de cuenta
   const perPersonCents = Math.ceil(totalCents / Math.max(1, splitPersons));
@@ -78,6 +103,34 @@ export function TableCheckoutModal({
   }, [cashGivenDollars]);
 
   const changeCents = Math.max(0, cashGivenCents - totalCents);
+
+  // Anular o retirar plato que no se va a servir
+  const handleConfirmRemoveItem = async () => {
+    if (!itemBeingRemoved) return;
+    setIsRemovingItem(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/orders/${order.orderId}/items/${itemBeingRemoved.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'No se pudo anular el plato.');
+        setIsRemovingItem(false);
+        setItemBeingRemoved(null);
+        return;
+      }
+
+      setCurrentItems((prev) => prev.filter((it) => it.id !== itemBeingRemoved.id));
+      setRemoveNotice(`Se anuló "${itemBeingRemoved.productName}" porque no se va a servir.`);
+      setTimeout(() => setRemoveNotice(''), 5000);
+      setItemBeingRemoved(null);
+    } catch {
+      setError('Error al comunicar la anulación del plato.');
+    } finally {
+      setIsRemovingItem(false);
+    }
+  };
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +167,7 @@ export function TableCheckoutModal({
         orderNumber: `#${order.orderNumber}`,
         tableOrToken: `Mesa #${order.tableNumber}`,
         dateTime: new Date().toISOString(),
-        items: order.items.map((it) => ({
+        items: currentItems.map((it) => ({
           name: it.productName,
           quantity: it.quantity,
           priceCents: it.unitPriceCents,
@@ -148,7 +201,6 @@ export function TableCheckoutModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-
       <div className="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-[28px] border border-[#EAE5DE] bg-white shadow-2xl animate-in zoom-in-95 duration-200 font-sans">
         {/* Encabezado */}
         <div className="flex items-center justify-between border-b border-[#EAE5DE] px-6 py-5">
@@ -180,33 +232,116 @@ export function TableCheckoutModal({
             </div>
           )}
 
+          {removeNotice && (
+            <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-3.5 text-xs font-bold text-emerald-800 flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{removeNotice}</span>
+            </div>
+          )}
+
           {/* Desglose de Consumo */}
           <div className="rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-4 space-y-2">
-            <p className="text-[11px] font-black uppercase tracking-wider text-[#666E7A]">
-              Consumo de la mesa
-            </p>
-            <div className="max-h-36 overflow-y-auto divide-y divide-[#EAE5DE] text-xs">
-              {order.items.map((it) => (
-                <div key={it.id} className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-2 min-w-0 pr-2">
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[#EAA228]/20 text-[#181C20] font-black text-[11px]">
-                      {it.quantity}×
-                    </span>
-                    <span className="text-[#181C20] font-bold truncate">
-                      {it.productName}
-                    </span>
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-black uppercase tracking-wider text-[#666E7A]">
+                Consumo de la mesa
+              </p>
+              {onAddMoreDishes && (
+                <button
+                  type="button"
+                  onClick={onAddMoreDishes}
+                  className="text-xs font-black text-[#EAA228] hover:text-[#D99318] flex items-center gap-1 cursor-pointer transition-colors"
+                  title="El cliente desea pedir más platos antes de cerrar la cuenta"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Agregar más platos</span>
+                </button>
+              )}
+            </div>
+
+            {/* Aviso de confirmación de anulación */}
+            {itemBeingRemoved && (
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs space-y-2 animate-in fade-in">
+                <div className="flex items-start gap-2 text-rose-800">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+                  <div>
+                    <p className="font-bold">¿Confirmas que este plato no se va a servir?</p>
+                    <p className="text-[11px] text-rose-700/80">
+                      Se anulará <strong>{itemBeingRemoved.quantity}× {itemBeingRemoved.productName}</strong> y se restará de la cuenta.
+                    </p>
                   </div>
-                  <span className="font-mono font-black text-[#181C20] shrink-0">
-                    ${((it.unitPriceCents * it.quantity) / 100).toFixed(2)}
-                  </span>
                 </div>
-              ))}
+                <div className="flex items-center gap-2 justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setItemBeingRemoved(null)}
+                    disabled={isRemovingItem}
+                    className="px-2.5 py-1 rounded-lg border border-[#EAE5DE] bg-white text-xs font-bold text-[#181C20] hover:bg-[#FAF7F2] cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmRemoveItem}
+                    disabled={isRemovingItem}
+                    className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white cursor-pointer shadow-2xs"
+                  >
+                    {isRemovingItem ? 'Anulando...' : 'Sí, anular (no servir)'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="max-h-40 overflow-y-auto divide-y divide-[#EAE5DE] text-xs">
+              {currentItems.length === 0 ? (
+                <p className="py-3 text-center text-xs text-[#8C95A3] italic">
+                  Todos los platos fueron anulados.
+                </p>
+              ) : (
+                currentItems.map((it) => (
+                  <div key={it.id} className="flex items-center justify-between py-2 group">
+                    <div className="flex items-center gap-2 min-w-0 pr-2">
+                      <span className="flex h-5 min-w-5 items-center justify-center rounded-md bg-[#EAA228]/20 text-[#181C20] font-black text-[11px]">
+                        {it.quantity}×
+                      </span>
+                      <span className="text-[#181C20] font-bold truncate">
+                        {it.productName}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <span className="font-mono font-black text-[#181C20]">
+                        ${((it.unitPriceCents * it.quantity) / 100).toFixed(2)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setItemBeingRemoved(it)}
+                        className="text-[#8C95A3] hover:text-rose-600 hover:bg-rose-50 p-1 rounded-md transition-colors cursor-pointer"
+                        title="No se va a servir / Anular plato de la cuenta"
+                        aria-label={`Anular plato ${it.productName}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
             <div className="border-t border-[#EAE5DE] pt-2.5 flex justify-between text-xs font-black">
               <span className="text-[#666E7A]">Subtotal consumo:</span>
-              <span className="font-mono text-[#181C20]">${(order.subtotalCents / 100).toFixed(2)}</span>
+              <span className="font-mono text-[#181C20]">${(currentSubtotalCents / 100).toFixed(2)}</span>
             </div>
           </div>
+
+          {/* Botón rápido si el cliente desea ordenar más */}
+          {onAddMoreDishes && (
+            <button
+              type="button"
+              onClick={onAddMoreDishes}
+              className="h-10 w-full rounded-xl border border-[#EAE5DE] bg-[#FAF7F2] hover:bg-[#EAE5DE] text-xs font-black text-[#181C20] uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+            >
+              <Utensils className="w-3.5 h-3.5 text-[#EAA228]" />
+              <span>Cliente pide más platos (Volver al comandero)</span>
+            </button>
+          )}
 
           {/* Propina */}
           <div className="space-y-2">
@@ -394,16 +529,18 @@ export function TableCheckoutModal({
           <div className="pt-1">
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || currentItems.length === 0}
               className="h-12 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-xs font-black uppercase tracking-wider text-[#181C20] transition-all shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
             >
               <Check className="h-4 w-4 stroke-[3]" />
               <span>
                 {isSubmitting
                   ? 'Registrando cobro...'
-                  : isFoodNotServed || keepTableOccupied
-                    ? `Cobrar $${(totalCents / 100).toFixed(2)} (Mesa Ocupada)`
-                    : `Cobrar $${(totalCents / 100).toFixed(2)} y Liberar Mesa`}
+                  : currentItems.length === 0
+                    ? 'Comanda sin platos'
+                    : isFoodNotServed || keepTableOccupied
+                      ? `Cobrar $${(totalCents / 100).toFixed(2)} (Mesa Ocupada)`
+                      : `Cobrar $${(totalCents / 100).toFixed(2)} y Liberar Mesa`}
               </span>
             </button>
           </div>
@@ -412,6 +549,3 @@ export function TableCheckoutModal({
     </div>
   );
 }
-
-
-

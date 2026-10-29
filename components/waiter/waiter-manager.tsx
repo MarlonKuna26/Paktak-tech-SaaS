@@ -1168,6 +1168,13 @@ export function WaiterManager({
           order={checkoutOrder}
           initialKeepTableOccupied={true}
           onClose={() => setCheckoutOrder(null)}
+          onAddMoreDishes={() => {
+            const table = tables.find((t) => t.tableNumber === checkoutOrder.tableNumber);
+            setCheckoutOrder(null);
+            if (table) {
+              setSelectedTable(table);
+            }
+          }}
           onSuccess={() => {
             const tableNum = checkoutOrder.tableNumber;
             setCheckoutOrder(null);

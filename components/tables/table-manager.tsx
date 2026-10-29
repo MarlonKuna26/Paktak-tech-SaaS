@@ -24,10 +24,12 @@ import {
   MessageCircle,
   Copy,
   CheckCheck,
+  ShoppingBag,
 } from 'lucide-react';
 import type { RestaurantTable, TableStatus, AvailableReservation } from '@/lib/tables/types';
 import type { StaffRole } from '@/lib/auth/get-current-staff';
 import { TableCheckoutModal, type TableOrderDetails } from './table-checkout-modal';
+import { TakeawayOrderModal } from '@/components/orders/takeaway-order-modal';
 import { WaiterManager } from '@/components/waiter/waiter-manager';
 import { OrderManager } from '@/components/orders/order-manager';
 import { CashShiftManager } from '@/components/shifts/cash-shift-manager';
@@ -170,6 +172,10 @@ export function TableManager({
     Array<{ id: string; productName: string; quantity: number; time: string }>
   >([]);
 
+  // Estados para Pedidos Para Llevar (Mostrador)
+  const [showTakeawayModal, setShowTakeawayModal] = useState(false);
+  const [takeawayOrders, setTakeawayOrders] = useState<any[]>([]);
+
   // Modal de confirmación suave (sin alert de navegador)
   const [confirmModalData, setConfirmModalData] = useState<{
     isOpen: boolean;
@@ -210,11 +216,45 @@ export function TableManager({
     }
   }, []);
 
+  const loadTakeawayOrders = useCallback(async () => {
+    try {
+      const { data } = await supabase
+        .from('public_order_requests')
+        .select(`
+          id,
+          tracking_code,
+          customer_name,
+          customer_phone,
+          notes,
+          total_cents,
+          status,
+          service_type,
+          payment_status,
+          payment_method,
+          created_at,
+          public_order_items (
+            product_name,
+            quantity,
+            unit_price_cents
+          )
+        `)
+        .eq('restaurant_id', restaurantId)
+        .eq('service_type', 'para_llevar')
+        .not('status', 'in', '("completado","rechazado","cancelado")')
+        .order('created_at', { ascending: false });
+
+      setTakeawayOrders(data || []);
+    } catch {
+      // Ignorar
+    }
+  }, [restaurantId, supabase]);
+
   // Carga inicial y subscripción a Realtime
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void loadTables();
       void loadUnassignedReservations();
+      void loadTakeawayOrders();
     }, 0);
 
     // 1. Canal Supabase Realtime para cambios instantáneos de mesas, órdenes y cocina
@@ -272,12 +312,25 @@ export function TableManager({
           void loadTables(true);
         },
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'public_order_requests',
+          filter: `restaurant_id=eq.${restaurantId}`,
+        },
+        () => {
+          void loadTakeawayOrders();
+        },
+      )
       .subscribe();
 
     // 2. Polling de respaldo cada 6 segundos
     const interval = setInterval(() => {
       void loadTables(true);
       void loadUnassignedReservations();
+      void loadTakeawayOrders();
     }, 6000);
 
     return () => {
@@ -285,7 +338,7 @@ export function TableManager({
       void supabase.removeChannel(channel);
       clearInterval(interval);
     };
-  }, [loadTables, loadUnassignedReservations, restaurantId, supabase]);
+  }, [loadTables, loadUnassignedReservations, loadTakeawayOrders, restaurantId, supabase]);
 
   // Marcar todos los platos de una comanda como servidos en mesa
   async function handleServeOrder(orderId: string) {
@@ -729,6 +782,15 @@ export function TableManager({
           </div>
 
           <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setShowTakeawayModal(true)}
+              className="h-9 px-3.5 rounded-xl bg-[#181C20] hover:bg-black text-white text-xs font-black transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer whitespace-nowrap"
+            >
+              <ShoppingBag className="w-3.5 h-3.5 text-[#EAA228]" />
+              <span>🛍️ Pedido Para Llevar</span>
+            </button>
+
             {restaurantSlug && (
               <button
                 type="button"
@@ -837,6 +899,197 @@ export function TableManager({
               {successMsg}
             </div>
           )}
+
+          {/* Sección de Pedidos Para Llevar / Mostrador */}
+          <div className="rounded-2xl border border-[#EAE5DE] bg-white p-4 shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FAF7F2] text-[#181C20] border border-[#EAE5DE]">
+                  <ShoppingBag className="w-4 h-4 text-[#EAA228]" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-black text-[#181C20] uppercase tracking-wider">
+                      Pedidos Para Llevar · Mostrador
+                    </h3>
+                    <span className="rounded-full bg-[#FAF7F2] border border-[#EAE5DE] px-2 py-0.5 text-[10px] font-black text-[#666E7A]">
+                      {takeawayOrders.length} {takeawayOrders.length === 1 ? 'en curso' : 'en curso'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#666E7A]">
+                    Comensales de paso que no ocupan mesas físicas
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowTakeawayModal(true)}
+                className="h-8 px-3 rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-xs font-black text-[#181C20] flex items-center gap-1.5 transition-all shadow-xs cursor-pointer self-start sm:self-auto"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Nuevo Para Llevar</span>
+              </button>
+            </div>
+
+            {takeawayOrders.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-[#EAE5DE] bg-[#FAF7F2]/40 p-3 text-center text-xs text-[#8C95A3] flex items-center justify-center gap-2">
+                <span>No hay clientes esperando pedido para llevar en este momento.</span>
+                <button
+                  type="button"
+                  onClick={() => setShowTakeawayModal(true)}
+                  className="text-[#EAA228] font-bold underline hover:text-[#D99318] cursor-pointer"
+                >
+                  Registrar uno aquí
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {takeawayOrders.map((tOrder) => (
+                  <div
+                    key={tOrder.id}
+                    className="rounded-xl border border-[#EAE5DE] bg-[#FAF7F2] p-3 space-y-2.5 transition-all hover:border-[#D9D3C7]"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-mono text-[10px] font-black text-[#8C95A3]">
+                            #{tOrder.tracking_code}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                              tOrder.status === 'listo'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : tOrder.status === 'preparando'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-zinc-200 text-zinc-800'
+                            }`}
+                          >
+                            {tOrder.status === 'listo'
+                              ? 'Listo para Retiro'
+                              : tOrder.status === 'preparando'
+                                ? 'En Cocina'
+                                : 'Confirmado'}
+                          </span>
+                        </div>
+                        <h4 className="text-xs font-black text-[#181C20] mt-1 truncate">
+                          {tOrder.customer_name}
+                        </h4>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="font-mono text-sm font-black text-[#181C20]">
+                          ${(tOrder.total_cents / 100).toFixed(2)}
+                        </span>
+                        <span
+                          className={`block text-[10px] font-bold ${
+                            tOrder.payment_status === 'pagado' ? 'text-emerald-600' : 'text-amber-600'
+                          }`}
+                        >
+                          {tOrder.payment_status === 'pagado' ? '✓ Pagado' : 'Pendiente pago'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Platos */}
+                    <div className="text-[11px] text-[#666E7A] divide-y divide-[#EAE5DE]/60 max-h-20 overflow-y-auto">
+                      {(tOrder.public_order_items ?? []).map((it: any, idx: number) => (
+                        <div key={idx} className="flex justify-between py-0.5">
+                          <span className="truncate pr-1">
+                            {it.quantity}× {it.product_name}
+                          </span>
+                          <span className="font-mono text-[10px] font-semibold text-[#181C20] shrink-0">
+                            ${((it.unit_price_cents * it.quantity) / 100).toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Acciones Rápidas */}
+                    <div className="flex items-center gap-1.5 pt-1 border-t border-[#EAE5DE]">
+                      {tOrder.payment_status !== 'pagado' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('pedidos');
+                          }}
+                          className="flex-1 h-7 rounded-lg bg-[#EAA228] hover:bg-[#D99318] text-[10px] font-black text-[#181C20] uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer"
+                        >
+                          Cobrar
+                        </button>
+                      )}
+
+                      {tOrder.status === 'confirmado' && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await fetch(`/api/orders/${tOrder.id}/status`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ status: 'preparando' }),
+                            });
+                            void loadTakeawayOrders();
+                          }}
+                          className="flex-1 h-7 rounded-lg border border-[#D9D3C7] bg-white hover:bg-[#FAF7F2] text-[10px] font-bold text-[#181C20] flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          A Cocina
+                        </button>
+                      )}
+
+                      {tOrder.status === 'preparando' && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await fetch(`/api/orders/${tOrder.id}/status`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ status: 'listo' }),
+                            });
+                            void loadTakeawayOrders();
+                          }}
+                          className="flex-1 h-7 rounded-lg bg-[#EAA228] hover:bg-[#D99318] text-[10px] font-black text-[#181C20] flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          Listo
+                        </button>
+                      )}
+
+                      {tOrder.status === 'listo' && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await fetch(`/api/orders/${tOrder.id}/status`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ status: 'completado' }),
+                            });
+                            void loadTakeawayOrders();
+                          }}
+                          className="flex-1 h-7 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-[10px] font-black text-white flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          Entregar
+                        </button>
+                      )}
+
+                      {tOrder.customer_phone && tOrder.customer_phone !== 'Mostrador' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const clean = tOrder.customer_phone.replace(/\D/g, '');
+                            const fullPhone = clean.startsWith('0') ? `593${clean.slice(1)}` : clean;
+                            const msg = `¡Hola ${tOrder.customer_name}! Tu pedido #${tOrder.tracking_code} para llevar en ${restaurantName || 'nuestro restaurante'} ya está LISTO para que pases retirándolo por mostrador.`;
+                            window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                          }}
+                          className="h-7 px-2 rounded-lg border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center gap-1 cursor-pointer"
+                          title="Avisar por WhatsApp"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Barra de Filtros y Acciones */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1588,11 +1841,32 @@ export function TableManager({
         <TableCheckoutModal
           order={checkoutOrder}
           onClose={() => setCheckoutOrder(null)}
+          onAddMoreDishes={() => {
+            const currentTable = tables.find((t) => t.table_number === checkoutOrder.tableNumber);
+            setCheckoutOrder(null);
+            if (currentTable) {
+              setComanderoTableId(currentTable.id);
+            }
+            setActiveTab('comandero');
+          }}
           onSuccess={() => {
             const tableNum = checkoutOrder.tableNumber;
             setCheckoutOrder(null);
             setSuccessMsg(`¡Cuenta de Mesa #${tableNum} cobrada exitosamente!`);
             void loadTables(true);
+          }}
+        />
+      )}
+
+      {/* Modal de Pedido Para Llevar (Mostrador) */}
+      {showTakeawayModal && (
+        <TakeawayOrderModal
+          restaurantId={restaurantId}
+          onClose={() => setShowTakeawayModal(false)}
+          onSuccess={(newOrder) => {
+            setSuccessMsg(`¡Pedido #${newOrder.tracking_code} para ${newOrder.customer_name} enviado a preparación!`);
+            setTimeout(() => setSuccessMsg(''), 5000);
+            void loadTakeawayOrders();
           }}
         />
       )}
