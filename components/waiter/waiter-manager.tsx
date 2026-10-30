@@ -6,7 +6,6 @@ import {
   WifiOff,
   Clock,
   RefreshCw,
-  Printer,
   Search,
   Plus,
   Minus,
@@ -25,7 +24,6 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { offlineDb, type CachedProduct, type CachedTable, type LocalOrder } from '@/lib/offline/db';
 import { syncEngine } from '@/lib/offline/sync-engine';
 import { getProductImageUrl } from '@/lib/orders/product-images';
-import { ThermalReceiptModal } from '@/components/orders/thermal-receipt-modal';
 import { TableCheckoutModal, type TableOrderDetails } from '@/components/tables/table-checkout-modal';
 import { AlertModal } from '@/components/ui/alert-modal';
 
@@ -93,7 +91,6 @@ export function WaiterManager({
   // Datos locales
   const [tables, setTables] = useState<CachedTable[]>([]);
   const [products, setProducts] = useState<CachedProduct[]>([]);
-  const [recentOrders, setRecentOrders] = useState<LocalOrder[]>([]);
 
   // Selección de comanda
   const [selectedTable, setSelectedTable] = useState<CachedTable | null>(null);
@@ -104,7 +101,6 @@ export function WaiterManager({
   const [viewMode, setViewMode] = useState<'grid' | 'compact'>('grid');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
-  const [printingOrder, setPrintingOrder] = useState<LocalOrder | null>(null);
 
   // Estado para cobro de mesa (Fase 8 & Flujo Mesero)
   const [checkoutOrder, setCheckoutOrder] = useState<TableOrderDetails | null>(null);
@@ -178,17 +174,6 @@ export function WaiterManager({
     return () => unsubscribe();
   }, []);
 
-  // Cargar órdenes recientes de Dexie
-  const loadRecentOrders = useCallback(async () => {
-    const localOrders = await offlineDb.localOrders
-      .where('restaurantId')
-      .equals(restaurantId)
-      .reverse()
-      .limit(10)
-      .toArray();
-    setRecentOrders(localOrders);
-  }, [restaurantId]);
-
   // 2. Cargar y cachear datos en Dexie
   const loadData = useCallback(async () => {
     try {
@@ -261,9 +246,7 @@ export function WaiterManager({
       if (localTables.length > 0) setTables(localTables);
       if (localProducts.length > 0) setProducts(localProducts);
     }
-
-    await loadRecentOrders();
-  }, [loadRecentOrders, restaurantId, supabase]);
+  }, [restaurantId, supabase]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void loadData(), 0);
@@ -280,11 +263,6 @@ export function WaiterManager({
       }
     }
   }, [initialTableId, tables]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => void loadRecentOrders(), 0);
-    return () => window.clearTimeout(timer);
-  }, [syncStatus.pendingCount, loadRecentOrders]);
 
   // Escuchar avisos de platos listos desde cocina
   useEffect(() => {
@@ -463,7 +441,6 @@ export function WaiterManager({
         ok: true,
         text: `Orden de Mesa #${selectedTable.tableNumber} registrada exitosamente.`,
       });
-      await loadRecentOrders();
     } catch {
       setIsSubmitting(false);
       setFeedback({
@@ -1087,73 +1064,6 @@ export function WaiterManager({
           </div>
         </aside>
       </div>
-
-      {/* Órdenes Recientes en este Dispositivo */}
-      {recentOrders.length > 0 && (
-        <section className="border-t border-[#E8E8E8] pt-6 space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B6B6B]">
-            Órdenes recientes en este dispositivo ({recentOrders.length})
-          </h3>
-
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-            {recentOrders.map((ord) => (
-              <div
-                key={ord.id}
-                className="rounded-2xl border border-[#E8E8E8] bg-white p-4 text-xs space-y-2"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-extrabold text-sm text-[#1A1A1A]">Mesa #{ord.tableNumber}</span>
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
-                      ord.isSynced
-                        ? 'border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D]'
-                        : 'border-[#FFE6A5] bg-[#FFF8E7] text-[#9A6700]'
-                    }`}
-                  >
-                    {ord.isSynced ? 'En servidor' : 'En cola local'}
-                  </span>
-                </div>
-
-                <p className="text-[#6B6B6B]">
-                  {ord.items.length} productos · Total: ${(ord.totalCents / 100).toFixed(2)}
-                </p>
-                <p className="text-[11px] text-[#A1A1AA]">
-                  {new Date(ord.createdAt).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => setPrintingOrder(ord)}
-                  className="mt-2 h-10 w-full rounded-full border border-[#E8E8E8] bg-white text-xs font-bold text-[#1A1A1A] hover:bg-[#F7F7F7] flex items-center justify-center gap-1.5 transition-colors"
-                >
-                  <Printer className="h-3.5 w-3.5" />
-                  <span>Ticket térmico</span>
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* MODAL DE IMPRESIÓN TÉRMICA */}
-      {printingOrder && (
-        <ThermalReceiptModal
-          data={{
-            orderNumber: printingOrder.id.slice(0, 8).toUpperCase(),
-            tableOrToken: `Mesa #${printingOrder.tableNumber}`,
-            dateTime: printingOrder.createdAt,
-            items: printingOrder.items.map((it) => ({
-              name: it.productName,
-              quantity: it.quantity,
-              priceCents: it.unitPriceCents,
-              notes: it.notes,
-            })),
-            totalCents: printingOrder.totalCents,
-            paymentStatus: printingOrder.status === 'pagada' ? 'pagado' : 'pendiente',
-          }}
-          onClose={() => setPrintingOrder(null)}
-        />
-      )}
 
       {/* MODAL DE COBRO DE CUENTA DE MESA (Cajero / Pre-pago / Cierre) */}
       {checkoutOrder && (
