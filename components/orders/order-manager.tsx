@@ -754,28 +754,20 @@ export function OrderManager({
                     )}
 
                     {order.status === 'confirmado' && (
-                      <button
-                        type="button"
-                        onClick={() => void transition(order.id, 'preparando')}
-                        className={`h-11 w-full rounded-xl px-4 text-xs font-bold transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer ${
-                          isPaid
-                            ? 'bg-[#EAA228] hover:bg-[#D99318] text-[#181C20] shadow-xs'
-                            : 'border border-[#D9D3C7] bg-white text-[#181C20] hover:bg-[#FAF7F2]'
-                        }`}
-                      >
-                        <span>Marchar en Cocina</span>
-                      </button>
+                      <div className="h-11 w-full rounded-xl border border-[#EAE5DE] bg-[#FAF7F2] px-4 text-xs font-bold text-[#666E7A] flex items-center justify-center gap-2">
+                        <Clock className="w-4 h-4 text-[#EAA228]" />
+                        <span>En cola de preparación en cocina</span>
+                      </div>
                     )}
 
                     {order.status === 'preparando' && (
-                      <button
-                        type="button"
-                        onClick={() => void transition(order.id, 'listo')}
-                        className="h-11 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-4 text-xs font-black text-[#181C20] shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        <Check className="w-4 h-4" />
-                        <span>Marcar Listo para Entrega</span>
-                      </button>
+                      <div className="h-11 w-full rounded-xl border border-[#EAA228]/40 bg-[#FEF9EE] px-4 text-xs font-bold text-[#8F5E00] flex items-center justify-center gap-2">
+                        <span className="relative flex h-2 w-2">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#EAA228] opacity-75" />
+                          <span className="relative inline-flex h-2 w-2 rounded-full bg-[#EAA228]" />
+                        </span>
+                        <span>En preparación en cocina (KDS)</span>
+                      </div>
                     )}
 
                     {order.status === 'listo' && (
@@ -785,15 +777,15 @@ export function OrderManager({
                             href={`https://wa.me/${order.customer_phone.replace(/\D/g, '').startsWith('0') ? '593' + order.customer_phone.replace(/\D/g, '').slice(1) : order.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent(
                               `¡Hola ${order.customer_name}! 🍽️ Tu pedido *${order.tracking_code}* ya está *LISTO PARA RETIRAR / ENTREGAR* ${
                                 order.table_or_token_number
-                                  ? `(${order.service_type === 'paleta_madera' ? 'Paleta' : 'Mesa'} #${order.table_or_token_number})`
-                                  : ''
-                              }. ¡Te esperamos en mostrador!`
+                                ? `(${order.service_type === 'paleta_madera' ? 'Paleta' : 'Mesa'} #${order.table_or_token_number})`
+                                : ''
+                            }. ¡Te esperamos en mostrador!`
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="h-11 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 text-xs font-black text-white shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                            className="h-11 w-full rounded-xl border border-[#EAE5DE] bg-white hover:bg-[#FAF7F2] px-4 text-xs font-black text-[#181C20] shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
                           >
-                            <MessageCircle className="w-4 h-4" />
+                            <MessageCircle className="w-4 h-4 text-[#EAA228]" />
                             <span>Avisar por WhatsApp</span>
                           </a>
                         )}
@@ -801,9 +793,9 @@ export function OrderManager({
                         <button
                           type="button"
                           onClick={() => void transition(order.id, 'completado')}
-                          className="h-11 w-full rounded-xl bg-[#181C20] hover:bg-black px-4 text-xs font-black text-white shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                          className="h-11 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] px-4 text-xs font-black text-[#181C20] shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
                         >
-                          <Check className="w-4 h-4 text-[#EAA228]" />
+                          <Check className="w-4 h-4 stroke-[2.5]" />
                           <span>Entregar al Cliente</span>
                         </button>
                       </>

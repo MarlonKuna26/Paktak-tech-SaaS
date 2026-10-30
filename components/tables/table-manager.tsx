@@ -1022,37 +1022,20 @@ export function TableManager({
                       )}
 
                       {tOrder.status === 'confirmado' && (
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            await fetch(`/api/orders/${tOrder.id}/status`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ status: 'preparando' }),
-                            });
-                            void loadTakeawayOrders();
-                          }}
-                          className="flex-1 h-7 rounded-lg border border-[#D9D3C7] bg-white hover:bg-[#FAF7F2] text-[10px] font-bold text-[#181C20] flex items-center justify-center gap-1 cursor-pointer"
-                        >
-                          A Cocina
-                        </button>
+                        <div className="flex-1 h-7 rounded-lg bg-[#FAF7F2] border border-[#EAE5DE] px-2 flex items-center justify-center gap-1.5 text-[10px] font-bold text-[#666E7A]">
+                          <Clock className="w-3 h-3 text-[#EAA228]" />
+                          <span>En cola de cocina</span>
+                        </div>
                       )}
 
                       {tOrder.status === 'preparando' && (
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            await fetch(`/api/orders/${tOrder.id}/status`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ status: 'listo' }),
-                            });
-                            void loadTakeawayOrders();
-                          }}
-                          className="flex-1 h-7 rounded-lg bg-[#EAA228] hover:bg-[#D99318] text-[10px] font-black text-[#181C20] flex items-center justify-center gap-1 cursor-pointer"
-                        >
-                          Listo
-                        </button>
+                        <div className="flex-1 h-7 rounded-lg bg-[#FEF9EE] border border-[#EAA228]/40 px-2 flex items-center justify-center gap-1.5 text-[10px] font-bold text-[#8F5E00]">
+                          <span className="relative flex h-1.5 w-1.5">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#EAA228] opacity-75" />
+                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#EAA228]" />
+                          </span>
+                          <span>En preparación (KDS)</span>
+                        </div>
                       )}
 
                       {tOrder.status === 'listo' && (
@@ -1066,9 +1049,10 @@ export function TableManager({
                             });
                             void loadTakeawayOrders();
                           }}
-                          className="flex-1 h-7 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-[10px] font-black text-white flex items-center justify-center gap-1 cursor-pointer"
+                          className="flex-1 h-7 rounded-lg bg-[#EAA228] hover:bg-[#D99318] text-[10px] font-black text-[#181C20] flex items-center justify-center gap-1 shadow-xs transition-all cursor-pointer"
                         >
-                          Entregar
+                          <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                          <span>Entregar al Cliente</span>
                         </button>
                       )}
 
