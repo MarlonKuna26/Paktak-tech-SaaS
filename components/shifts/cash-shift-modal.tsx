@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import {
   Wallet,
+  Lock,
   Clock,
   CheckCircle2,
   AlertTriangle,
@@ -30,7 +31,6 @@ export function OpenShiftModal({
   const [shiftName, setShiftName] = useState('Turno 1 (Mañana)');
   const [cashierName, setCashierName] = useState('');
   const [cashierUserId, setCashierUserId] = useState<string | null>(null);
-  const [isManualCashier, setIsManualCashier] = useState(false);
   const [initialCash, setInitialCash] = useState(
     initialCashDefault !== undefined ? Number(initialCashDefault).toFixed(2) : '50.00'
   );
@@ -55,16 +55,18 @@ export function OpenShiftModal({
       .then((data) => {
         if (data.staff && Array.isArray(data.staff)) {
           const activeMembers = data.staff.filter((s: any) => s.active);
-          setStaffCashiers(activeMembers);
+          
 
-          // Preseleccionar preferiblemente un usuario con rol 'cashier'
+          // Filtrar ESTRICTAMENTE usuarios con rol 'cashier'
           const cajeros = activeMembers.filter((s: any) => s.role === 'cashier');
+          setStaffCashiers(cajeros);
+
           if (cajeros.length > 0) {
             setCashierName(cajeros[0].fullName || cajeros[0].email);
             setCashierUserId(cajeros[0].userId);
-          } else if (activeMembers.length > 0) {
-            setCashierName(activeMembers[0].fullName || activeMembers[0].email);
-            setCashierUserId(activeMembers[0].userId);
+          } else {
+            setCashierName('');
+            setCashierUserId(null);
           }
         }
       })
@@ -191,69 +193,28 @@ export function OpenShiftModal({
                 <div className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-[#FAF7F2] pl-10 pr-3.5 flex items-center text-xs font-bold text-[#8C95A3]">
                   Cargando cajeras del restaurante...
                 </div>
-              ) : staffCashiers.length > 0 && !isManualCashier ? (
+              ) : staffCashiers.length > 0 ? (
                 <select
                   id="cashierSelect"
                   required
                   value={cashierName}
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (val === '__MANUAL__') {
-                      setIsManualCashier(true);
-                      setCashierName('');
-                      setCashierUserId(null);
-                      return;
-                    }
                     setCashierName(val);
                     const found = staffCashiers.find((s) => (s.fullName || s.email) === val);
                     setCashierUserId(found?.userId || null);
                   }}
                   className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-white pl-10 pr-8 text-xs font-bold text-[#181C20] outline-none focus:border-[#EAA228] focus:ring-2 focus:ring-[#EAA228] cursor-pointer"
                 >
-                  {staffCashiers.filter((s) => s.role === 'cashier').length > 0 && (
-                    <optgroup label="Cajeras / Cajeros Registrados">
-                      {staffCashiers
-                        .filter((s) => s.role === 'cashier')
-                        .map((c) => (
-                          <option key={c.id} value={c.fullName || c.email}>
-                            {c.fullName || c.email} (Cajera)
-                          </option>
-                        ))}
-                    </optgroup>
-                  )}
-                  {staffCashiers.filter((s) => s.role !== 'cashier').length > 0 && (
-                    <optgroup label="Otros Usuarios del Restaurante">
-                      {staffCashiers
-                        .filter((s) => s.role !== 'cashier')
-                        .map((c) => (
-                          <option key={c.id} value={c.fullName || c.email}>
-                            {c.fullName || c.email} - Rol: {c.role}
-                          </option>
-                        ))}
-                    </optgroup>
-                  )}
-                  <option value="__MANUAL__">+ Ingresar otro nombre manualmente...</option>
+                  {staffCashiers.map((c) => (
+                    <option key={c.id} value={c.fullName || c.email}>
+                      {c.fullName || c.email} (Cajera)
+                    </option>
+                  ))}
                 </select>
               ) : (
-                <div className="flex gap-2">
-                  <input
-                    id="cashierName"
-                    type="text"
-                    required
-                    placeholder="Ej. María Pérez"
-                    value={cashierName}
-                    onChange={(e) => setCashierName(e.target.value)}
-                    className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/40 pl-10 pr-3.5 text-xs font-bold text-[#181C20] outline-none focus:border-transparent focus:ring-2 focus:ring-[#EAA228]"
-                  />
-                  {staffCashiers.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setIsManualCashier(false)}
-                      className="px-3 rounded-xl border border-[#EAE5DE] text-xs font-bold text-[#666E7A] hover:bg-[#FAF7F2] shrink-0"
-                    >
-                      Lista
-                    </button>
-                  )}
+                <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">
+                  No hay cajeras creadas en el sistema. El administrador debe registrar una cajera en el módulo de Personal (/admin/personal) para poder aperturar el turno.
                 </div>
               )}
             </div>
@@ -262,29 +223,32 @@ export function OpenShiftModal({
             </p>
           </div>
 
+          {/* Fondo de Caja Inicial (Fijado exclusivamente por el Administrador) */}
           <div>
-            <label htmlFor="initialCash" className="block text-xs font-black uppercase tracking-wider text-[#181C20] mb-1.5">
-              Fondo de Caja Inicial ($ Efectivo para dar cambio)
-            </label>
-            <div className="relative">
-              <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8C95A3]" />
-              <input
-                id="initialCash"
-                type="number"
-                step="0.01"
-                min="0"
-                required
-                placeholder="50.00"
-                value={initialCash}
-                onChange={(e) => setInitialCash(e.target.value)}
-                className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/40 pl-10 pr-3.5 text-sm font-black text-[#181C20] outline-none focus:border-transparent focus:ring-2 focus:ring-[#EAA228]"
-              />
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-black uppercase tracking-wider text-[#181C20]">
+                Fondo de Caja Inicial ($ Efectivo para dar cambio)
+              </label>
+              <span className="text-[10px] font-bold text-[#8F5E00] bg-[#FEF9EE] px-2 py-0.5 rounded-md border border-[#F6E3B8] flex items-center gap-1">
+                <Lock className="w-3 h-3 text-[#EAA228]" />
+                <span>Fijado por el Administrador</span>
+              </span>
             </div>
-            <p className="mt-1 text-[11px] text-[#666E7A] flex items-center justify-between">
-              <span>Dinero base que se deja en la gaveta antes de registrar la primera venta.</span>
-              {adminConfiguredCash !== null && (
-                <span className="font-bold text-[#8F5E00]">(Configurado por Admin: ${adminConfiguredCash.toFixed(2)})</span>
-              )}
+            <div className="flex items-center justify-between h-12 w-full rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] px-4 shadow-2xs">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FEF9EE] text-[#EAA228] border border-[#F6E3B8]">
+                  <DollarSign className="h-4 w-4 stroke-[2.5]" />
+                </div>
+                <span className="text-base font-black text-[#181C20] font-mono">
+                  ${Number(initialCash || 0).toFixed(2)}
+                </span>
+              </div>
+              <span className="text-[11px] font-bold text-[#666E7A]">
+                Fondo fijo asignado
+              </span>
+            </div>
+            <p className="mt-1 text-[11px] text-[#666E7A]">
+              Monto configurado exclusivamente por el administrador en Ajustes. El personal solo visualiza el turno y el fondo base asignado a la gaveta.
             </p>
           </div>
 
@@ -305,7 +269,7 @@ export function OpenShiftModal({
           <div className="pt-2">
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || staffCashiers.length === 0}
               className="h-12 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-xs font-black text-[#181C20] uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? 'Abriendo turno...' : 'Confirmar Apertura de Caja'}
