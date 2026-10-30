@@ -805,19 +805,19 @@ export function TableManager({
             <button
               type="button"
               onClick={() => setShowTakeawayModal(true)}
-              className="h-9 px-3.5 rounded-xl bg-[#181C20] hover:bg-black text-white text-xs font-black transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+              className="h-9 px-3.5 rounded-xl border border-[#EAE5DE] bg-white hover:bg-[#FAF7F2] hover:border-[#EAA228] text-[#181C20] text-xs font-black transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <ShoppingBag className="w-3.5 h-3.5 text-[#EAA228]" />
-              <span>🛍️ Pedido Para Llevar</span>
+              <span>Pedido Para Llevar</span>
             </button>
 
             {restaurantSlug && (
               <button
                 type="button"
                 onClick={() => setShowShareMenuModal(true)}
-                className="h-9 px-3.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-black transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+                className="h-9 px-3.5 rounded-xl border border-[#EAE5DE] bg-white hover:bg-[#FAF7F2] hover:border-[#EAA228] text-[#181C20] text-xs font-black transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
               >
-                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                <MessageCircle className="w-3.5 h-3.5 text-[#EAA228]" />
                 <span>Enviar Carta WhatsApp</span>
               </button>
             )}
@@ -826,7 +826,7 @@ export function TableManager({
               <button
                 type="button"
                 onClick={handleReleaseAllPrompt}
-                className="h-9 px-3.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-black transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+                className="h-9 px-3.5 rounded-xl border border-[#EAE5DE] bg-[#FEF9EE] hover:bg-[#FDF4DF] hover:border-[#EAA228] text-[#8F5E00] text-xs font-black transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
                 title="Liberar todas las mesas para el nuevo turno o día"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#EAA228]" />
@@ -1081,10 +1081,10 @@ export function TableManager({
                             const msg = `¡Hola ${tOrder.customer_name}! Tu pedido #${tOrder.tracking_code} para llevar en ${restaurantName || 'nuestro restaurante'} ya está LISTO para que pases retirándolo por mostrador.`;
                             window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`, '_blank');
                           }}
-                          className="h-7 px-2 rounded-lg border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center gap-1 cursor-pointer"
+                          className="h-7 px-2 rounded-lg border border-[#EAE5DE] bg-white hover:bg-[#FAF7F2] text-[#181C20] text-[10px] font-black flex items-center gap-1 cursor-pointer transition-colors"
                           title="Avisar por WhatsApp"
                         >
-                          <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                          <MessageCircle className="w-3.5 h-3.5 text-[#EAA228]" />
                         </button>
                       )}
                     </div>
@@ -1890,7 +1890,7 @@ export function TableManager({
           <div className="w-full max-w-md rounded-3xl border border-[#EAE5DE] bg-white p-6 sm:p-7 shadow-[0_20px_50px_rgba(24,28,32,0.15)] space-y-5">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FEF9EE] text-[#EAA228] border border-[#F6E3B8]">
                   <MessageCircle className="h-5 w-5" />
                 </div>
                 <div>
@@ -1947,7 +1947,7 @@ export function TableManager({
                       : `https://wa.me/?text=${encodeURIComponent(msg)}`;
                     window.open(waUrl, '_blank');
                   }}
-                  className="h-11 flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-black text-white uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                  className="h-11 flex-1 rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-xs font-black text-[#181C20] uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>Abrir WhatsApp</span>
