@@ -49,12 +49,14 @@ export class OrderController {
     }
 
     try {
-      const currentShift = await CashShiftModel.getCurrentShift(staff.restaurantId);
-      if (!currentShift.shift) {
-        return NextResponse.json(
-          { error: 'No se puede procesar el cobro porque la caja está cerrada. Debes realizar la Apertura de Turno con el fondo inicial antes de vender.' },
-          { status: 400 },
-        );
+      if (staff.role === 'cashier') {
+        const currentShift = await CashShiftModel.getCurrentShift(staff.restaurantId);
+        if (!currentShift.shift) {
+          return NextResponse.json(
+            { error: 'No se puede procesar el cobro porque la caja está cerrada. Debes realizar la Apertura de Turno con el fondo inicial antes de vender.' },
+            { status: 400 },
+          );
+        }
       }
 
       const result = await OrderModel.checkoutTableOrder(

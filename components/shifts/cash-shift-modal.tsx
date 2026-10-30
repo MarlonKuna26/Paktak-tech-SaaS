@@ -80,25 +80,23 @@ export function OpenShiftModal({
       .catch(() => {})
       .finally(() => setLoadingStaff(false));
 
-    // Si no se proporcionó fondo inicial por prop, consultarlo de /api/shifts
-    if (initialCashDefault === undefined) {
-      fetch('/api/shifts')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.defaultInitialCashDollars !== undefined) {
-            const val = Number(data.defaultInitialCashDollars);
-            setInitialCash(val.toFixed(2));
-            setAdminConfiguredCash(val);
-          }
-          if (data.userRole) {
-            setUserRole((prev) => prev || data.userRole);
-          }
-        })
-        .catch(() => {});
-    }
+    // Consultar turno y rol de /api/shifts para garantizar datos actualizados
+    fetch('/api/shifts')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.userRole) {
+          setUserRole((prev) => prev || data.userRole);
+        }
+        if (initialCashDefault === undefined && data.defaultInitialCashDollars !== undefined) {
+          const val = Number(data.defaultInitialCashDollars);
+          setInitialCash(val.toFixed(2));
+          setAdminConfiguredCash(val);
+        }
+      })
+      .catch(() => {});
   }, [isOpen, initialCashDefault]);
 
-  const isAdmin = ['owner', 'admin'].includes(userRole);
+  const isAdmin = ['owner', 'admin'].includes((userRole || '').toLowerCase().trim());
 
   if (!isOpen) return null;
 
@@ -247,32 +245,59 @@ export function OpenShiftModal({
             </p>
           </div>
 
-          {/* Fondo de Caja Inicial (Fijado exclusivamente por el Administrador) */}
+          {/* Fondo de Caja Inicial (Editable por Administrador / Solo Lectura para Cajeras) */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-black uppercase tracking-wider text-[#181C20]">
+              <label htmlFor="initialCash" className="block text-xs font-black uppercase tracking-wider text-[#181C20]">
                 Fondo de Caja Inicial ($ Efectivo para dar cambio)
               </label>
-              <span className="text-[10px] font-bold text-[#8F5E00] bg-[#FEF9EE] px-2 py-0.5 rounded-md border border-[#F6E3B8] flex items-center gap-1">
-                <Lock className="w-3 h-3 text-[#EAA228]" />
-                <span>Fijado por el Administrador</span>
-              </span>
+              {isAdmin ? (
+                <span className="text-[10px] font-bold text-[#8F5E00] bg-[#FEF9EE] px-2 py-0.5 rounded-md border border-[#F6E3B8] flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-[#EAA228]" />
+                  <span>Permiso de Administrador</span>
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold text-[#8F5E00] bg-[#FEF9EE] px-2 py-0.5 rounded-md border border-[#F6E3B8] flex items-center gap-1">
+                  <Lock className="w-3 h-3 text-[#EAA228]" />
+                  <span>Fijado por el Administrador</span>
+                </span>
+              )}
             </div>
-            <div className="flex items-center justify-between h-12 w-full rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] px-4 shadow-2xs">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FEF9EE] text-[#EAA228] border border-[#F6E3B8]">
-                  <DollarSign className="h-4 w-4 stroke-[2.5]" />
+
+            {isAdmin ? (
+              <div className="relative">
+                <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8C95A3] pointer-events-none" />
+                <input
+                  id="initialCash"
+                  type="text"
+                  inputMode="decimal"
+                  required
+                  placeholder="50.00"
+                  value={initialCash}
+                  onChange={(e) => setInitialCash(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-white pl-10 pr-3.5 text-base font-black text-[#181C20] outline-none focus:border-[#EAA228] focus:ring-2 focus:ring-[#EAA228]"
+                />
+              </div>
+            ) : (
+              <div className="flex items-center justify-between h-12 w-full rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] px-4 shadow-2xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FEF9EE] text-[#EAA228] border border-[#F6E3B8]">
+                    <DollarSign className="h-4 w-4 stroke-[2.5]" />
+                  </div>
+                  <span className="text-base font-black text-[#181C20] font-mono">
+                    ${Number(initialCash || 0).toFixed(2)}
+                  </span>
                 </div>
-                <span className="text-base font-black text-[#181C20] font-mono">
-                  ${Number(initialCash || 0).toFixed(2)}
+                <span className="text-[11px] font-bold text-[#666E7A]">
+                  Fondo fijo asignado
                 </span>
               </div>
-              <span className="text-[11px] font-bold text-[#666E7A]">
-                Fondo fijo asignado
-              </span>
-            </div>
+            )}
+
             <p className="mt-1 text-[11px] text-[#666E7A]">
-              Monto configurado exclusivamente por el administrador en Ajustes. El personal solo visualiza el turno y el fondo base asignado a la gaveta.
+              {isAdmin
+                ? 'Como administrador, puedes ingresar o ajustar la cantidad exacta de fondo de gaveta para este turno.'
+                : 'Monto configurado por el administrador en Ajustes. El personal solo visualiza el turno y el fondo base asignado a la gaveta.'}
             </p>
           </div>
 

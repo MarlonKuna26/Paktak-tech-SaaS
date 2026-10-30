@@ -39,7 +39,7 @@ export async function POST(request: Request) {
   const { customerName, customerPhone, notes, items, payNow, paymentMethod, paidCents } = parsed.data;
 
   try {
-    if (payNow) {
+    if (payNow && staff.role === 'cashier') {
       const currentShift = await CashShiftModel.getCurrentShift(staff.restaurantId);
       if (!currentShift.shift) {
         return NextResponse.json(

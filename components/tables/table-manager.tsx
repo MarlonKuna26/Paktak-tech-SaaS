@@ -442,7 +442,7 @@ export function TableManager({
 
   // Abrir modal de cobro de cuenta para mesa ocupada
   async function openTableCheckout(table: RestaurantTable) {
-    if (!activeShift) {
+    if (userRole === 'cashier' && !activeShift) {
       setError('No se puede cobrar la mesa porque la caja está cerrada. Debes realizar la Apertura de Turno con el fondo inicial antes de registrar cobros y ventas.');
       return;
     }
@@ -791,7 +791,9 @@ export function TableManager({
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500" />
             </span>
             <span>
-              <strong>Caja Cerrada:</strong> Debes realizar la apertura de turno con el fondo inicial antes de registrar ventas y cobrar comandas.
+              <strong>Caja Cerrada:</strong> {userRole === 'cashier'
+                ? 'Debes realizar la apertura de turno con el fondo inicial antes de registrar ventas y cobrar comandas.'
+                : 'Turno pendiente de apertura para el personal de caja. Como administrador puedes abrir el turno con el fondo asignado o realizar ventas de supervisión.'}
             </span>
           </div>
           <button
@@ -863,7 +865,7 @@ export function TableManager({
             <button
               type="button"
               onClick={() => {
-                if (!activeShift) {
+                if (userRole === 'cashier' && !activeShift) {
                   setError('No se puede registrar pedido para llevar porque la caja está cerrada. Debes realizar la Apertura de Turno con el fondo inicial antes de registrar ventas.');
                   return;
                 }

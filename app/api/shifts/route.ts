@@ -69,6 +69,14 @@ export async function POST(request: Request) {
       notes: body.notes,
     });
 
+    if (['owner', 'admin'].includes(staff.role) && body.initialCashDollars !== undefined) {
+      await RestaurantModel.updateSettings(staff.restaurantId, {
+        settings: {
+          default_initial_cash_dollars: Number(body.initialCashDollars),
+        },
+      }).catch(() => {});
+    }
+
     return NextResponse.json({ message: 'Turno abierto exitosamente', shift: newShift }, { status: 201 });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Error al abrir turno de caja';
