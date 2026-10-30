@@ -35,6 +35,7 @@ import { TakeawayOrderModal } from '@/components/orders/takeaway-order-modal';
 import { WaiterManager } from '@/components/waiter/waiter-manager';
 import { OrderManager } from '@/components/orders/order-manager';
 import { CashShiftManager } from '@/components/shifts/cash-shift-manager';
+import { OpenShiftModal } from '@/components/shifts/cash-shift-modal';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { AlertModal } from '@/components/ui/alert-modal';
 
@@ -130,6 +131,33 @@ export function TableManager({
     setComanderoTableId(tableId);
     setActiveTab('comandero');
   };
+
+  // Estado de Turno de Caja (Apertura requerida antes de vender)
+  const [activeShift, setActiveShift] = useState<{ id: string; shift_name: string; cashier_name: string } | null>(null);
+  const [defaultInitialCash, setDefaultInitialCash] = useState<number>(50);
+  const [isCheckingShift, setIsCheckingShift] = useState(true);
+  const [showOpenShiftModal, setShowOpenShiftModal] = useState(false);
+
+  const checkShiftStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/shifts');
+      if (res.ok) {
+        const data = await res.json();
+        setActiveShift(data.currentShift || null);
+        if (data.defaultInitialCashDollars !== undefined) {
+          setDefaultInitialCash(Number(data.defaultInitialCashDollars));
+        }
+      }
+    } catch {
+      // Silencioso
+    } finally {
+      setIsCheckingShift(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void checkShiftStatus();
+  }, [checkShiftStatus]);
 
   const [tables, setTables] = useState<RestaurantTable[]>([]);
   const [unassignedReservations, setUnassignedReservations] = useState<AvailableReservation[]>([]);
@@ -414,6 +442,10 @@ export function TableManager({
 
   // Abrir modal de cobro de cuenta para mesa ocupada
   async function openTableCheckout(table: RestaurantTable) {
+    if (!activeShift) {
+      setError('No se puede cobrar la mesa porque la caja está cerrada. Debes realizar la Apertura de Turno con el fondo inicial antes de registrar cobros y ventas.');
+      return;
+    }
     setError('');
     setIsFetchingCheckout(true);
     try {
@@ -750,6 +782,29 @@ export function TableManager({
         </div>
       )}
 
+            {/* Aviso de Caja Cerrada */}
+      {!activeShift && !isCheckingShift && (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-3 sm:p-3.5 text-[#8F5E00] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 text-xs font-bold">
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500" />
+            </span>
+            <span>
+              <strong>Caja Cerrada:</strong> Debes realizar la apertura de turno con el fondo inicial antes de registrar ventas y cobrar comandas.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowOpenShiftModal(true)}
+            className="h-8.5 px-3.5 rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-[#181C20] text-xs font-black shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer transition-all"
+          >
+            <Wallet className="w-3.5 h-3.5" />
+            <span>Aperturar Turno Ahora</span>
+          </button>
+        </div>
+      )}
+
       {/* Botones de Operación del Cajero: 1, 2, 3, Pedido Para Llevar y Enviar Carta WhatsApp */}
       <div className="rounded-2xl border border-[#EAE5DE] bg-white p-2.5 sm:p-3 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-2.5">
@@ -807,7 +862,13 @@ export function TableManager({
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={() => setShowTakeawayModal(true)}
+              onClick={() => {
+                if (!activeShift) {
+                  setError('No se puede registrar pedido para llevar porque la caja está cerrada. Debes realizar la Apertura de Turno con el fondo inicial antes de registrar ventas.');
+                  return;
+                }
+                setShowTakeawayModal(true);
+              }}
               className="h-9 px-3.5 rounded-xl border border-[#EAE5DE] bg-white hover:bg-[#FAF7F2] hover:border-[#EAA228] text-[#181C20] text-xs font-black transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <ShoppingBag className="w-3.5 h-3.5 text-[#EAA228]" />
@@ -1877,6 +1938,18 @@ export function TableManager({
         />
       )}
 
+            {/* Modal de Apertura de Turno si la caja está cerrada */}
+      <OpenShiftModal
+        isOpen={showOpenShiftModal}
+        onClose={() => setShowOpenShiftModal(false)}
+        initialCashDefault={defaultInitialCash}
+        onShiftOpened={(shift) => {
+          setActiveShift(shift);
+          setShowOpenShiftModal(false);
+          setSuccessMsg(`¡Turno "${shift.shift_name}" aperturado exitosamente por ${shift.cashier_name}!`);
+        }}
+      />
+
       {/* Modal de Pedido Para Llevar (Mostrador) */}
       {showTakeawayModal && (
         <TakeawayOrderModal
@@ -1999,7 +2072,15 @@ export function TableManager({
         variant="error"
         onClose={() => setError('')}
         actionButton={
-          error.includes('cobra la cuenta') || error.includes('comanda #')
+          error.includes('Apertura de Turno') || error.includes('caja está cerrada')
+            ? {
+                label: 'Aperturar Turno Ahora',
+                onClick: () => {
+                  setError('');
+                  setShowOpenShiftModal(true);
+                },
+              }
+            : error.includes('cobra la cuenta') || error.includes('comanda #')
             ? {
                 label: 'Ir a Cobros & Pedidos',
                 onClick: () => setActiveTab('pedidos'),

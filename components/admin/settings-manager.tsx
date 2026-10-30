@@ -15,6 +15,7 @@ import {
   Phone,
   MapPin,
   Percent,
+  Wallet,
 } from 'lucide-react';
 
 export type RestaurantSettings = {
@@ -24,6 +25,7 @@ export type RestaurantSettings = {
   tax_name?: string;
   tax_included?: boolean;
   default_tip_percentage?: number;
+  default_initial_cash_dollars?: number;
   opening_hours?: string;
   ticket_footer?: string;
   sound_alerts_enabled?: boolean;
@@ -55,6 +57,7 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
   const [taxRate, setTaxRate] = useState<number>(initialData.settings?.tax_rate ?? 15);
   const [taxName, setTaxName] = useState<string>(initialData.settings?.tax_name || 'IVA');
   const [defaultTip, setDefaultTip] = useState<number>(initialData.settings?.default_tip_percentage ?? 10);
+  const [defaultInitialCash, setDefaultInitialCash] = useState<number>(initialData.settings?.default_initial_cash_dollars ?? 50);
   const [openingHours, setOpeningHours] = useState(initialData.settings?.opening_hours || '');
   const [ticketFooter, setTicketFooter] = useState(
     initialData.settings?.ticket_footer || '¡Gracias por su visita! Por favor vuelva pronto.'
@@ -89,6 +92,7 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
             tax_rate: Number(taxRate) || 0,
             tax_name: taxName.trim() || 'IVA',
             default_tip_percentage: Number(defaultTip) || 0,
+            default_initial_cash_dollars: Number(defaultInitialCash) || 0,
             opening_hours: openingHours.trim(),
             ticket_footer: ticketFooter.trim(),
             sound_alerts_enabled: soundAlerts,
@@ -320,6 +324,25 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
                   <option value={12}>12%</option>
                   <option value={15}>15%</option>
                 </select>
+              </div>
+
+              <div className="space-y-1.5 sm:col-span-2 rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-4">
+                <label className="text-xs font-black uppercase tracking-wider text-[#181C20] flex items-center gap-2">
+                  <Wallet className="w-4 h-4 text-[#EAA228]" />
+                  <span>Fondo de Caja Inicial Base para Apertura de Turnos ($ USD)</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={defaultInitialCash}
+                  onChange={(e) => setDefaultInitialCash(parseFloat(e.target.value) || 0)}
+                  placeholder="50.00"
+                  className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-black text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none font-mono"
+                />
+                <p className="text-[11px] text-[#666E7A]">
+                  Monto base sugerido con el que la cajera apertura la gaveta al iniciar el turno (antes de registrar la primera venta).
+                </p>
               </div>
             </div>
           </div>

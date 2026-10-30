@@ -20,17 +20,71 @@ export function OpenShiftModal({
   isOpen,
   onClose,
   onShiftOpened,
+  initialCashDefault,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onShiftOpened: (shift: CashShift) => void;
+  initialCashDefault?: number;
 }) {
   const [shiftName, setShiftName] = useState('Turno 1 (Mañana)');
   const [cashierName, setCashierName] = useState('');
-  const [initialCash, setInitialCash] = useState('50.00');
+  const [cashierUserId, setCashierUserId] = useState<string | null>(null);
+  const [isManualCashier, setIsManualCashier] = useState(false);
+  const [initialCash, setInitialCash] = useState(
+    initialCashDefault !== undefined ? Number(initialCashDefault).toFixed(2) : '50.00'
+  );
+  const [adminConfiguredCash, setAdminConfiguredCash] = useState<number | null>(
+    initialCashDefault ?? null
+  );
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [staffCashiers, setStaffCashiers] = useState<
+    Array<{ id: string; userId: string; fullName: string; role: string; email: string }>
+  >([]);
+  const [loadingStaff, setLoadingStaff] = useState(false);
+
+  // Cargar cajeros creados por el administrador y configuración base de caja
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setLoadingStaff(true);
+    fetch('/api/staff')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.staff && Array.isArray(data.staff)) {
+          const activeMembers = data.staff.filter((s: any) => s.active);
+          setStaffCashiers(activeMembers);
+
+          // Preseleccionar preferiblemente un usuario con rol 'cashier'
+          const cajeros = activeMembers.filter((s: any) => s.role === 'cashier');
+          if (cajeros.length > 0) {
+            setCashierName(cajeros[0].fullName || cajeros[0].email);
+            setCashierUserId(cajeros[0].userId);
+          } else if (activeMembers.length > 0) {
+            setCashierName(activeMembers[0].fullName || activeMembers[0].email);
+            setCashierUserId(activeMembers[0].userId);
+          }
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingStaff(false));
+
+    // Si no se proporcionó fondo inicial por prop, consultarlo de /api/shifts
+    if (initialCashDefault === undefined) {
+      fetch('/api/shifts')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.defaultInitialCashDollars !== undefined) {
+            const val = Number(data.defaultInitialCashDollars);
+            setInitialCash(val.toFixed(2));
+            setAdminConfiguredCash(val);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen, initialCashDefault]);
 
   if (!isOpen) return null;
 
@@ -57,6 +111,7 @@ export function OpenShiftModal({
         body: JSON.stringify({
           shiftName,
           cashierName: cashierName.trim(),
+          cashierUserId: cashierUserId || undefined,
           initialCashDollars: dollars,
           notes,
         }),
@@ -122,21 +177,89 @@ export function OpenShiftModal({
           </div>
 
           <div>
-            <label htmlFor="cashierName" className="block text-xs font-black uppercase tracking-wider text-[#181C20] mb-1.5">
-              Nombre de la Cajera / Responsable
-            </label>
-            <div className="relative">
-              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8C95A3]" />
-              <input
-                id="cashierName"
-                type="text"
-                required
-                placeholder="Ej. María Pérez"
-                value={cashierName}
-                onChange={(e) => setCashierName(e.target.value)}
-                className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/40 pl-10 pr-3.5 text-sm font-bold text-[#181C20] outline-none focus:border-transparent focus:ring-2 focus:ring-[#EAA228]"
-              />
+            <div className="flex items-center justify-between mb-1.5">
+              <label htmlFor="cashierSelect" className="block text-xs font-black uppercase tracking-wider text-[#181C20]">
+                Cajera / Responsable del Turno
+              </label>
+              <span className="text-[10px] font-bold text-[#8F5E00] bg-[#FEF9EE] px-2 py-0.5 rounded-md border border-[#F6E3B8]">
+                Usuarios de Personal
+              </span>
             </div>
+            <div className="relative">
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8C95A3] pointer-events-none z-10" />
+              {loadingStaff ? (
+                <div className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-[#FAF7F2] pl-10 pr-3.5 flex items-center text-xs font-bold text-[#8C95A3]">
+                  Cargando cajeras del restaurante...
+                </div>
+              ) : staffCashiers.length > 0 && !isManualCashier ? (
+                <select
+                  id="cashierSelect"
+                  required
+                  value={cashierName}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '__MANUAL__') {
+                      setIsManualCashier(true);
+                      setCashierName('');
+                      setCashierUserId(null);
+                      return;
+                    }
+                    setCashierName(val);
+                    const found = staffCashiers.find((s) => (s.fullName || s.email) === val);
+                    setCashierUserId(found?.userId || null);
+                  }}
+                  className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-white pl-10 pr-8 text-xs font-bold text-[#181C20] outline-none focus:border-[#EAA228] focus:ring-2 focus:ring-[#EAA228] cursor-pointer"
+                >
+                  {staffCashiers.filter((s) => s.role === 'cashier').length > 0 && (
+                    <optgroup label="Cajeras / Cajeros Registrados">
+                      {staffCashiers
+                        .filter((s) => s.role === 'cashier')
+                        .map((c) => (
+                          <option key={c.id} value={c.fullName || c.email}>
+                            {c.fullName || c.email} (Cajera)
+                          </option>
+                        ))}
+                    </optgroup>
+                  )}
+                  {staffCashiers.filter((s) => s.role !== 'cashier').length > 0 && (
+                    <optgroup label="Otros Usuarios del Restaurante">
+                      {staffCashiers
+                        .filter((s) => s.role !== 'cashier')
+                        .map((c) => (
+                          <option key={c.id} value={c.fullName || c.email}>
+                            {c.fullName || c.email} - Rol: {c.role}
+                          </option>
+                        ))}
+                    </optgroup>
+                  )}
+                  <option value="__MANUAL__">+ Ingresar otro nombre manualmente...</option>
+                </select>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    id="cashierName"
+                    type="text"
+                    required
+                    placeholder="Ej. María Pérez"
+                    value={cashierName}
+                    onChange={(e) => setCashierName(e.target.value)}
+                    className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/40 pl-10 pr-3.5 text-xs font-bold text-[#181C20] outline-none focus:border-transparent focus:ring-2 focus:ring-[#EAA228]"
+                  />
+                  {staffCashiers.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setIsManualCashier(false)}
+                      className="px-3 rounded-xl border border-[#EAE5DE] text-xs font-bold text-[#666E7A] hover:bg-[#FAF7F2] shrink-0"
+                    >
+                      Lista
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            <p className="mt-1 text-[10px] text-[#666E7A]">
+              Selecciona la cajera registrada por el administrador en el módulo de Personal.
+            </p>
           </div>
 
           <div>
@@ -157,8 +280,11 @@ export function OpenShiftModal({
                 className="h-11 w-full rounded-xl border border-[#D9D3C7] bg-[#FAF7F2]/40 pl-10 pr-3.5 text-sm font-black text-[#181C20] outline-none focus:border-transparent focus:ring-2 focus:ring-[#EAA228]"
               />
             </div>
-            <p className="mt-1 text-[11px] text-[#666E7A]">
-              Dinero base que se deja en la gaveta antes de registrar la primera venta.
+            <p className="mt-1 text-[11px] text-[#666E7A] flex items-center justify-between">
+              <span>Dinero base que se deja en la gaveta antes de registrar la primera venta.</span>
+              {adminConfiguredCash !== null && (
+                <span className="font-bold text-[#8F5E00]">(Configurado por Admin: ${adminConfiguredCash.toFixed(2)})</span>
+              )}
             </p>
           </div>
 

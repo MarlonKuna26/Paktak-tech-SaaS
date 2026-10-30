@@ -43,6 +43,7 @@ export function CashShiftManager({
   const [shiftsHistory, setShiftsHistory] = useState<Array<CashShift & { liveMetrics?: ShiftLiveMetrics }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [defaultInitialCash, setDefaultInitialCash] = useState<number>(50);
 
   const [isOpenModalOpen, setIsOpenModalOpen] = useState(false);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
@@ -60,6 +61,7 @@ export function CashShiftManager({
       setCurrentShift(data.currentShift || null);
       setLiveMetrics(data.currentMetrics || null);
       setShiftsHistory(data.shifts || []);
+      if (data.defaultInitialCashDollars !== undefined) setDefaultInitialCash(data.defaultInitialCashDollars);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Error de conexión');
     } finally {
@@ -77,6 +79,7 @@ export function CashShiftManager({
       <OpenShiftModal
         isOpen={isOpenModalOpen}
         onClose={() => setIsOpenModalOpen(false)}
+        initialCashDefault={defaultInitialCash}
         onShiftOpened={() => void loadData()}
       />
 

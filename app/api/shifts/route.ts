@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentStaff } from '@/lib/auth/get-current-staff';
 import { CashShiftModel } from '@/lib/models/cash-shift.model';
+import { RestaurantModel } from '@/lib/models/restaurant.model';
 
 export async function GET(request: Request) {
   const staff = await getCurrentStaff();
@@ -12,18 +13,30 @@ export async function GET(request: Request) {
   const dateStr = searchParams.get('date');
 
   try {
+    const restaurant = await RestaurantModel.getById(staff.restaurantId).catch(() => null);
+    const defaultInitialCashDollars = (restaurant?.settings as any)?.default_initial_cash_dollars ?? 50;
+
     if (dateStr) {
       // Listar turnos del día seleccionado
       const startIso = `${dateStr}T00:00:00.000Z`;
       const endIso = `${dateStr}T23:59:59.999Z`;
       const shifts = await CashShiftModel.listByDate(staff.restaurantId, startIso, endIso);
       const current = await CashShiftModel.getCurrentShift(staff.restaurantId);
-      return NextResponse.json({ shifts, currentShift: current.shift, currentMetrics: current.liveMetrics });
+      return NextResponse.json({
+        shifts,
+        currentShift: current.shift,
+        currentMetrics: current.liveMetrics,
+        defaultInitialCashDollars,
+      });
     }
 
     // Por defecto retornar el turno abierto en curso
     const current = await CashShiftModel.getCurrentShift(staff.restaurantId);
-    return NextResponse.json({ currentShift: current.shift, liveMetrics: current.liveMetrics });
+    return NextResponse.json({
+      currentShift: current.shift,
+      liveMetrics: current.liveMetrics,
+      defaultInitialCashDollars,
+    });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Error al consultar turnos de caja';
     return NextResponse.json({ error: msg }, { status: 500 });
@@ -40,13 +53,14 @@ export async function POST(request: Request) {
     const body = (await request.json().catch(() => ({}))) as {
       shiftName?: string;
       cashierName?: string;
+      cashierUserId?: string;
       initialCashDollars?: number;
       notes?: string;
     };
 
     const initialCashCents = Math.round(Number(body.initialCashDollars || 0) * 100);
 
-    const newShift = await CashShiftModel.openShift(staff.restaurantId, staff.id, {
+    const newShift = await CashShiftModel.openShift(staff.restaurantId, body.cashierUserId || staff.id, {
       shiftName: body.shiftName || 'Turno 1',
       cashierName: body.cashierName || staff.restaurantName || 'Cajera',
       initialCashCents,
@@ -59,4 +73,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 }
-

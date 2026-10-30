@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getCurrentStaff } from '@/lib/auth/get-current-staff';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { CashShiftModel } from '@/lib/models/cash-shift.model';
 
 const staffTakeawaySchema = z.object({
   customerName: z.string().trim().max(120).default('Cliente Para Llevar'),
@@ -38,6 +39,16 @@ export async function POST(request: Request) {
   const { customerName, customerPhone, notes, items, payNow, paymentMethod, paidCents } = parsed.data;
 
   try {
+    if (payNow) {
+      const currentShift = await CashShiftModel.getCurrentShift(staff.restaurantId);
+      if (!currentShift.shift) {
+        return NextResponse.json(
+          { error: 'No se puede cobrar el pedido porque la caja está cerrada. Debes realizar la Apertura de Turno con el fondo inicial antes de vender.' },
+          { status: 400 },
+        );
+      }
+    }
+
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase.rpc('create_staff_takeaway_order', {
       p_restaurant_id: staff.restaurantId,

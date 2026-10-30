@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getCurrentStaff } from '@/lib/auth/get-current-staff';
 import { OrderModel } from '@/lib/models/order.model';
+import { CashShiftModel } from '@/lib/models/cash-shift.model';
 
 const checkoutSchema = z.object({
   paymentMethod: z.enum(['efectivo', 'transferencia', 'tarjeta', 'otro']),
@@ -48,6 +49,14 @@ export class OrderController {
     }
 
     try {
+      const currentShift = await CashShiftModel.getCurrentShift(staff.restaurantId);
+      if (!currentShift.shift) {
+        return NextResponse.json(
+          { error: 'No se puede procesar el cobro porque la caja está cerrada. Debes realizar la Apertura de Turno con el fondo inicial antes de vender.' },
+          { status: 400 },
+        );
+      }
+
       const result = await OrderModel.checkoutTableOrder(
         id,
         parsed.data.paymentMethod,
