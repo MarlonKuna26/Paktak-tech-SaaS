@@ -25,6 +25,7 @@ import {
   Copy,
   CheckCheck,
   ShoppingBag,
+  Sparkles,
 } from 'lucide-react';
 import type { RestaurantTable, TableStatus, AvailableReservation } from '@/lib/tables/types';
 import type { StaffRole } from '@/lib/auth/get-current-staff';
@@ -381,6 +382,34 @@ export function TableManager({
       setError('Error al actualizar estado de la mesa.');
     }
   }
+
+  // Liberar todas las mesas del restaurante
+  const handleReleaseAllPrompt = () => {
+    setConfirmModalData({
+      isOpen: true,
+      title: '¿Liberar Todas las Mesas del Salón?',
+      description: `Se marcarán como libres las ${occupiedTables} mesa(s) ocupadas del restaurante. Cualquier orden abierta será liquidada y los platos marcados como entregados, dejando el plano totalmente libre para un nuevo turno o día.`,
+      confirmText: 'Sí, Liberar Salón Completo',
+      variant: 'orange',
+      onConfirm: async () => {
+        try {
+          const res = await fetch('/api/tables/release-all', { method: 'POST' });
+          const body = (await res.json()) as { success?: boolean; message?: string; error?: string };
+          if (!res.ok) {
+            setError(body.error || 'No se pudieron liberar las mesas.');
+            return;
+          }
+          setSuccessMsg(body.message || 'Todas las mesas del restaurante han sido liberadas exitosamente.');
+          await loadTables(true);
+          await loadUnassignedReservations();
+        } catch {
+          setError('Error de red al liberar todas las mesas.');
+        } finally {
+          setConfirmModalData(null);
+        }
+      },
+    });
+  };
 
   // Abrir modal de cobro de cuenta para mesa ocupada
   async function openTableCheckout(table: RestaurantTable) {
@@ -790,6 +819,18 @@ export function TableManager({
               >
                 <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Enviar Carta WhatsApp</span>
+              </button>
+            )}
+
+            {occupiedTables > 0 && ['owner', 'admin', 'host', 'cashier'].includes(userRole) && (
+              <button
+                type="button"
+                onClick={handleReleaseAllPrompt}
+                className="h-9 px-3.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-black transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+                title="Liberar todas las mesas para el nuevo turno o día"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#EAA228]" />
+                <span>Liberar Todas ({occupiedTables})</span>
               </button>
             )}
           </div>
@@ -1370,11 +1411,21 @@ export function TableManager({
                             ) : (
                               <button
                                 type="button"
-                                disabled
-                                title="No puedes liberar la mesa hasta que la comida esté servida en mesa"
-                                className="h-9 rounded-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 px-2 text-xs font-bold text-zinc-400 dark:text-zinc-500 cursor-not-allowed flex items-center justify-center gap-1.5 opacity-75"
+                                onClick={() => {
+                                  setConfirmModalData({
+                                    isOpen: true,
+                                    title: `Liberar Mesa #${table.table_number}`,
+                                    description: `La comanda de la Mesa #${table.table_number} ya está pagada. Al liberar la mesa, los platos pendientes se marcarán automáticamente como entregados y la mesa quedará disponible para nuevos comensales. ¿Deseas liberarla ahora?`,
+                                    confirmText: 'Sí, Liberar Mesa',
+                                    variant: 'orange',
+                                    onConfirm: async () => {
+                                      await updateTableStatus(table.id, 'libre');
+                                      setConfirmModalData(null);
+                                    },
+                                  });
+                                }}
+                                className="h-9 rounded-full bg-[#EAA228] hover:bg-[#D99318] px-2 text-xs font-bold text-zinc-950 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                               >
-                                <Lock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                                 <span>Liberar Mesa</span>
                               </button>
                             )

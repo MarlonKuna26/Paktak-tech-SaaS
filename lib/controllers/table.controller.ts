@@ -193,4 +193,26 @@ export class TableController {
       return NextResponse.json({ error: msg }, { status: 400 });
     }
   }
+
+  /**
+   * POST /api/tables/release-all
+   */
+  static async releaseAll() {
+    const staff = await getCurrentStaff();
+    if (!staff || !['owner', 'admin', 'host', 'cashier'].includes(staff.role)) {
+      return NextResponse.json({ error: 'No autorizado para liberar todas las mesas' }, { status: 403 });
+    }
+
+    try {
+      const released = await TableModel.releaseAll(staff.restaurantId);
+      return NextResponse.json({
+        success: true,
+        count: released.length,
+        message: `Se han liberado ${released.length} mesa(s) del salón exitosamente.`,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al liberar todas las mesas';
+      return NextResponse.json({ error: msg }, { status: 400 });
+    }
+  }
 }

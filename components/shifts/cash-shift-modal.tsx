@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Wallet,
   Clock,
@@ -218,6 +218,36 @@ export function CloseShiftModal({
   const [closingNotes, setClosingNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [occupiedTablesCount, setOccupiedTablesCount] = useState<number | null>(null);
+  const [occupiedTablesList, setOccupiedTablesList] = useState<string[]>([]);
+  const [isCheckingTables, setIsCheckingTables] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let isCancelled = false;
+    async function checkOccupiedTables() {
+      setIsCheckingTables(true);
+      try {
+        const res = await fetch('/api/tables');
+        if (res.ok) {
+          const body = (await res.json()) as { tables?: Array<{ status: string; table_number: number }> };
+          const occ = (body.tables || []).filter((t) => t.status === 'ocupada');
+          if (!isCancelled) {
+            setOccupiedTablesCount(occ.length);
+            setOccupiedTablesList(occ.map((t) => `#${t.table_number}`));
+          }
+        }
+      } catch {
+        // Ignorar fallo de red puntual
+      } finally {
+        if (!isCancelled) setIsCheckingTables(false);
+      }
+    }
+    void checkOccupiedTables();
+    return () => {
+      isCancelled = true;
+    };
+  }, [isOpen]);
 
   if (!isOpen || !shift) return null;
 
@@ -327,6 +357,27 @@ export function CloseShiftModal({
           </div>
         </div>
 
+        {/* Advertencia si hay mesas ocupadas */}
+        {occupiedTablesCount !== null && occupiedTablesCount > 0 && (
+          <div className="rounded-2xl border border-rose-300 bg-rose-50 p-4 text-rose-800 space-y-2">
+            <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider text-rose-900">
+              <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
+              <span>Cierre Bloqueado: Hay {occupiedTablesCount} mesa(s) ocupada(s)</span>
+            </div>
+            <p className="text-xs text-rose-800">
+              No puedes realizar el arqueo ni cerrar el turno mientras haya comensales en el salón ({occupiedTablesList.join(', ')}). Debes cobrar y liberar todas las mesas antes de cerrar caja.
+            </p>
+            <div className="pt-1">
+              <a
+                href="/admin/mesas"
+                className="inline-flex items-center gap-1.5 text-xs font-black underline text-rose-950 hover:text-black cursor-pointer"
+              >
+                <span>Ir al Plano de Mesas para cobrar y liberar →</span>
+              </a>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleClose} className="space-y-4">
           <div>
             <label htmlFor="countedCash" className="block text-xs font-black uppercase tracking-wider text-[#181C20] mb-1.5">
@@ -428,10 +479,14 @@ export function CloseShiftModal({
           <div className="pt-2">
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="h-12 w-full rounded-xl bg-[#181C20] hover:bg-black text-xs font-black text-white uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              disabled={isSubmitting || (occupiedTablesCount !== null && occupiedTablesCount > 0)}
+              className="h-12 w-full rounded-xl bg-[#181C20] hover:bg-black text-xs font-black text-white uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Registrando Arqueo...' : 'Confirmar Arqueo & Cerrar Turno'}
+              {isSubmitting
+                ? 'Registrando Arqueo...'
+                : occupiedTablesCount !== null && occupiedTablesCount > 0
+                  ? `Bloqueado: ${occupiedTablesCount} Mesa(s) Ocupada(s)`
+                  : 'Confirmar Arqueo & Cerrar Turno'}
             </button>
           </div>
         </form>

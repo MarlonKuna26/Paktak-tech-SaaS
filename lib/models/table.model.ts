@@ -27,7 +27,11 @@ export class TableModel {
   static async listByRestaurant(restaurantId: string) {
     const supabase = await createSupabaseServerClient();
 
-    // 1. Obtener mesas, reservas y órdenes en paralelo
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startOfDay = today.toISOString();
+
+    // 1. Obtener mesas, reservas y órdenes de hoy en paralelo
     const [
       { data: tables, error: tablesError },
       { data: reservations },
@@ -46,9 +50,10 @@ export class TableModel {
         .in('status', ['pendiente', 'confirmada']),
       supabase
         .from('orders')
-        .select('id, table_id, order_number, status, total_cents, order_items(id, status)')
+        .select('id, table_id, order_number, status, total_cents, opened_at, order_items(id, status)')
         .eq('restaurant_id', restaurantId)
         .in('status', ['abierta', 'en_espera', 'pagada'])
+        .gte('opened_at', startOfDay)
         .order('opened_at', { ascending: false }),
     ]);
 
@@ -91,6 +96,26 @@ export class TableModel {
         items_count: totalItems,
         ready_items_count: readyItems,
       });
+    }
+
+    // Auto-liberación de mesas que quedaron como ocupadas de días anteriores
+    const staleOccupiedTables = (tables ?? []).filter(
+      (t) => t.status === 'ocupada' && !orderMap.has(t.id)
+    );
+
+    if (staleOccupiedTables.length > 0) {
+      const staleIds = staleOccupiedTables.map((t) => t.id);
+      await supabase
+        .from('tables')
+        .update({ status: 'libre' })
+        .in('id', staleIds)
+        .eq('restaurant_id', restaurantId);
+
+      for (const t of tables ?? []) {
+        if (staleIds.includes(t.id)) {
+          t.status = 'libre';
+        }
+      }
     }
 
     return (tables ?? []).map((t) => ({
@@ -244,31 +269,41 @@ export class TableModel {
 
       const tableNum = tableData?.table_number ? `#${tableData.table_number}` : '';
 
-      // 2. Verificar si hay órdenes activas asociadas a esta mesa
-      const { data: activeOrders } = await supabase
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const startOfDay = today.toISOString();
+
+      // 2. Verificar si hay órdenes abiertas de hoy pendientes de cobro
+      const { data: openOrders } = await supabase
         .from('orders')
-        .select('id, order_number, status, order_items(id, status)')
+        .select('id, order_number, status')
         .eq('table_id', tableId)
         .eq('restaurant_id', restaurantId)
-        .in('status', ['abierta', 'pagada']);
+        .eq('status', 'abierta')
+        .gte('opened_at', startOfDay);
 
-      if (activeOrders && activeOrders.length > 0) {
-        for (const ord of activeOrders) {
-          const rawItems = (ord.order_items || []) as Array<{ id: string; status: string }>;
-          const unservedItems = rawItems.filter((it) => it.status !== 'entregado');
+      if (openOrders && openOrders.length > 0) {
+        const first = openOrders[0];
+        throw new Error(
+          `No se puede liberar la mesa ${tableNum}. La comanda #${first.order_number} aún no ha sido cobrada. Por favor cobra la cuenta antes de liberar la mesa.`,
+        );
+      }
 
-          if (rawItems.length > 0 && unservedItems.length > 0) {
-            throw new Error(
-              `No se puede liberar la mesa ${tableNum}. La comanda #${ord.order_number} aún tiene comida pendiente de ser servida (${unservedItems.length} plato(s) en cocina/despacho). Debes marcar la comida como servida en mesa antes de liberar.`,
-            );
-          }
+      // 3. Si hay órdenes pagadas de la mesa, marcar platos pendientes como entregados
+      const { data: paidOrders } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('table_id', tableId)
+        .eq('restaurant_id', restaurantId)
+        .eq('status', 'pagada');
 
-          if (ord.status === 'abierta') {
-            throw new Error(
-              `No se puede liberar la mesa ${tableNum}. La comanda #${ord.order_number} aún no ha sido cobrada. Por favor cobra la cuenta antes de liberar la mesa.`,
-            );
-          }
-        }
+      if (paidOrders && paidOrders.length > 0) {
+        const paidIds = paidOrders.map((p) => p.id);
+        await supabase
+          .from('order_items')
+          .update({ status: 'entregado', status_changed_at: new Date().toISOString() })
+          .in('order_id', paidIds)
+          .neq('status', 'entregado');
       }
     }
 
@@ -294,6 +329,63 @@ export class TableModel {
     }
 
     return updatedTable;
+  }
+
+  /**
+   * Libera todas las mesas del restaurante marcando órdenes abiertas como pagadas/cerradas
+   */
+  static async releaseAll(restaurantId: string) {
+    const supabase = await createSupabaseServerClient();
+
+    // 1. Obtener órdenes activas o recientes de mesas
+    const { data: activeOrders } = await supabase
+      .from('orders')
+      .select('id, status')
+      .eq('restaurant_id', restaurantId)
+      .not('table_id', 'is', null)
+      .in('status', ['abierta', 'en_espera', 'pagada']);
+
+    const allOrderIds = (activeOrders ?? []).map((o) => o.id);
+    const unclosedOrderIds = (activeOrders ?? [])
+      .filter((o) => o.status !== 'pagada')
+      .map((o) => o.id);
+
+    // 2. Marcar ítems pendientes como entregados
+    if (allOrderIds.length > 0) {
+      await supabase
+        .from('order_items')
+        .update({ status: 'entregado', status_changed_at: new Date().toISOString() })
+        .in('order_id', allOrderIds)
+        .neq('status', 'entregado');
+
+      // 3. Marcar órdenes no pagadas como pagadas
+      if (unclosedOrderIds.length > 0) {
+        await supabase
+          .from('orders')
+          .update({ status: 'pagada', closed_at: new Date().toISOString() })
+          .in('id', unclosedOrderIds);
+      }
+    }
+
+    // 4. Liberar todas las mesas
+    const { data: updatedTables, error } = await supabase
+      .from('tables')
+      .update({ status: 'libre' })
+      .eq('restaurant_id', restaurantId)
+      .neq('status', 'libre')
+      .select('id, table_number');
+
+    if (error) throw new Error(error.message);
+
+    // 5. Desvincular reservas
+    await supabase
+      .from('reservations')
+      .update({ table_id: null })
+      .eq('restaurant_id', restaurantId)
+      .not('table_id', 'is', null)
+      .in('status', ['pendiente', 'confirmada']);
+
+    return updatedTables ?? [];
   }
 
   /**

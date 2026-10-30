@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentStaff } from '@/lib/auth/get-current-staff';
 import { CashShiftModel } from '@/lib/models/cash-shift.model';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   const staff = await getCurrentStaff();
@@ -18,6 +19,24 @@ export async function POST(request: Request) {
 
     if (!body.shiftId) {
       return NextResponse.json({ error: 'Falta el identificador del turno.' }, { status: 400 });
+    }
+
+    // Regla de Negocio: No se puede cerrar caja si aún hay mesas ocupadas en el salón
+    const supabase = await createSupabaseServerClient();
+    const { data: occupiedTables } = await supabase
+      .from('tables')
+      .select('id, table_number')
+      .eq('restaurant_id', staff.restaurantId)
+      .eq('status', 'ocupada');
+
+    if (occupiedTables && occupiedTables.length > 0) {
+      const nums = occupiedTables.map((t) => `#${t.table_number}`).join(', ');
+      return NextResponse.json(
+        {
+          error: `No se puede cerrar la caja. Aún hay ${occupiedTables.length} mesa(s) ocupada(s) en el salón (${nums}). Debes cobrar y liberar todas las mesas antes de realizar el arqueo.`,
+        },
+        { status: 400 },
+      );
     }
 
     const finalCashCents = Math.round(Number(body.finalCashDollars || 0) * 100);

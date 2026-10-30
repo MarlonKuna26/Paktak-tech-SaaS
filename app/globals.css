@@ -221,11 +221,13 @@
   }
 }
 
-/* Hide scrollbar for category tabs */
-.no-scrollbar::-webkit-scrollbar {
+/* Hide scrollbar for category tabs and horizontal toolbars */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
   display: none;
 }
-.no-scrollbar {
+.no-scrollbar,
+.scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
