@@ -22,15 +22,18 @@ export function OpenShiftModal({
   onClose,
   onShiftOpened,
   initialCashDefault,
+  userRole: propUserRole,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onShiftOpened: (shift: CashShift) => void;
   initialCashDefault?: number;
+  userRole?: string;
 }) {
   const [shiftName, setShiftName] = useState('Turno 1 (Mañana)');
   const [cashierName, setCashierName] = useState('');
   const [cashierUserId, setCashierUserId] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>(propUserRole || '');
   const [initialCash, setInitialCash] = useState(
     initialCashDefault !== undefined ? Number(initialCashDefault).toFixed(2) : '50.00'
   );
@@ -44,6 +47,10 @@ export function OpenShiftModal({
     Array<{ id: string; userId: string; fullName: string; role: string; email: string }>
   >([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
+
+  useEffect(() => {
+    if (propUserRole) setUserRole(propUserRole);
+  }, [propUserRole]);
 
   // Cargar cajeros creados por el administrador y configuración base de caja
   useEffect(() => {
@@ -83,10 +90,15 @@ export function OpenShiftModal({
             setInitialCash(val.toFixed(2));
             setAdminConfiguredCash(val);
           }
+          if (data.userRole) {
+            setUserRole((prev) => prev || data.userRole);
+          }
         })
         .catch(() => {});
     }
   }, [isOpen, initialCashDefault]);
+
+  const isAdmin = ['owner', 'admin'].includes(userRole);
 
   if (!isOpen) return null;
 
@@ -97,7 +109,7 @@ export function OpenShiftModal({
       return;
     }
 
-    const dollars = parseFloat(initialCash.replace(',', '.'));
+    const dollars = parseFloat(String(initialCash).replace(',', '.'));
     if (isNaN(dollars) || dollars < 0) {
       setError('Ingresa un monto de fondo inicial válido.');
       return;
@@ -213,8 +225,20 @@ export function OpenShiftModal({
                   ))}
                 </select>
               ) : (
-                <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">
-                  No hay cajeras creadas en el sistema. El administrador debe registrar una cajera en el módulo de Personal (/admin/personal) para poder aperturar el turno.
+                <div className="space-y-2 w-full">
+                  <div className="rounded-xl border border-amber-300 bg-amber-50 p-2.5 text-xs font-bold text-[#8F5E00]">
+                    No hay cajeras registradas en Personal. Crea una cajera en Personal (/admin/personal).
+                  </div>
+                  {isAdmin && (
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nombre del responsable del turno"
+                      value={cashierName}
+                      onChange={(e) => setCashierName(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-[#D9D3C7] bg-white pl-10 pr-3.5 text-xs font-bold text-[#181C20] outline-none focus:border-[#EAA228] focus:ring-2 focus:ring-[#EAA228]"
+                    />
+                  )}
                 </div>
               )}
             </div>
@@ -269,7 +293,7 @@ export function OpenShiftModal({
           <div className="pt-2">
             <button
               type="submit"
-              disabled={isSubmitting || staffCashiers.length === 0}
+              disabled={isSubmitting || (!isAdmin && staffCashiers.length === 0)}
               className="h-12 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-xs font-black text-[#181C20] uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? 'Abriendo turno...' : 'Confirmar Apertura de Caja'}

@@ -80,6 +80,7 @@ export function CashShiftManager({
         isOpen={isOpenModalOpen}
         onClose={() => setIsOpenModalOpen(false)}
         initialCashDefault={defaultInitialCash}
+        userRole={userRole}
         onShiftOpened={() => void loadData()}
       />
 

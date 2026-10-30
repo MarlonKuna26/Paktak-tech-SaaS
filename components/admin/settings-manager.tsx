@@ -57,7 +57,7 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
   const [taxRate, setTaxRate] = useState<number>(initialData.settings?.tax_rate ?? 15);
   const [taxName, setTaxName] = useState<string>(initialData.settings?.tax_name || 'IVA');
   const [defaultTip, setDefaultTip] = useState<number>(initialData.settings?.default_tip_percentage ?? 10);
-  const [defaultInitialCash, setDefaultInitialCash] = useState<number>(initialData.settings?.default_initial_cash_dollars ?? 50);
+  const [defaultInitialCash, setDefaultInitialCash] = useState<string>(initialData.settings?.default_initial_cash_dollars !== undefined ? String(initialData.settings.default_initial_cash_dollars) : "50.00");
   const [openingHours, setOpeningHours] = useState(initialData.settings?.opening_hours || '');
   const [ticketFooter, setTicketFooter] = useState(
     initialData.settings?.ticket_footer || '¡Gracias por su visita! Por favor vuelva pronto.'
@@ -92,7 +92,7 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
             tax_rate: Number(taxRate) || 0,
             tax_name: taxName.trim() || 'IVA',
             default_tip_percentage: Number(defaultTip) || 0,
-            default_initial_cash_dollars: Number(defaultInitialCash) || 0,
+            default_initial_cash_dollars: parseFloat(String(defaultInitialCash).replace(',', '.')) || 0,
             opening_hours: openingHours.trim(),
             ticket_footer: ticketFooter.trim(),
             sound_alerts_enabled: soundAlerts,
@@ -332,11 +332,10 @@ export function SettingsManager({ initialData }: { initialData: RestaurantData }
                   <span>Fondo de Caja Inicial Base para Apertura de Turnos ($ USD)</span>
                 </label>
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
+                  inputMode="decimal"
                   value={defaultInitialCash}
-                  onChange={(e) => setDefaultInitialCash(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => setDefaultInitialCash(e.target.value)}
                   placeholder="50.00"
                   className="w-full h-11 rounded-xl border border-[#D9D3C7] bg-white px-4 text-xs font-black text-[#181C20] focus:ring-2 focus:ring-[#EAA228] focus:outline-none font-mono"
                 />

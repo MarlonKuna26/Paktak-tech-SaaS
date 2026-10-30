@@ -27,6 +27,7 @@ export async function GET(request: Request) {
         currentShift: current.shift,
         currentMetrics: current.liveMetrics,
         defaultInitialCashDollars,
+        userRole: staff.role,
       });
     }
 
@@ -36,6 +37,7 @@ export async function GET(request: Request) {
       currentShift: current.shift,
       liveMetrics: current.liveMetrics,
       defaultInitialCashDollars,
+      userRole: staff.role,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Error al consultar turnos de caja';

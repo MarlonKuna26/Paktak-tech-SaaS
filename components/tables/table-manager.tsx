@@ -1943,6 +1943,7 @@ export function TableManager({
         isOpen={showOpenShiftModal}
         onClose={() => setShowOpenShiftModal(false)}
         initialCashDefault={defaultInitialCash}
+        userRole={userRole}
         onShiftOpened={(shift) => {
           setActiveShift(shift);
           setShowOpenShiftModal(false);
