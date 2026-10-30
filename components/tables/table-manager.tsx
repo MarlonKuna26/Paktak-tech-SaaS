@@ -128,12 +128,16 @@ export function TableManager({
   const [isCopiedMenuLink, setIsCopiedMenuLink] = useState(false);
 
   const openComanderoForTable = (tableId: string) => {
+    if (userRole === 'cashier' && !activeShift) {
+      setError('No puedes ingresar ventas ni tomar órdenes en mesas porque la caja está cerrada. El administrador debe aperturar el turno y asignarte el fondo de caja inicial.');
+      return;
+    }
     setComanderoTableId(tableId);
     setActiveTab('comandero');
   };
 
   // Estado de Turno de Caja (Apertura requerida antes de vender)
-  const [activeShift, setActiveShift] = useState<{ id: string; shift_name: string; cashier_name: string } | null>(null);
+  const [activeShift, setActiveShift] = useState<{ id: string; shift_name: string; cashier_name: string; initial_cash_cents?: number } | null>(null);
   const [defaultInitialCash, setDefaultInitialCash] = useState<number>(50);
   const [isCheckingShift, setIsCheckingShift] = useState(true);
   const [showOpenShiftModal, setShowOpenShiftModal] = useState(false);
@@ -792,18 +796,39 @@ export function TableManager({
             </span>
             <span>
               <strong>Caja Cerrada:</strong> {userRole === 'cashier'
-                ? 'Debes realizar la apertura de turno con el fondo inicial antes de registrar ventas y cobrar comandas.'
-                : 'Turno pendiente de apertura para el personal de caja. Como administrador puedes abrir el turno con el fondo asignado o realizar ventas de supervisión.'}
+                ? 'El administrador aún no ha aperturado el turno ni asignado la cajera y el fondo de caja inicial. No puedes registrar ventas hasta que se asigne el turno.'
+                : 'Turno no iniciado. Como administrador, debes comenzar el día realizando la apertura de turno para asignar la cajera responsable y el fondo de gaveta inicial.'}
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowOpenShiftModal(true)}
-            className="h-8.5 px-3.5 rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-[#181C20] text-xs font-black shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer transition-all"
-          >
-            <Wallet className="w-3.5 h-3.5" />
-            <span>Aperturar Turno Ahora</span>
-          </button>
+          {['owner', 'admin'].includes(userRole) && (
+            <button
+              type="button"
+              onClick={() => setShowOpenShiftModal(true)}
+              className="h-8.5 px-3.5 rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-[#181C20] text-xs font-black shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer transition-all"
+            >
+              <Wallet className="w-3.5 h-3.5" />
+              <span>Aperturar Turno Ahora</span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Aviso de Turno Activo */}
+      {activeShift && !isCheckingShift && (
+        <div className="rounded-2xl border border-[#D1E7DD] bg-[#F7FBF9] p-3 sm:p-3.5 text-[#0F5132] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 text-xs font-bold">
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            </span>
+            <span>
+              <strong>Turno Activo:</strong> {activeShift.shift_name} &bull; Cajera Asignada: <span className="underline font-black">{activeShift.cashier_name}</span> {activeShift.initial_cash_cents !== undefined && (
+                <> &bull; Fondo Inicial Asignado: <span className="font-mono font-black">${(Number(activeShift.initial_cash_cents || 0) / 100).toFixed(2)}</span></>
+              )}
+            </span>
+          </div>
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black shrink-0">
+            Caja Operativa
+          </span>
         </div>
       )}
 
@@ -833,6 +858,10 @@ export function TableManager({
             <button
               type="button"
               onClick={() => {
+                if (userRole === 'cashier' && !activeShift) {
+                  setError('No puedes ingresar ventas ni tomar órdenes porque la caja está cerrada. El administrador debe aperturar el turno y asignarte el fondo de caja inicial.');
+                  return;
+                }
                 setComanderoTableId(undefined);
                 setActiveTab('comandero');
               }}
@@ -866,7 +895,7 @@ export function TableManager({
               type="button"
               onClick={() => {
                 if (userRole === 'cashier' && !activeShift) {
-                  setError('No se puede registrar pedido para llevar porque la caja está cerrada. Debes realizar la Apertura de Turno con el fondo inicial antes de registrar ventas.');
+                  setError('No puedes ingresar pedidos para llevar porque la caja está cerrada. El administrador debe aperturar el turno y asignarte el fondo de caja inicial.');
                   return;
                 }
                 setShowTakeawayModal(true);
@@ -2075,7 +2104,7 @@ export function TableManager({
         variant="error"
         onClose={() => setError('')}
         actionButton={
-          error.includes('Apertura de Turno') || error.includes('caja está cerrada')
+          (error.includes('Apertura de Turno') || error.includes('caja está cerrada')) && ['owner', 'admin'].includes(userRole)
             ? {
                 label: 'Aperturar Turno Ahora',
                 onClick: () => {

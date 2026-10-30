@@ -47,8 +47,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const staff = await getCurrentStaff();
-  if (!staff || !['owner', 'admin', 'host', 'cashier'].includes(staff.role)) {
-    return NextResponse.json({ error: 'No autorizado para abrir turno' }, { status: 403 });
+  if (!staff || !['owner', 'admin'].includes(staff.role)) {
+    return NextResponse.json({ error: 'Solo el administrador puede aperturar el turno y asignar el personal y fondo de caja.' }, { status: 403 });
   }
 
   try {

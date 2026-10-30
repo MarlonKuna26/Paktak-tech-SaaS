@@ -318,7 +318,7 @@ export function OpenShiftModal({
           <div className="pt-2">
             <button
               type="submit"
-              disabled={isSubmitting || (!isAdmin && staffCashiers.length === 0)}
+              disabled={isSubmitting || !isAdmin || staffCashiers.length === 0}
               className="h-12 w-full rounded-xl bg-[#EAA228] hover:bg-[#D99318] text-xs font-black text-[#181C20] uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? 'Abriendo turno...' : 'Confirmar Apertura de Caja'}

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentStaff } from '@/lib/auth/get-current-staff';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { CashShiftModel } from '@/lib/models/cash-shift.model';
 import { z } from 'zod';
 
 const syncItemSchema = z.object({
@@ -61,6 +62,16 @@ export async function POST(request: Request) {
 
     try {
       if (mutation.actionType === 'CREATE_ORDER' || mutation.actionType === 'ADD_ITEMS') {
+        if (staff.role === 'cashier') {
+          const currentShift = await CashShiftModel.getCurrentShift(staff.restaurantId);
+          if (!currentShift.shift) {
+            errors.push({
+              id: mutation.id,
+              error: 'No se puede registrar la comanda porque la caja no ha sido aperturada por el administrador.',
+            });
+            continue;
+          }
+        }
         const { orderId, tableId, items, customerName } = mutation.payload;
 
         const formattedItems = (items || []).map((it) => ({
