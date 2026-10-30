@@ -9,6 +9,7 @@ export type OutboxMutation = {
     tableId?: string;
     tableNumber?: number;
     waiterId: string;
+    customerName?: string;
     items?: Array<{
       id: string; // UUID del item
       productId: string;
@@ -57,6 +58,7 @@ export type LocalOrder = {
   waiterId: string;
   status: 'abierta' | 'pagada' | 'cancelada';
   totalCents: number;
+  customerName?: string;
   items: Array<{
     id: string;
     productId: string;

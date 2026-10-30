@@ -13,7 +13,9 @@ import {
   Trash2,
   AlertTriangle,
   Utensils,
+  User,
 } from 'lucide-react';
+import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { ThermalReceiptModal } from '@/components/orders/thermal-receipt-modal';
 import { AlertModal } from '@/components/ui/alert-modal';
 
@@ -33,6 +35,7 @@ export type TableOrderDetails = {
   subtotalCents: number;
   items: OrderItem[];
   isServido?: boolean;
+  customerName?: string | null;
 };
 
 export function TableCheckoutModal({
@@ -49,6 +52,7 @@ export function TableCheckoutModal({
   initialKeepTableOccupied?: boolean;
 }) {
   const [currentItems, setCurrentItems] = useState<OrderItem[]>(order.items);
+  const [customerName, setCustomerName] = useState(order.customerName || '');
   const [tipPercent, setTipPercent] = useState<number | 'custom'>(10);
   const [customTipDollars, setCustomTipDollars] = useState('');
   const [splitPersons, setSplitPersons] = useState<number>(1);
@@ -76,6 +80,7 @@ export function TableCheckoutModal({
     paidCents?: number;
     changeCents?: number;
     tipCents?: number;
+    customerName?: string;
   } | null>(null);
 
   // Subtotal recalculado en vivo según los platos vigentes
@@ -164,9 +169,22 @@ export function TableCheckoutModal({
         return;
       }
 
+      if (customerName.trim() && customerName.trim() !== order.customerName) {
+        try {
+          const supabase = createSupabaseBrowserClient();
+          await supabase
+            .from('orders')
+            .update({ customer_name: customerName.trim() })
+            .eq('id', order.orderId);
+        } catch {
+          // Ignorar fallo secundario de guardado de nombre
+        }
+      }
+
       setCompletedReceiptData({
         orderNumber: `#${order.orderNumber}`,
         tableOrToken: `Mesa #${order.tableNumber}`,
+        customerName: customerName.trim() || undefined,
         dateTime: new Date().toISOString(),
         items: currentItems.map((it) => ({
           name: it.productName,
@@ -317,6 +335,26 @@ export function TableCheckoutModal({
               <span className="text-[#666E7A]">Subtotal consumo:</span>
               <span className="font-mono text-[#181C20]">${(currentSubtotalCents / 100).toFixed(2)}</span>
             </div>
+          </div>
+
+          {/* Titular / Nombre del Cliente para el Comprobante */}
+          <div className="space-y-1.5 rounded-2xl border border-[#EAE5DE] bg-[#FAF7F2] p-3.5">
+            <label className="text-[11px] font-black uppercase tracking-wider text-[#181C20] flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-[#EAA228]" />
+              <span>Cliente / Titular de la Mesa (Para el Comprobante)</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Ej. Josué Fiallos (o Consumidor Final)"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="h-9.5 w-full rounded-xl border border-[#D9D3C7] bg-white px-3 text-xs font-bold text-[#181C20] placeholder:text-[#8C95A3] outline-none focus:border-[#EAA228] focus:ring-1 focus:ring-[#EAA228] transition-all"
+              />
+            </div>
+            <p className="text-[10px] text-[#666E7A]">
+              Este nombre saldrá impreso en el ticket térmico para no confundir las comandas del día.
+            </p>
           </div>
 
           {/* Botón rápido si el cliente desea ordenar más */}

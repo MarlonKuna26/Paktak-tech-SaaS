@@ -22,6 +22,7 @@ const syncMutationSchema = z.object({
     tableId: z.string().optional(),
     tableNumber: z.number().int().optional(),
     waiterId: z.string().optional(),
+    customerName: z.string().optional().nullable(),
     items: z.array(syncItemSchema).optional(),
     status: z.string().optional(),
     clientTimestamp: z.string().optional(),
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
 
     try {
       if (mutation.actionType === 'CREATE_ORDER' || mutation.actionType === 'ADD_ITEMS') {
-        const { orderId, tableId, items } = mutation.payload;
+        const { orderId, tableId, items, customerName } = mutation.payload;
 
         const formattedItems = (items || []).map((it) => ({
           id: it.id,
@@ -75,6 +76,7 @@ export async function POST(request: Request) {
           p_table_id: tableId || null,
           p_items: formattedItems,
           p_device_id: null,
+          p_customer_name: customerName ? String(customerName).trim() : null,
         });
 
         if (rpcError) {

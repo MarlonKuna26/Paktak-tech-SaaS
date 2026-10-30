@@ -50,7 +50,7 @@ export class TableModel {
         .in('status', ['pendiente', 'confirmada']),
       supabase
         .from('orders')
-        .select('id, table_id, order_number, status, total_cents, opened_at, order_items(id, status)')
+        .select('id, table_id, order_number, status, total_cents, opened_at, customer_name, order_items(id, status)')
         .eq('restaurant_id', restaurantId)
         .in('status', ['abierta', 'en_espera', 'pagada'])
         .gte('opened_at', startOfDay)
@@ -95,6 +95,7 @@ export class TableModel {
         kitchen_status: kStatus,
         items_count: totalItems,
         ready_items_count: readyItems,
+        customer_name: ord.customer_name || null,
       });
     }
 

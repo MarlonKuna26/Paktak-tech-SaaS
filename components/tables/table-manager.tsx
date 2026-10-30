@@ -8,6 +8,7 @@ import {
   Plus,
   CreditCard,
   Users,
+  User,
   X,
   Bell,
   Flame,
@@ -423,6 +424,7 @@ export function TableManager({
           order_number,
           subtotal_cents,
           status,
+          customer_name,
           order_items (
             id,
             product_name,
@@ -477,6 +479,7 @@ export function TableManager({
         zone: table.zone,
         subtotalCents: subtotal,
         isServido,
+        customerName: (orderData as any).customer_name || table.active_order?.customer_name || null,
         items: rawItems.map((it) => ({
           id: it.id,
           productName: it.product_name,
@@ -1183,6 +1186,12 @@ export function TableManager({
                         {table.zone || 'Salón'}
                       </span>
                       <h3 className="text-2xl font-extrabold tracking-tight">Mesa #{table.table_number}</h3>
+                      {table.active_order?.customer_name && (
+                        <div className="mt-0.5 flex items-center gap-1 text-xs font-bold text-[#8F5E00]">
+                          <User className="h-3 w-3 text-[#EAA228] shrink-0" />
+                          <span className="truncate max-w-[130px]">{table.active_order.customer_name}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex flex-col items-end gap-1.5">
@@ -1361,6 +1370,19 @@ export function TableManager({
 
                     {table.status === 'ocupada' && (
                       <div className="col-span-2 flex flex-col gap-2">
+                        {table.active_order && (
+                          <div className="flex items-center justify-between rounded-xl bg-[#FAF7F2] border border-[#EAE5DE] px-2.5 py-1 text-xs">
+                            <span className="flex items-center gap-1 text-[#666E7A] font-bold truncate pr-1">
+                              <User className="w-3.5 h-3.5 text-[#EAA228] shrink-0" />
+                              <span className="truncate text-[11px]">
+                                {table.active_order.customer_name || 'Consumidor Final'}
+                              </span>
+                            </span>
+                            <span className="font-mono text-[10px] font-black text-[#181C20] shrink-0">
+                              #{table.active_order.order_number}
+                            </span>
+                          </div>
+                        )}
                         {table.active_order?.is_paid && (
                           <div className="flex items-center justify-between gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300">
                             <span className="flex items-center gap-1.5">

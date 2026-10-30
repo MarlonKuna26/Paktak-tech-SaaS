@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import {
   RefreshCw,
+  Clock,
   ClipboardList,
   Check,
   ArrowRight,
@@ -134,6 +135,7 @@ export function OrderManager({
           total_cents,
           status,
           opened_at,
+          customer_name,
           tables(table_number,zone),
           order_items(id,product_name,quantity,unit_price_cents,notes,status),
           payments(method,amount_cents)
@@ -155,6 +157,7 @@ export function OrderManager({
         total_cents: number;
         status: string;
         opened_at: string;
+        customer_name: string | null;
         tables: { table_number: number; zone: string | null } | null;
         order_items: OrderItemRow[];
         payments: PaymentRow[];
@@ -180,8 +183,8 @@ export function OrderManager({
 
         return {
           id: tOrder.id,
-          tracking_code: `MESA-${tableNum}`,
-          customer_name: `Mesa #${tableNum} (Salón)`,
+          tracking_code: `MESA-${tableNum}-${tOrder.order_number}`,
+          customer_name: tOrder.customer_name?.trim() ? `${tOrder.customer_name.trim()} (Mesa #${tableNum})` : `Mesa #${tableNum} (Salón)`,
           customer_phone: tOrder.tables?.zone || 'Comanda Interna',
           notes: null,
           total_cents: tOrder.total_cents,

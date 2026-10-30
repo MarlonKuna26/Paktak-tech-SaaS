@@ -19,6 +19,7 @@ import {
   Grid,
   List,
   ShoppingBag,
+  User,
 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { offlineDb, type CachedProduct, type CachedTable, type LocalOrder } from '@/lib/offline/db';
@@ -96,6 +97,7 @@ export function WaiterManager({
 
   // Selección de comanda
   const [selectedTable, setSelectedTable] = useState<CachedTable | null>(null);
+  const [customerNameInput, setCustomerNameInput] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string>('todas');
   const [searchQuery, setSearchQuery] = useState('');
@@ -403,6 +405,7 @@ export function WaiterManager({
         waiterId,
         status: 'abierta',
         totalCents: cartTotalCents,
+        customerName: customerNameInput.trim() || undefined,
         items: itemsPayload.map((it) => ({
           id: it.id,
           productId: it.productId,
@@ -426,6 +429,7 @@ export function WaiterManager({
           tableId: selectedTable.id,
           tableNumber: selectedTable.tableNumber,
           waiterId,
+          customerName: customerNameInput.trim() || undefined,
           items: itemsPayload,
           clientTimestamp: nowIso,
         },
@@ -441,6 +445,7 @@ export function WaiterManager({
           tableNumber: selectedTable.tableNumber,
           zone: selectedTable.zone,
           subtotalCents: cartTotalCents,
+          customerName: customerNameInput.trim() || undefined,
           items: itemsPayload.map((it) => ({
             id: it.id,
             productName: it.productName,
@@ -452,6 +457,7 @@ export function WaiterManager({
       }
 
       setCart([]);
+      setCustomerNameInput("");
       setIsSubmitting(false);
       setFeedback({
         ok: true,
@@ -955,6 +961,21 @@ export function WaiterManager({
                 Vaciar
               </button>
             )}
+          </div>
+
+          {/* Titular / Nombre del Cliente */}
+          <div className="space-y-1.5 rounded-xl border border-[#EAE5DE] bg-[#FAF7F2] p-2.5">
+            <label className="text-[10px] font-black uppercase tracking-wider text-[#666E7A] flex items-center gap-1">
+              <User className="w-3 h-3 text-[#EAA228]" />
+              <span>Titular / Cliente de la Mesa</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Ej. Josué Fiallos (o Consumidor Final)"
+              value={customerNameInput}
+              onChange={(e) => setCustomerNameInput(e.target.value)}
+              className="h-8.5 w-full rounded-lg border border-[#D9D3C7] bg-white px-2.5 text-xs font-bold text-[#181C20] placeholder:text-[#8C95A3] outline-none focus:border-[#EAA228] transition-all"
+            />
           </div>
 
           <div className="max-h-[320px] space-y-3 overflow-y-auto pr-1">

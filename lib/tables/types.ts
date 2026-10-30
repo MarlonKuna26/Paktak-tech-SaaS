@@ -26,6 +26,7 @@ export type RestaurantTable = {
     kitchen_status: TableKitchenStatus;
     items_count: number;
     ready_items_count: number;
+    customer_name?: string | null;
   } | null;
 };
 
